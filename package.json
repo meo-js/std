@@ -1,0 +1,76 @@
+{
+  "name": "@meojs/utils",
+  "version": "1.0.0",
+  "description": "Common JavaScript/TypeScript utils.",
+  "author": {
+    "name": "SmallMain",
+    "email": "smallmain@outlook.com",
+    "url": "https://www.smallmain.com/"
+  },
+  "homepage": "https://smallmain.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meo-js/utils"
+  },
+  "bugs": {
+    "url": "https://github.com/meo-js/utils/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./path": {
+      "import": "./dist/path.mjs",
+      "require": "./dist/path.cjs",
+      "types": "./dist/path.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README*.md",
+    "LICENSE"
+  ],
+  "lint-staged": {
+    "*.{js?(x),ts?(x),mts?(x),mjs?(x),cts?(x),cjs?(x)}": [
+      "eslint -c packages/js/misc/eslint.config.js"
+    ]
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged",
+    "commit-msg": "npx commitlint --edit $1"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "scripts": {
+    "build": "npx unbuild",
+    "dev": "npx unbuild --watch",
+    "clean": "rimraf ./dist",
+    "lint": "eslint",
+    "prepare": "simple-git-hooks"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.7.1",
+    "@commitlint/config-conventional": "^19.7.1",
+    "@meojs/cfgs": "^2.0.1",
+    "@types/node": "20.14.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^9.20.0",
+    "lint-staged": "^15.4.3",
+    "prettier": "^3.5.0",
+    "rimraf": "^6.0.1",
+    "simple-git-hooks": "^2.11.1"
+  },
+  "dependencies": {
+    "pathe": "^1.1.2"
+  }
+}
