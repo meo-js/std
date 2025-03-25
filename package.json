@@ -1,20 +1,19 @@
 {
   "name": "@meojs/utils",
   "version": "1.0.0",
+  "packageManager": "npm@10.9.0",
+  "engines": {
+    "node": ">=20"
+  },
   "description": "Common JavaScript/TypeScript utils.",
   "author": {
     "name": "SmallMain",
     "email": "smallmain@outlook.com",
     "url": "https://www.smallmain.com/"
   },
-  "homepage": "https://smallmain.com/",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/meo-js/utils"
-  },
-  "bugs": {
-    "url": "https://github.com/meo-js/utils/issues"
-  },
+  "homepage": "https://www.smallmain.com/",
+  "repository": "github:meo-js/utils",
+  "bugs": "https://github.com/meo-js/utils/issues",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -38,8 +37,9 @@
     "LICENSE"
   ],
   "lint-staged": {
-    "*.{js?(x),ts?(x),mts?(x),mjs?(x),cts?(x),cjs?(x)}": [
-      "eslint -c packages/js/misc/eslint.config.js"
+    "src/**/*": [
+      "eslint",
+      "prettier --ignore-unknown --check"
     ]
   },
   "simple-git-hooks": {
@@ -59,17 +59,18 @@
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.7.1",
-    "@commitlint/config-conventional": "^19.7.1",
-    "@meojs/cfgs": "^2.0.1",
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "@meojs/cfgs": "^2.0.10",
     "cross-env": "^7.0.3",
-    "eslint": "^9.20.0",
-    "lint-staged": "^15.4.3",
-    "prettier": "^3.5.0",
+    "eslint": "^9.22.0",
+    "lint-staged": "^15.5.0",
+    "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
     "simple-git-hooks": "^2.11.1"
   },
   "dependencies": {
-    "pathe": "^1.1.2"
+    "pathe": "^2.0.3",
+    "type-fest": "^4.37.0"
   }
 }
