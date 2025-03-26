@@ -1,5 +1,3 @@
-import type { LiteralUnion } from "type-fest";
-
 /**
  * 作为对某些 Linter 规则的逃生窗口，例如 ESLint 的 `no-explicit-any` 规则，原则上尽量避免使用。
  */
@@ -13,7 +11,7 @@ export type Any = any;
 export type Anys = any[];
 
 /**
- * 所有原始的 JavaScript 值类型
+ * 原始 JavaScript 值类型
  */
 export type Primitive =
     | number
@@ -25,8 +23,23 @@ export type Primitive =
     | null;
 
 /**
- * 允许组合原始类型和字面量类型，同时不会失去 IDE 的自动完成功能
- *
- * 这是解决 [TypeScript#29729](https://github.com/Microsoft/TypeScript/issues/29729) 问题的一种方法，一旦不再需要，它将被移除。
+ * 类型化数组
  */
-export type Literal<T, BaseType extends Primitive> = LiteralUnion<T, BaseType>;
+export type TypedArray =
+    | Uint8Array
+    | Uint8ClampedArray
+    | Uint16Array
+    | Uint32Array
+    | Int8Array
+    | Int16Array
+    | Int32Array
+    | BigUint64Array
+    | BigInt64Array
+    // | Float16Array (unstable)
+    | Float32Array
+    | Float64Array;
+
+/**
+ * {@link ArrayBuffer} 视图
+ */
+export type ArrayBufferView = TypedArray | DataView;
