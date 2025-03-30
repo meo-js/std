@@ -1,4 +1,4 @@
-import type { Any, Primitive } from "../types/fix.js";
+import type { Any, Primitive, TypedArray } from "../types/fix.js";
 
 const GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
