@@ -97,7 +97,7 @@ export function registerGlobalModule(
  * 导入全局模块
  *
  * @param id 标识符
- * @returns 模块对象
+ * @returns 返回导入的模块对象
  *
  * @example 基本用法
  * ```ts

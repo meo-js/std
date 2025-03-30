@@ -38,8 +38,3 @@ export type TypedArray =
     // | Float16Array (unstable)
     | Float32Array
     | Float64Array;
-
-/**
- * {@link ArrayBuffer} 视图
- */
-export type ArrayBufferView = TypedArray | DataView;

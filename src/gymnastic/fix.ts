@@ -1,5 +1,5 @@
 import type { LiteralUnion } from "type-fest";
-import type { Primitive } from "../utils/types.js";
+import type { Primitive } from "../types/fix.js";
 
 /**
  * 允许组合原始类型和字面量类型，同时不会失去 IDE 的自动完成功能
