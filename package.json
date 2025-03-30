@@ -1,6 +1,6 @@
 {
   "name": "@meojs/utils",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "packageManager": "npm@10.9.0",
   "engines": {
     "node": ">=20"
