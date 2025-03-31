@@ -214,6 +214,14 @@ export function isPromise(value: unknown): value is Promise<unknown> {
 }
 
 /**
+ * @param value 任意值
+ * @returns 返回值是否为 {@link Error}
+ */
+export function isError(value: unknown): value is Error {
+    return value instanceof Error;
+}
+
+/**
  * 根据 {@link Function.prototype.toString} 的返回值是否包括 `"native code"` 来判断。
  *
  * @param target 函数/类

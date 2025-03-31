@@ -23,6 +23,11 @@ export type Primitive =
     | null;
 
 /**
+ * 类型 `null | undefined` 的简写形式
+ */
+export type none = null | undefined;
+
+/**
  * 类型化数组
  */
 export type TypedArray =
