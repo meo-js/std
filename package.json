@@ -29,6 +29,11 @@
       "import": "./dist/path.mjs",
       "require": "./dist/path.cjs",
       "types": "./dist/path.d.ts"
+    },
+    "./polyfills": {
+      "import": "./dist/polyfills.mjs",
+      "require": "./dist/polyfills.cjs",
+      "types": "./dist/polyfills.d.ts"
     }
   },
   "files": [
@@ -70,6 +75,7 @@
     "simple-git-hooks": "^2.11.1"
   },
   "dependencies": {
+    "core-js": "^3.41.0",
     "pathe": "^2.0.3",
     "type-fest": "^4.37.0"
   }
