@@ -7,7 +7,7 @@
 </h1>
 
 <p align="center">
-Common JavaScript/TypeScript utils.
+A commonly used JavaScript/TypeScript utilities.
 </p>
 
 <!-- <br>
