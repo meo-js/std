@@ -1,4 +1,5 @@
-import type { Anys, none } from "./fix.js";
+import type { Anys } from "./any.js";
+import type { none } from "./none.js";
 import type { UnionToIntersection } from "./union.js";
 
 /**

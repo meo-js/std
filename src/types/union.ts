@@ -1,4 +1,4 @@
-import type { Any } from "./fix.js";
+import type { Any } from "./any.js";
 
 /**
  * 并集转为交集类型

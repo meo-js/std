@@ -1,5 +1,5 @@
+import type { Any } from "../types/any.js";
 import type { Class } from "../types/class.js";
-import type { Any } from "../types/fix.js";
 import { getEnumMembers } from "./enum.js";
 
 /**

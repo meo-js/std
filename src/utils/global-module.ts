@@ -1,4 +1,4 @@
-import type { Literal } from "../gymnastic/fix.js";
+import type { Literal } from "../types/literal.js";
 
 const key = Symbol.for("@meojs/utils/global-module");
 const globalModules =

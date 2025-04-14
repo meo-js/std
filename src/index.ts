@@ -1,13 +1,16 @@
 // created from ctix
 
-export * from "./gymnastic/fix.js";
-export * from "./gymnastic/nominal.js";
-export * from "./spec/streamable/interface.js";
-export * as Symbol from "./symbols.js";
+export * as Symbol from "./barrels/symbols.js";
+export * from "./proposal/streamable/interface.js";
+export * from "./types/any.js";
 export * from "./types/class.js";
-export * from "./types/fix.js";
+export * from "./types/literal.js";
+export * from "./types/nominal.js";
+export * from "./types/none.js";
 export * from "./types/object.js";
+export * from "./types/primitive.js";
 export * from "./types/promise.js";
+export * from "./types/typed-array.js";
 export * from "./types/union.js";
 export * from "./utils/enum.js";
 export * from "./utils/error.js";

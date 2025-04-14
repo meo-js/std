@@ -59,10 +59,10 @@
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
-    "@types/node": "^20",
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
     "@meojs/cfgs": "^2.0.10",
+    "@types/node": "^20",
     "cross-env": "^7.0.3",
     "eslint": "^9.22.0",
     "lint-staged": "^15.5.0",
@@ -71,6 +71,7 @@
     "simple-git-hooks": "^2.11.1"
   },
   "dependencies": {
+    "chardet": "^2.1.0",
     "core-js": "^3.41.0",
     "pathe": "^2.0.3",
     "type-fest": "^4.37.0"

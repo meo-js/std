@@ -1,4 +1,4 @@
-import type { Any } from "../../types/fix.js";
+import type { Any } from "../../types/any.js";
 import type { stream } from "./symbol.js";
 
 /**
