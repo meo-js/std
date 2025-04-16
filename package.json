@@ -25,10 +25,15 @@
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
-    "./polyfills": {
-      "import": "./dist/polyfills.mjs",
-      "require": "./dist/polyfills.cjs",
-      "types": "./dist/polyfills.d.ts"
+    "./encoding": {
+      "import": "./dist/encoding.mjs",
+      "require": "./dist/encoding.cjs",
+      "types": "./dist/encoding.d.ts"
+    },
+    "./polyfill": {
+      "import": "./dist/polyfill.mjs",
+      "require": "./dist/polyfill.cjs",
+      "types": "./dist/polyfill.d.ts"
     }
   },
   "files": [

@@ -1,5 +1,3 @@
-export * from "./detect.js";
-
 export function encode() {
     // TODO
 }

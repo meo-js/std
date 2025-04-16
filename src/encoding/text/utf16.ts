@@ -1,4 +1,4 @@
-import { Endian } from "./shared.js";
+import { Endian } from "../shared.js";
 
 export function decode(input: BufferSource): string {
     return "";

@@ -1,6 +1,13 @@
-// created from ctix
+/**
+ * @public
+ *
+ * @module
+ */
 
-export * as Symbol from "./barrels/symbols.js";
+// #export * as Symbol from "**/symbol.js"
+// #export * from "!sub-modules"
+// #region Generated exports
+export * as Symbol from "./_/symbols.js";
 export * from "./proposal/streamable/interface.js";
 export * from "./types/any.js";
 export * from "./types/class.js";
@@ -19,3 +26,5 @@ export * from "./utils/global-singleton.js";
 export * from "./utils/guard.js";
 export * from "./utils/prune.js";
 export * from "./utils/stacktrace.js";
+export * from "./utils/typed-array.js";
+// #endregion
