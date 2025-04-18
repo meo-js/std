@@ -2,6 +2,7 @@ import {
     isArrayBuffer,
     isBigInt64Array,
     isBigUint64Array,
+    isDataView,
     isFloat32Array,
     isFloat64Array,
     isInt16Array,
@@ -154,4 +155,47 @@ export function asFloat64Array(v: BufferSource): Float64Array {
         return new Float64Array(v);
     }
     return new Float64Array(v.buffer, v.byteOffset, v.byteLength / 8);
+}
+
+/**
+ * 将 {@link BufferSource} 转换为 {@link DataView}
+ */
+export function asDataView(v: BufferSource): DataView {
+    if (isDataView(v)) {
+        return v;
+    }
+    if (isArrayBuffer(v)) {
+        return new DataView(v);
+    }
+    return new DataView(v.buffer, v.byteOffset, v.byteLength);
+}
+
+let _platformEndianNess: Endian | undefined;
+
+/**
+ * 获取平台字节序
+ */
+export function getPlatformEndianNess() {
+    if (_platformEndianNess == null) {
+        const uInt32 = new Uint32Array([0x11223344]);
+        const uInt8 = new Uint8Array(uInt32.buffer);
+        if (uInt8[0] === 0x44) {
+            _platformEndianNess = Endian.Little;
+        } else if (uInt8[0] === 0x11) {
+            _platformEndianNess = Endian.Big;
+        } else {
+            _platformEndianNess = Endian.Other;
+        }
+    }
+
+    return _platformEndianNess;
+}
+
+/**
+ * 字节序枚举
+ */
+export enum Endian {
+    Little = "le",
+    Big = "be",
+    Other = "other",
 }

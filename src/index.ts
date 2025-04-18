@@ -7,7 +7,7 @@
 // #export * as Symbol from "**/symbol.js"
 // #export * from "!sub-modules"
 // #region Generated exports
-export * as Symbol from "./_/symbols.js";
+export * as Symbol from "./_/_$Symbol.js";
 export * from "./proposal/streamable/interface.js";
 export * from "./types/any.js";
 export * from "./types/class.js";
