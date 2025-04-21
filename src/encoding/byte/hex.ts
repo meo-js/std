@@ -1,7 +1,8 @@
 import { isString } from "../../utils/guard.js";
 import { asUint8Array } from "../../utils/typed-array.js";
+import { unit8 } from "../byte.js";
 import { textEncoding } from "../text.js";
-import type { HexEncodeOptions } from "./options.js";
+import type { HexDecodeOptions, HexEncodeOptions } from "./options.js";
 
 const encodeTable = [
     "00",
@@ -276,6 +277,7 @@ const decodeTable = new Uint8Array([
 ]);
 
 const whitespaceRegex = /\s+/gu;
+const verifyRegex = /^[0-9a-fA-F]+$/u;
 
 /**
  * 将字节数据编码为十六进制字符串
@@ -291,22 +293,12 @@ export function encode(
     if (isString(bytes)) {
         const encoding = opts?.encoding;
         if (encoding != null) {
-            return encode(textEncoding.encode(bytes, encoding), opts);
+            return encode(
+                textEncoding.encode(bytes, encoding, opts?.encodingOptions),
+                opts,
+            );
         } else {
-            const len = bytes.length;
-            const result = new Array<string>(len);
-
-            for (let i = 0; i < len; i++) {
-                const code = bytes.charCodeAt(i);
-                if (code > 0xff) {
-                    throw new RangeError(
-                        `the string contains non-ASCII character: ${bytes[i]}(${code}).`,
-                    );
-                }
-                result[i] = encodeTable[code];
-            }
-
-            return opts?.pretty ? format(result) : result.join("");
+            return encode(unit8.decode(bytes, opts), opts);
         }
     } else {
         const data = asUint8Array(bytes);
@@ -330,35 +322,73 @@ function format(strs: string[]): string {
  * 将十六进制字符串解码为字节数据
  *
  * @param text 十六进制字符串
+ * @param opts {@link HexDecodeOptions}
  * @returns 字节数据
  */
-export function decode(text: string): Uint8Array {
+export function decode(text: string, opts?: HexDecodeOptions): Uint8Array {
     text = text.replace(whitespaceRegex, "");
 
-    const len = text.length;
+    const fatal = opts?.fatal ?? true;
+    let len = text.length;
 
     if (len % 2 !== 0) {
-        throw new RangeError(
-            "the length of the hexadecimal string must be even.",
-        );
+        if (fatal) {
+            throw new RangeError(
+                "the length of the hexadecimal string must be even.",
+            );
+        } else {
+            len -= 1;
+        }
     }
 
     const bytes = new Uint8Array(len / 2);
-
     for (let i = 0, j = 0; i < len; i += 2, j++) {
-        const highChar = text[i];
-        const lowChar = text[i + 1];
-        const high = decodeTable[highChar.charCodeAt(0)];
-        const low = decodeTable[lowChar.charCodeAt(0)];
+        const highChar = text.charCodeAt(i);
+        const lowChar = text.charCodeAt(i + 1);
 
-        if (high === 0xff || low === 0xff) {
-            throw new RangeError(
-                `non-hexadecimal character: ${text.slice(i, i + 2)}.`,
-            );
+        if (
+            !(
+                (highChar >= 0x30 && highChar <= 0x39)
+                || (highChar >= 0x61 && highChar <= 0x66)
+                || (highChar >= 0x41 && highChar <= 0x46)
+            )
+            || !(
+                (lowChar >= 0x30 && lowChar <= 0x39)
+                || (lowChar >= 0x61 && lowChar <= 0x66)
+                || (lowChar >= 0x41 && lowChar <= 0x46)
+            )
+        ) {
+            if (fatal) {
+                throwInvalidCharError(text, i);
+            } else {
+                bytes[j] = 0x00;
+            }
+        } else {
+            const high = decodeTable[highChar];
+            const low = decodeTable[lowChar];
+            bytes[j] = (high << 4) | low;
         }
-
-        bytes[j] = (high << 4) | low;
     }
 
     return bytes;
+}
+
+/**
+ * @param text 字符串
+ * @returns 返回是否为有效的十六进制字符串
+ */
+export function verify(text: string) {
+    text = text.replace(whitespaceRegex, "");
+
+    if (text.length === 0 || text.length % 2 !== 0) {
+        return false;
+    }
+
+    return verifyRegex.test(text);
+}
+
+function throwInvalidCharError(text: string, i: number) {
+    throw new RangeError(
+        `invalid hexadecimal character at position ${i}: ${text.slice(i, i + 2)}.`,
+    );
 }

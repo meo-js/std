@@ -18,16 +18,16 @@ export function encode(
         case ByteEncoding.Hex:
             return hex.encode(bytes, opts);
         case ByteEncoding.Base64:
-            return base64.encode(bytes, { ...opts, ...opts?.base64 });
+            return base64.encode(bytes, opts);
         case ByteEncoding.Base64Url:
-            return base64Url.encode(bytes, { ...opts, ...opts?.base64 });
+            return base64Url.encode(bytes, opts);
         case ByteEncoding.Unit8:
             return unit8.encode(bytes, opts);
         case ByteEncoding.Unit16:
             return unit16.encode(bytes, opts);
         default:
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- checked.
-            throw new RangeError(`unsupported encoding: ${encoding}.`);
+            throw new TypeError(`unsupported encoding: ${encoding}.`);
     }
 }
 
@@ -35,23 +35,23 @@ export function encode(
  * 将字符串解码为字节数据
  */
 export function decode(
-    input: string,
+    text: string,
     encoding: ByteEncoding,
     opts?: ByteDecodeOptions,
 ): Uint8Array {
     switch (encoding) {
         case ByteEncoding.Hex:
-            return hex.decode(input);
+            return hex.decode(text);
         case ByteEncoding.Base64:
-            return base64.decode(input);
+            return base64.decode(text);
         case ByteEncoding.Base64Url:
-            return base64Url.decode(input);
+            return base64Url.decode(text);
         case ByteEncoding.Unit8:
-            return unit8.decode(input);
+            return unit8.decode(text);
         case ByteEncoding.Unit16:
-            return unit16.decode(input, opts);
+            return unit16.decode(text, opts);
         default:
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- checked.
-            throw new RangeError(`unsupported encoding: ${encoding}.`);
+            throw new TypeError(`unsupported encoding: ${encoding}.`);
     }
 }

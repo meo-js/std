@@ -1,7 +1,7 @@
 import { isString } from "../../utils/guard.js";
 import { asUint8Array } from "../../utils/typed-array.js";
 import { textEncoding } from "../text.js";
-import type { Base64EncodeOptions } from "./options.js";
+import type { Base64DecodeOptions, Base64EncodeOptions } from "./options.js";
 import * as unit8 from "./unit8.js";
 
 const encodeTable =
@@ -72,9 +72,12 @@ export function _encode(
     if (isString(bytes)) {
         const encoding = opts?.encoding;
         if (encoding != null) {
-            return encode(textEncoding.encode(bytes, encoding), opts);
+            return encode(
+                textEncoding.encode(bytes, encoding, opts?.encodingOptions),
+                opts,
+            );
         } else {
-            return encode(unit8.decode(bytes), opts);
+            return encode(unit8.decode(bytes, opts), opts);
         }
     } else {
         const data = asUint8Array(bytes);
@@ -82,7 +85,6 @@ export function _encode(
         const table = urlSafe ? encodeUrlTable : encodeTable;
         const padding = opts?.padding ?? true;
 
-        // 计算精确的结果长度
         let resultLength = Math.floor(len / 3) * 4;
 
         // 处理最后的余数部分
@@ -140,12 +142,14 @@ export function _encode(
  * 将 Base64 字符串解码为字节数据
  *
  * @param text Base64 字符串
+ * @param opts {@link Base64DecodeOptions}
  * @returns 字节数据
  */
-export function decode(text: string): Uint8Array {
+export function decode(text: string, opts?: Base64DecodeOptions): Uint8Array {
     text = text.replace(whitespaceRegex, "");
 
     const len = text.length;
+    const fatal = opts?.fatal ?? true;
 
     // 计算填充长度
     let padLength = 0;
@@ -177,10 +181,14 @@ export function decode(text: string): Uint8Array {
     const completeGroups = Math.floor(len / 4);
     for (let groupIndex = 0; groupIndex < completeGroups; groupIndex++) {
         // 获取 4 个字符对应的 6 位值
-        const a = decodeChar(text.charCodeAt(i++));
-        const b = decodeChar(text.charCodeAt(i++));
-        const c = decodeChar(text.charCodeAt(i++));
-        const d = decodeChar(text.charCodeAt(i++));
+        const a = decodeChar(text.charCodeAt(i), fatal, i);
+        i++;
+        const b = decodeChar(text.charCodeAt(i), fatal, i);
+        i++;
+        const c = decodeChar(text.charCodeAt(i), fatal, i);
+        i++;
+        const d = decodeChar(text.charCodeAt(i), fatal, i);
+        i++;
 
         // 组合成 3 个字节
         const n = (a << 18) | (b << 12) | (c << 6) | d;
@@ -196,14 +204,20 @@ export function decode(text: string): Uint8Array {
     if (remainingChars > 0) {
         // 必须至少有两个字符才能解码一个字节
         if (remainingChars < 2) {
-            throw new RangeError(
-                "invalid Base64 string: too few characters in the final group",
-            );
+            if (fatal) {
+                throw new RangeError(
+                    "invalid Base64 string: too few characters in the final group",
+                );
+            } else {
+                return result;
+            }
         }
 
         // 获取剩余字符对应的 6 位值
-        const a = decodeChar(text.charCodeAt(i++));
-        const b = decodeChar(text.charCodeAt(i++));
+        const a = decodeChar(text.charCodeAt(i), fatal, i);
+        i++;
+        const b = decodeChar(text.charCodeAt(i), fatal, i);
+        i++;
 
         // 组合成字节
         const n = (a << 18) | (b << 12);
@@ -213,7 +227,8 @@ export function decode(text: string): Uint8Array {
 
         // 如果有第三个字符，继续解码
         if (remainingChars > 2) {
-            const c = decodeChar(text.charCodeAt(i++));
+            const c = decodeChar(text.charCodeAt(i), fatal, i);
+            i++;
             const n2 = n | (c << 6);
             result[resultIndex++] = (n2 >> 8) & 0xff;
         }
@@ -233,7 +248,6 @@ export function verify(
     anyVariant: boolean = true,
     padding?: boolean,
 ): boolean {
-    // 移除所有空白字符
     text = text.replace(whitespaceRegex, "");
 
     if (text.length === 0) {
@@ -259,19 +273,27 @@ export function verify(
     }
 }
 
-function decodeChar(charCode: number): number {
+function decodeChar(charCode: number, fatal: boolean, offset: number): number {
     if (charCode < 0 || charCode > 127) {
-        throwInvalidCharError(charCode);
+        if (fatal) {
+            throwInvalidCharError(charCode, offset);
+        } else {
+            return 0x00;
+        }
     }
     const val = decodeTable[charCode];
     if (val === 0xff) {
-        throwInvalidCharError(charCode);
+        if (fatal) {
+            throwInvalidCharError(charCode, offset);
+        } else {
+            return 0x00;
+        }
     }
     return val;
 }
 
-function throwInvalidCharError(charCode: number) {
+function throwInvalidCharError(charCode: number, offset: number) {
     throw new RangeError(
-        `invalid Base64 character: ${String.fromCharCode(charCode)}(${charCode}).`,
+        `invalid Base64 character at position ${offset}: ${String.fromCharCode(charCode)}(${charCode}).`,
     );
 }

@@ -170,6 +170,37 @@ export function asDataView(v: BufferSource): DataView {
     return new DataView(v.buffer, v.byteOffset, v.byteLength);
 }
 
+/**
+ * 获取 {@link BufferSource} 的信息
+ */
+export function getBufferInfo(v: BufferSource): BufferInfo {
+    if (isArrayBuffer(v)) {
+        return new BufferInfo(v, 0, v.byteLength);
+    } else {
+        return new BufferInfo(v.buffer, v.byteOffset, v.byteLength);
+    }
+}
+
+export class BufferInfo {
+    get params(): [
+        buffer: ArrayBufferLike,
+        byteOffset: number,
+        byteLength: number,
+    ] {
+        return [this.buffer, this.byteOffset, this.byteLength];
+    }
+
+    constructor(
+        public buffer: ArrayBufferLike,
+        public byteOffset: number,
+        public byteLength: number,
+    ) {
+        this.buffer = buffer;
+        this.byteOffset = byteOffset;
+        this.byteLength = byteLength;
+    }
+}
+
 let _platformEndianNess: Endian | undefined;
 
 /**
@@ -184,7 +215,7 @@ export function getPlatformEndianNess() {
         } else if (uInt8[0] === 0x11) {
             _platformEndianNess = Endian.Big;
         } else {
-            _platformEndianNess = Endian.Other;
+            _platformEndianNess = Endian.Unknown;
         }
     }
 
@@ -195,7 +226,7 @@ export function getPlatformEndianNess() {
  * 字节序枚举
  */
 export enum Endian {
+    Unknown = "unknown",
     Little = "le",
     Big = "be",
-    Other = "other",
 }

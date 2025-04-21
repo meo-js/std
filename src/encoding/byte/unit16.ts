@@ -1,7 +1,13 @@
 import { isString } from "../../utils/guard.js";
-import { asDataView, asUint16Array, Endian } from "../../utils/typed-array.js";
+import { fromCharCodes } from "../../utils/string.js";
+import {
+    asDataView,
+    asUint16Array,
+    Endian,
+    getBufferInfo,
+} from "../../utils/typed-array.js";
 import { textEncoding } from "../text.js";
-import type { ByteDecodeOptions, Uint16EncodeOptions } from "./options.js";
+import type { Unit16DecodeOptions, Unit16EncodeOptions } from "./options.js";
 
 /**
  * 将字节数据编码为字符串
@@ -9,47 +15,62 @@ import type { ByteDecodeOptions, Uint16EncodeOptions } from "./options.js";
  * 该函数使用 {@link String.fromCharCode} 编码每两个字节为一个字符。
  *
  * @param bytes 字节数据
- * @param opts {@link Uint16EncodeOptions}
+ * @param opts {@link Unit16EncodeOptions}
  * @returns 字符串
  */
 export function encode(
     bytes: string | BufferSource,
-    opts?: Uint16EncodeOptions,
+    opts?: Unit16EncodeOptions,
 ): string {
     if (isString(bytes)) {
         const encoding = opts?.encoding;
         if (encoding != null) {
-            return encode(textEncoding.encode(bytes, encoding), opts);
+            return encode(
+                textEncoding.encode(bytes, encoding, opts?.encodingOptions),
+                opts,
+            );
         } else {
             return bytes;
         }
     } else {
+        const fatal = opts?.fatal ?? true;
+
+        let hasInvalidData = false;
         if (bytes.byteLength % 2 !== 0) {
-            throw new RangeError(
-                `the byte length is not even: ${bytes.byteLength}.`,
-            );
+            if (fatal) {
+                throw new RangeError(
+                    `the byte length is not even: ${bytes.byteLength}.`,
+                );
+            } else {
+                hasInvalidData = true;
+            }
         }
-        const endian = opts?.endian ?? Endian.Other;
-        const len = Math.floor(bytes.byteLength / 2);
-        const strs = new Array<string>(len);
 
-        if (endian === Endian.Other) {
-            const data = asUint16Array(bytes);
+        const endian = opts?.endian;
 
-            for (let index = 0; index < len; index++) {
-                const element = data[index];
-                strs[index] = String.fromCharCode(element);
+        if (endian == null) {
+            if (hasInvalidData) {
+                const info = getBufferInfo(bytes);
+                info.byteLength = Math.floor(info.byteLength / 2);
+                const data = new Uint16Array(...info.params);
+                return fromCharCodes(data);
+            } else {
+                const data = asUint16Array(bytes);
+                return fromCharCodes(data);
             }
         } else {
             const data = asDataView(bytes);
-            const little = endian === Endian.Little;
+            const big = endian === Endian.Big;
+            const len = Math.floor(bytes.byteLength / 2);
+            const strs = new Array<string>(len);
 
             for (let index = 0; index < len; index++) {
-                const element = data.getUint16(index * 2, little);
+                const element = data.getUint16(index * 2, !big);
                 strs[index] = String.fromCharCode(element);
             }
+
+            return strs.join("");
         }
-        return strs.join("");
     }
 }
 
@@ -59,15 +80,15 @@ export function encode(
  * 该函数使用 {@link String.charCodeAt} 编码每个字符为两个字节。
  *
  * @param text 字符串
- * @param opts {@link ByteDecodeOptions}
+ * @param opts {@link Unit16DecodeOptions}
  * @returns 字节数据
  */
-export function decode(text: string, opts?: ByteDecodeOptions): Uint8Array {
+export function decode(text: string, opts?: Unit16DecodeOptions): Uint8Array {
     const len = text.length;
     const bytes = new Uint8Array(len * 2);
-    const endian = opts?.endian ?? Endian.Other;
+    const endian = opts?.endian ?? Endian.Unknown;
 
-    if (endian === Endian.Other) {
+    if (endian === Endian.Unknown) {
         const data = asUint16Array(bytes);
         for (let i = 0; i < len; i++) {
             const code = text.charCodeAt(i);
@@ -75,11 +96,11 @@ export function decode(text: string, opts?: ByteDecodeOptions): Uint8Array {
         }
     } else {
         const view = asDataView(bytes);
-        const little = endian === Endian.Little;
+        const big = endian === Endian.Big;
 
         for (let i = 0; i < len; i++) {
             const code = text.charCodeAt(i);
-            view.setUint16(i * 2, code, little);
+            view.setUint16(i * 2, code, !big);
         }
     }
 

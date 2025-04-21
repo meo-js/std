@@ -17,3 +17,10 @@ export function captureStackTraceString(ignore?: Function): string {
         );
     }
 }
+
+/**
+ * 最大调用栈大小
+ *
+ * @internal
+ */
+export const MAX_CALLSTACK_SIZE = 1024 * 4;
