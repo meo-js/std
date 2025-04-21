@@ -1,4 +1,5 @@
 import { Endian } from "../../utils/typed-array.js";
+import { throwUnsupportedEncoding } from "../error.js";
 import * as ascii from "./ascii.js";
 import { CodecableTextEncoding, TextEncoding } from "./enum.js";
 import * as latin1 from "./latin1.js";
@@ -34,8 +35,7 @@ export function encode(
         case CodecableTextEncoding.Iso8859_1:
             return latin1.encode(text, opts);
         default:
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- checked.
-            throw new TypeError(`unsupported encoding: ${encoding}.`);
+            throwUnsupportedEncoding(encoding);
     }
 }
 
@@ -67,8 +67,7 @@ export function decode(
         case CodecableTextEncoding.Iso8859_1:
             return latin1.decode(bytes, opts);
         default:
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- checked.
-            throw new TypeError(`unsupported encoding: ${encoding}.`);
+            throwUnsupportedEncoding(encoding);
     }
 }
 

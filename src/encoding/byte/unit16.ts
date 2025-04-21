@@ -6,6 +6,7 @@ import {
     Endian,
     getBufferInfo,
 } from "../../utils/typed-array.js";
+import { throwInvalidLength } from "../error.js";
 import { textEncoding } from "../text.js";
 import type { Unit16DecodeOptions, Unit16EncodeOptions } from "./options.js";
 
@@ -38,9 +39,7 @@ export function encode(
         let hasInvalidData = false;
         if (bytes.byteLength % 2 !== 0) {
             if (fatal) {
-                throw new RangeError(
-                    `the byte length is not even: ${bytes.byteLength}.`,
-                );
+                throwInvalidLength(bytes.byteLength, "even");
             } else {
                 hasInvalidData = true;
             }

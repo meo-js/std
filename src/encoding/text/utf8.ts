@@ -1,4 +1,5 @@
 import { asUint8Array, Endian } from "../../utils/typed-array.js";
+import { throwInvalidChar, throwInvalidSurrogate } from "../error.js";
 import * as decodeFallback from "./decode-fallback.js";
 import * as encodeFallback from "./encode-fallback.js";
 import { TextEncoding } from "./enum.js";
@@ -61,7 +62,7 @@ export function decode(
         else {
             // 无效的首字节
             if (fatal) {
-                throwInvalidCharError(offset, byte1);
+                throwInvalidSurrogate(byte1, offset);
             } else {
                 chars.push(
                     fallback(data, offset, Endian.Little, TextEncoding.Utf8),
@@ -74,7 +75,7 @@ export function decode(
         // 检查序列长度是否超出范围
         if (offset + seqLen > data.length) {
             if (fatal) {
-                throwInvalidCharError(offset, byte1);
+                throwInvalidSurrogate(byte1, offset);
             } else {
                 chars.push(
                     fallback(data, offset, Endian.Little, TextEncoding.Utf8),
@@ -99,7 +100,7 @@ export function decode(
 
         if (codePoint === -1) {
             if (fatal) {
-                throwInvalidCharError(originalOffset, byte1);
+                throwInvalidSurrogate(byte1, originalOffset);
             } else {
                 chars.push(
                     fallback(
@@ -133,7 +134,7 @@ export function decode(
             || codePoint > 0x10ffff
         ) {
             if (fatal) {
-                throwInvalidCharError(originalOffset, byte1);
+                throwInvalidChar(codePoint, originalOffset);
             } else {
                 chars.push(
                     fallback(
@@ -207,7 +208,7 @@ export function encode(text: string, opts?: Utf8EncodeOptions): Uint8Array {
                 }
 
                 if (fatal) {
-                    throwSurrogateError(i, code);
+                    throwInvalidSurrogate(code, i);
                 } else {
                     chars.push(
                         fallback(text, i, Endian.Little, TextEncoding.Utf8),
@@ -216,7 +217,7 @@ export function encode(text: string, opts?: Utf8EncodeOptions): Uint8Array {
             } else {
                 // 孤立的低代理项
                 if (fatal) {
-                    throwSurrogateError(i, code);
+                    throwInvalidSurrogate(code, i);
                 } else {
                     chars.push(
                         fallback(text, i, Endian.Little, TextEncoding.Utf8),
@@ -341,16 +342,4 @@ export function isWellFormed(
         return false;
     }
     return allowReplacementChar ? true : !replacementCharRegex.test(text);
-}
-
-function throwInvalidCharError(offset: number, byte: number) {
-    throw new RangeError(
-        `incomplete UTF-8 sequence at position ${offset}: ${String.fromCharCode(byte)}(0x${byte.toString(16)})`,
-    );
-}
-
-function throwSurrogateError(pos: number, code: number) {
-    throw new RangeError(
-        `invalid surrogate pair at position ${pos}: ${String.fromCharCode(code)}(0x${code.toString(16)})`,
-    );
 }

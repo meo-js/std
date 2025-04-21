@@ -1,6 +1,7 @@
 import { isString } from "../../utils/guard.js";
 import { fromCharCodes } from "../../utils/string.js";
 import { asUint8Array } from "../../utils/typed-array.js";
+import { throwInvalidChar } from "../error.js";
 import { textEncoding } from "../text.js";
 import type { Unit8DecodeOptions, Unit8EncodeOptions } from "./options.js";
 
@@ -30,7 +31,7 @@ export function encode(
                 for (let i = 0; i < bytes.length; i++) {
                     const code = bytes.charCodeAt(i);
                     if (code > 0xff) {
-                        throwInvalidCharError(i, bytes, code);
+                        throwInvalidChar(code, i);
                     }
                 }
             }
@@ -60,7 +61,7 @@ export function decode(text: string, opts?: Unit8DecodeOptions): Uint8Array {
         for (let i = 0; i < len; i++) {
             const code = text.charCodeAt(i);
             if (code > 0xff) {
-                throwInvalidCharError(i, text, code);
+                throwInvalidChar(code, i);
             } else {
                 bytes[i] = code;
             }
@@ -72,10 +73,4 @@ export function decode(text: string, opts?: Unit8DecodeOptions): Uint8Array {
     }
 
     return bytes;
-}
-
-function throwInvalidCharError(i: number, text: string, code: number) {
-    throw new RangeError(
-        `the character code is out of Uint8 range at position ${i}: ${text[i]}(${code}).`,
-    );
 }

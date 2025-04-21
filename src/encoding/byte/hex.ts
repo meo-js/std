@@ -1,6 +1,7 @@
 import { isString } from "../../utils/guard.js";
 import { asUint8Array } from "../../utils/typed-array.js";
 import { unit8 } from "../byte.js";
+import { throwInvalidChar, throwInvalidLength } from "../error.js";
 import { textEncoding } from "../text.js";
 import type { HexDecodeOptions, HexEncodeOptions } from "./options.js";
 
@@ -333,9 +334,7 @@ export function decode(text: string, opts?: HexDecodeOptions): Uint8Array {
 
     if (len % 2 !== 0) {
         if (fatal) {
-            throw new RangeError(
-                "the length of the hexadecimal string must be even.",
-            );
+            throwInvalidLength(len, "even");
         } else {
             len -= 1;
         }
@@ -359,7 +358,7 @@ export function decode(text: string, opts?: HexDecodeOptions): Uint8Array {
             )
         ) {
             if (fatal) {
-                throwInvalidCharError(text, i);
+                throwInvalidChar(text.slice(i, i + 2), i);
             } else {
                 bytes[j] = 0x00;
             }
@@ -385,10 +384,4 @@ export function verify(text: string) {
     }
 
     return verifyRegex.test(text);
-}
-
-function throwInvalidCharError(text: string, i: number) {
-    throw new RangeError(
-        `invalid hexadecimal character at position ${i}: ${text.slice(i, i + 2)}.`,
-    );
 }

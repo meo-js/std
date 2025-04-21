@@ -1,5 +1,6 @@
 import { isString } from "../../utils/guard.js";
 import { asUint8Array } from "../../utils/typed-array.js";
+import { throwInvalidChar, throwUnexpectedEnd } from "../error.js";
 import { textEncoding } from "../text.js";
 import type { Base64DecodeOptions, Base64EncodeOptions } from "./options.js";
 import * as unit8 from "./unit8.js";
@@ -205,9 +206,7 @@ export function decode(text: string, opts?: Base64DecodeOptions): Uint8Array {
         // 必须至少有两个字符才能解码一个字节
         if (remainingChars < 2) {
             if (fatal) {
-                throw new RangeError(
-                    "invalid Base64 string: too few characters in the final group",
-                );
+                throwUnexpectedEnd();
             } else {
                 return result;
             }
@@ -276,7 +275,7 @@ export function verify(
 function decodeChar(charCode: number, fatal: boolean, offset: number): number {
     if (charCode < 0 || charCode > 127) {
         if (fatal) {
-            throwInvalidCharError(charCode, offset);
+            throwInvalidChar(charCode, offset);
         } else {
             return 0x00;
         }
@@ -284,16 +283,10 @@ function decodeChar(charCode: number, fatal: boolean, offset: number): number {
     const val = decodeTable[charCode];
     if (val === 0xff) {
         if (fatal) {
-            throwInvalidCharError(charCode, offset);
+            throwInvalidChar(charCode, offset);
         } else {
             return 0x00;
         }
     }
     return val;
-}
-
-function throwInvalidCharError(charCode: number, offset: number) {
-    throw new RangeError(
-        `invalid Base64 character at position ${offset}: ${String.fromCharCode(charCode)}(${charCode}).`,
-    );
 }

@@ -1,4 +1,9 @@
 import { Endian, asDataView, asUint8Array } from "../../utils/typed-array.js";
+import {
+    throwInvalidLength,
+    throwInvalidSurrogate,
+    throwUnexpectedEnd,
+} from "../error.js";
 import type { CodecableEndian } from "../shared.js";
 import * as decodeFallback from "./decode-fallback.js";
 import * as encodeFallback from "./encode-fallback.js";
@@ -30,7 +35,7 @@ export function decode(bytes: BufferSource, opts?: TextDecodeOptions): string {
     const hasInvalidData = data.byteLength % 2 !== 0;
 
     if (hasInvalidData && fatal) {
-        throw new RangeError("buffer length is not even");
+        throwInvalidLength(data.byteLength, "even");
     }
 
     if (data.byteLength === 1) {
@@ -83,7 +88,7 @@ export function decode(bytes: BufferSource, opts?: TextDecodeOptions): string {
                     }
 
                     if (fatal) {
-                        throwSurrogateError(pos, code);
+                        throwInvalidSurrogate(code, pos);
                     } else {
                         chars[j++] = fallback(
                             data,
@@ -95,7 +100,7 @@ export function decode(bytes: BufferSource, opts?: TextDecodeOptions): string {
                 } else {
                     // 孤立的低代理项
                     if (fatal) {
-                        throwSurrogateError(pos, code);
+                        throwInvalidSurrogate(code, pos);
                     } else {
                         chars[j++] = fallback(
                             data,
@@ -114,7 +119,7 @@ export function decode(bytes: BufferSource, opts?: TextDecodeOptions): string {
         // 无效的单字节数据
         if (hasInvalidData) {
             if (fatal) {
-                throw new RangeError("unexpected end of data.");
+                throwUnexpectedEnd();
             } else {
                 chars[j++] = fallback(
                     data,
@@ -183,7 +188,7 @@ export function encode(text: string, opts?: TextEncodeOptions): Uint8Array {
                 }
 
                 if (fatal) {
-                    throwSurrogateError(i, code);
+                    throwInvalidSurrogate(code, i);
                 } else {
                     data.setUint16(
                         pos,
@@ -194,7 +199,7 @@ export function encode(text: string, opts?: TextEncodeOptions): Uint8Array {
             } else {
                 // 孤立的低代理项
                 if (fatal) {
-                    throwSurrogateError(i, code);
+                    throwInvalidSurrogate(code, i);
                 } else {
                     data.setUint16(
                         pos,
@@ -305,10 +310,4 @@ export function isWellFormed(
         return false;
     }
     return allowReplacementChar ? true : !replacementCharRegex.test(text);
-}
-
-function throwSurrogateError(pos: number, code: number) {
-    throw new RangeError(
-        `invalid surrogate pair at position ${pos}: ${String.fromCharCode(code)}(0x${code.toString(16)})`,
-    );
 }

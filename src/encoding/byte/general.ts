@@ -1,3 +1,4 @@
+import { throwUnsupportedEncoding } from "../error.js";
 import * as base64Url from "./base64-url.js";
 import * as base64 from "./base64.js";
 import { ByteEncoding } from "./enum.js";
@@ -26,8 +27,7 @@ export function encode(
         case ByteEncoding.Unit16:
             return unit16.encode(bytes, opts);
         default:
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- checked.
-            throw new TypeError(`unsupported encoding: ${encoding}.`);
+            throwUnsupportedEncoding(encoding);
     }
 }
 
@@ -51,7 +51,6 @@ export function decode(
         case ByteEncoding.Unit16:
             return unit16.decode(text, opts);
         default:
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- checked.
-            throw new TypeError(`unsupported encoding: ${encoding}.`);
+            throwUnsupportedEncoding(encoding);
     }
 }

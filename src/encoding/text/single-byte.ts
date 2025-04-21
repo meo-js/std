@@ -5,6 +5,7 @@
  */
 
 import { Endian, asUint8Array } from "../../utils/typed-array.js";
+import { throwInvalidChar } from "../error.js";
 import * as decodeFallback from "./decode-fallback.js";
 import * as encodeFallback from "./encode-fallback.js";
 import { TextEncoding } from "./enum.js";
@@ -34,7 +35,7 @@ export function _decode(
     for (const code of data) {
         if (code > maxCode) {
             if (fatal) {
-                throwInvalidCharError(i, code);
+                throwInvalidChar(code, i);
             } else {
                 chars[i] = fallback(data, i, Endian.Little, encoding);
             }
@@ -62,7 +63,7 @@ export function _encode(
         const code = text.charCodeAt(i);
         if (code > maxCode) {
             if (fatal) {
-                throwInvalidCharError(i, code);
+                throwInvalidChar(code, i);
             } else {
                 buffer[i] = fallback(text, i, Endian.Little, encoding);
             }
@@ -99,10 +100,4 @@ export function _isWellFormed(
     }
 
     return allowReplacementChar ? true : !replacementCharRegex.test(text);
-}
-
-function throwInvalidCharError(i: number, code: number): never {
-    throw new RangeError(
-        `invalid character at position ${i}: ${String.fromCharCode(code)}(0x${code.toString(16)})`,
-    );
 }
