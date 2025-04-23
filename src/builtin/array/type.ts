@@ -1,6 +1,6 @@
 import type * as tf from "type-fest";
 import type { Any, Anys } from "../ts/any.js";
-import type { Simplify } from "../ts/simply.js";
+import type { Simplify } from "../ts/simplify.js";
 
 /**
  * 数组索引的联合类型

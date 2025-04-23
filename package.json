@@ -1,84 +1,84 @@
 {
-  "name": "@meojs/std",
-  "version": "1.0.5",
-  "packageManager": "npm@10.9.0",
-  "engines": {
-    "node": ">=20"
-  },
-  "description": "A portable JavaScript standard library crafted for wide applicability.",
-  "author": {
-    "name": "SmallMain",
-    "email": "smallmain@outlook.com",
-    "url": "https://www.smallmain.com/"
-  },
-  "homepage": "https://www.smallmain.com/",
-  "repository": "github:meo-js/std",
-  "bugs": "https://github.com/meo-js/std/issues",
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
-  "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+    "name": "@meojs/std",
+    "version": "1.0.5",
+    "packageManager": "npm@10.9.0",
+    "engines": {
+        "node": ">=20"
     },
-    "./encoding": {
-      "import": "./dist/encoding.mjs",
-      "require": "./dist/encoding.cjs",
-      "types": "./dist/encoding.d.ts"
+    "description": "A portable JavaScript standard library crafted for wide applicability.",
+    "author": {
+        "name": "SmallMain",
+        "email": "smallmain@outlook.com",
+        "url": "https://www.smallmain.com/"
     },
-    "./polyfill": {
-      "import": "./dist/polyfill.mjs",
-      "require": "./dist/polyfill.cjs",
-      "types": "./dist/polyfill.d.ts"
+    "homepage": "https://www.smallmain.com/",
+    "repository": "github:meo-js/std",
+    "bugs": "https://github.com/meo-js/std/issues",
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    },
+    "type": "module",
+    "exports": {
+        ".": {
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.cjs",
+            "types": "./dist/index.d.ts"
+        },
+        "./encoding": {
+            "import": "./dist/encoding.mjs",
+            "require": "./dist/encoding.cjs",
+            "types": "./dist/encoding.d.ts"
+        },
+        "./polyfill": {
+            "import": "./dist/polyfill.mjs",
+            "require": "./dist/polyfill.cjs",
+            "types": "./dist/polyfill.d.ts"
+        }
+    },
+    "files": [
+        "dist",
+        "README*.md",
+        "LICENSE"
+    ],
+    "lint-staged": {
+        "src/**/*": [
+            "eslint",
+            "prettier --ignore-unknown --check"
+        ]
+    },
+    "simple-git-hooks": {
+        "pre-commit": "npx lint-staged",
+        "commit-msg": "npx commitlint --edit $1"
+    },
+    "commitlint": {
+        "extends": [
+            "@commitlint/config-conventional"
+        ]
+    },
+    "scripts": {
+        "build": "npx unbuild",
+        "dev": "npx unbuild --watch",
+        "clean": "rimraf ./dist",
+        "lint": "eslint",
+        "prepare": "simple-git-hooks"
+    },
+    "devDependencies": {
+        "@commitlint/cli": "^19.8.0",
+        "@commitlint/config-conventional": "^19.8.0",
+        "@meojs/cfgs": "^2.0.10",
+        "@types/node": "^20",
+        "cross-env": "^7.0.3",
+        "eslint": "^9.22.0",
+        "lint-staged": "^15.5.0",
+        "prettier": "^3.5.3",
+        "rimraf": "^6.0.1",
+        "simple-git-hooks": "^2.11.1"
+    },
+    "dependencies": {
+        "chardet": "^2.1.0",
+        "core-js": "^3.41.0",
+        "pathe": "^2.0.3",
+        "type-fest": "^4.37.0"
     }
-  },
-  "files": [
-    "dist",
-    "README*.md",
-    "LICENSE"
-  ],
-  "lint-staged": {
-    "src/**/*": [
-      "eslint",
-      "prettier --ignore-unknown --check"
-    ]
-  },
-  "simple-git-hooks": {
-    "pre-commit": "npx lint-staged",
-    "commit-msg": "npx commitlint --edit $1"
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "scripts": {
-    "build": "npx unbuild",
-    "dev": "npx unbuild --watch",
-    "clean": "rimraf ./dist",
-    "lint": "eslint",
-    "prepare": "simple-git-hooks"
-  },
-  "devDependencies": {
-    "@commitlint/cli": "^19.8.0",
-    "@commitlint/config-conventional": "^19.8.0",
-    "@meojs/cfgs": "^2.0.10",
-    "@types/node": "^20",
-    "cross-env": "^7.0.3",
-    "eslint": "^9.22.0",
-    "lint-staged": "^15.5.0",
-    "prettier": "^3.5.3",
-    "rimraf": "^6.0.1",
-    "simple-git-hooks": "^2.11.1"
-  },
-  "dependencies": {
-    "chardet": "^2.1.0",
-    "core-js": "^3.41.0",
-    "pathe": "^2.0.3",
-    "type-fest": "^4.37.0"
-  }
 }

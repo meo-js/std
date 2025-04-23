@@ -1,4 +1,4 @@
-import type { TypedArray } from "../types/typed-array.js";
+import type { TypedArray } from "../builtin/typed-array/type.js";
 import { MAX_CALLSTACK_SIZE } from "./callstack.js";
 import { isArray } from "./guard.js";
 

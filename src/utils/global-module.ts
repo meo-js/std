@@ -1,4 +1,4 @@
-import type { Literal } from "../types/literal.js";
+import type { Literal } from "../builtin/ts/literal.js";
 
 const key = Symbol.for("@meojs/utils/global-module");
 const globalModules =

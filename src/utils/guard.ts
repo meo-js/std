@@ -1,6 +1,13 @@
+import type {
+    AnyCollection,
+    Collection,
+    MapCollection,
+    SetCollection,
+    WeakCollection,
+} from "../builtin/collection/type.js";
 import type { Any } from "../builtin/ts/any.js";
-import type { Primitive } from "../types/primitive.js";
-import type { TypedArray } from "../types/typed-array.js";
+import type { Primitive } from "../builtin/ts/primitive.js";
+import type { TypedArray } from "../builtin/typed-array/type.js";
 
 const GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
@@ -104,10 +111,104 @@ export function isMap<K = Any, V = Any>(value: unknown): value is Map<K, V> {
 
 /**
  * @param value 任意值
+ * @returns 是否为 {@link isWeakMap}
+ */
+export function isWeakMap<K extends WeakKey = WeakKey, V = Any>(
+    value: unknown,
+): value is WeakMap<K, V> {
+    return value instanceof WeakMap;
+}
+
+/**
+ * @param value 任意值
+ * @returns 是否为 {@link MapCollection}
+ */
+export function isMapCollection<K = unknown, V = unknown>(
+    value: unknown,
+): value is MapCollection<K, V> {
+    return isMap<K, V>(value) || isWeakMap<K & WeakKey, V>(value);
+}
+
+/**
+ * @param value 任意值
  * @returns 是否为 {@link Set}
  */
 export function isSet<T = Any>(value: unknown): value is Set<T> {
     return value instanceof Set;
+}
+
+/**
+ * @param value 任意值
+ * @returns 是否为 {@link WeakSet}
+ */
+export function isWeakSet<T extends WeakKey = WeakKey>(
+    value: unknown,
+): value is WeakSet<T> {
+    return value instanceof WeakSet;
+}
+
+/**
+ * @param value 任意值
+ * @returns 是否为 {@link SetCollection}
+ */
+export function isSetCollection<T = unknown>(
+    value: unknown,
+): value is SetCollection<T> {
+    return isSet<T>(value) || isWeakSet<T & WeakKey>(value);
+}
+
+/**
+ * @param value 任意值
+ * @returns 是否为 {@link Collection}
+ */
+export function isCollection<K = Any, V = Any>(
+    value: unknown,
+): value is Collection<K, V> {
+    return isMap<K, V>(value) || isSet<V>(value);
+}
+
+/**
+ * @param value 任意值
+ * @returns 是否为 {@link WeakCollection}
+ */
+export function isWeakCollection<T extends WeakKey = WeakKey, V = Any>(
+    value: unknown,
+): value is WeakCollection<T, V> {
+    return isWeakMap<T, V>(value) || isWeakSet<T>(value);
+}
+
+/**
+ * @param value 任意值
+ * @returns 是否为 {@link AnyCollection}
+ */
+export function isAnyCollection(value: unknown): value is AnyCollection {
+    return isCollection(value) || isWeakCollection(value);
+}
+
+/**
+ * @param value 任意值
+ * @returns 是否为 {@link Date}
+ */
+export function isDate(value: unknown): value is Date {
+    return value instanceof Date;
+}
+
+/**
+ * @param value 任意值
+ * @returns 是否为 {@link RegExp}
+ */
+export function isRegExp(value: unknown): value is RegExp {
+    return value instanceof RegExp;
+}
+
+/**
+ * @param value 任意值
+ * @returns 是否为 {@link WeakRef}
+ */
+export function isWeakRef<T extends object = object>(
+    value: unknown,
+): value is WeakRef<T> {
+    return value instanceof WeakRef;
 }
 
 /**
