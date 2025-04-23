@@ -1,4 +1,4 @@
-import type { StringObject } from "../types/object.js";
+import type { StringObject } from "../../types/object.js";
 
 /**
  * 获取数值枚举所有成员

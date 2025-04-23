@@ -3,11 +3,11 @@
 </p> -->
 
 <h1 align="center">
-@meojs/utils
+@meojs/std
 </h1>
 
 <p align="center">
-常用的 JavaScript/TypeScript 工具库。
+一个为广泛适用性打造的可移植 JavaScript 标准库。
 </p>
 
 <!-- <br>
@@ -26,7 +26,7 @@
 ## 简介
 
 ```bash
-npm i @meojs/utils
+npm i @meojs/std
 ```
 
 ## 贡献

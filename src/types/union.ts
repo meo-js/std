@@ -1,4 +1,4 @@
-import type { Any } from "./any.js";
+import type { Any } from "../builtin/ts/any.js";
 
 /**
  * 并集转为交集类型

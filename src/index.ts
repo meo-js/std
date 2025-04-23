@@ -8,9 +8,10 @@
 // #export * from "!sub-modules"
 // #region Generated exports
 export * as Symbol from "./_/_$Symbol.js";
-export * from "./proposal/streamable/interface.js";
-export * from "./types/any.js";
-export * from "./types/class.js";
+export * from "./builtin/class/type.js";
+export * from "./builtin/enum/utils.js";
+export * from "./builtin/ts/any.js";
+export * from "./proposals/streamable/interface.js";
 export * from "./types/literal.js";
 export * from "./types/nominal.js";
 export * from "./types/none.js";
@@ -20,7 +21,6 @@ export * from "./types/promise.js";
 export * from "./types/typed-array.js";
 export * from "./types/union.js";
 export * from "./utils/callstack.js";
-export * from "./utils/enum.js";
 export * from "./utils/error.js";
 export * from "./utils/global-module.js";
 export * from "./utils/global-singleton.js";

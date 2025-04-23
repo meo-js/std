@@ -1,1 +1,1 @@
-export * from "../proposal/streamable/symbol.js";
+export * from "../proposals/streamable/symbol.js";

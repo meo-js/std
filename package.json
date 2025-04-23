@@ -1,19 +1,19 @@
 {
-  "name": "@meojs/utils",
+  "name": "@meojs/std",
   "version": "1.0.5",
   "packageManager": "npm@10.9.0",
   "engines": {
     "node": ">=20"
   },
-  "description": "A commonly used JavaScript/TypeScript utilities.",
+  "description": "A portable JavaScript standard library crafted for wide applicability.",
   "author": {
     "name": "SmallMain",
     "email": "smallmain@outlook.com",
     "url": "https://www.smallmain.com/"
   },
   "homepage": "https://www.smallmain.com/",
-  "repository": "github:meo-js/utils",
-  "bugs": "https://github.com/meo-js/utils/issues",
+  "repository": "github:meo-js/std",
+  "bugs": "https://github.com/meo-js/std/issues",
   "license": "MIT",
   "publishConfig": {
     "access": "public"

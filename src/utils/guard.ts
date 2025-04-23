@@ -1,4 +1,4 @@
-import type { Any } from "../types/any.js";
+import type { Any } from "../builtin/ts/any.js";
 import type { Primitive } from "../types/primitive.js";
 import type { TypedArray } from "../types/typed-array.js";
 

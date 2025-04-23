@@ -3,11 +3,11 @@
 </p> -->
 
 <h1 align="center">
-@meojs/utils
+@meojs/std
 </h1>
 
 <p align="center">
-A commonly used JavaScript/TypeScript utilities.
+A portable JavaScript standard library crafted for wide applicability.
 </p>
 
 <!-- <br>
@@ -26,7 +26,7 @@ A commonly used JavaScript/TypeScript utilities.
 ## Introduction
 
 ```bash
-npm i @meojs/utils
+npm i @meojs/std
 ```
 
 ## Contributing

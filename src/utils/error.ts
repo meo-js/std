@@ -1,6 +1,6 @@
-import type { Any } from "../types/any.js";
-import type { Class } from "../types/class.js";
-import { getEnumMembers } from "./enum.js";
+import type { Class } from "../builtin/class/type.js";
+import { getEnumMembers } from "../builtin/enum/utils.js";
+import type { Any } from "../builtin/ts/any.js";
 
 /**
  * 基础错误类
