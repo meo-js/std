@@ -1,5 +1,7 @@
 /**
- * 文本编码枚举（键值参考 [W3C Encoding Standard](https://encoding.spec.whatwg.org/) 但并不完全一致）
+ * 文本编码枚举
+ *
+ * 键值参考 [W3C Encoding Standard](https://encoding.spec.whatwg.org/)，但并不与其完全一致
  */
 export enum TextEncoding {
     Unknown = "unknown",
