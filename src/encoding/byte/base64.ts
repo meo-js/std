@@ -1,5 +1,5 @@
-import { isString } from "../../utils/guard.js";
-import { asUint8Array } from "../../utils/typed-array.js";
+import { isString } from "../../guard.js";
+import { asUint8Array } from "../../typed-array.js";
 import { throwInvalidChar, throwUnexpectedEnd } from "../error.js";
 import { textEncoding } from "../text.js";
 import type { Base64DecodeOptions, Base64EncodeOptions } from "./options.js";

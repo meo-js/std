@@ -1,5 +1,5 @@
 import chardet, { type EncodingName } from "chardet";
-import { asUint8Array } from "../../utils/typed-array.js";
+import { asUint8Array } from "../../typed-array.js";
 import type { TextEncodingAnalyseResult } from "./detect-type.js";
 import { TextEncoding } from "./enum.js";
 
@@ -22,7 +22,7 @@ export function detect(bytes: BufferSource): TextEncoding {
 export function analyse(bytes: BufferSource): TextEncodingAnalyseResult {
     const result = chardet.analyse(asUint8Array(bytes));
     for (const item of result) {
-        item.name = toTextEncoding(item.name) as never;
+        item.name = toTextEncoding(item.name) as chardet.EncodingName;
     }
     return result as TextEncodingAnalyseResult;
 }

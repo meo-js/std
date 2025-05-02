@@ -1,6 +1,6 @@
-import { isString } from "../../utils/guard.js";
-import { fromCharCodes } from "../../utils/string.js";
-import { asUint8Array } from "../../utils/typed-array.js";
+import { isString } from "../../guard.js";
+import { fromCharCodes } from "../../string.js";
+import { asUint8Array } from "../../typed-array.js";
 import { throwInvalidChar } from "../error.js";
 import { textEncoding } from "../text.js";
 import type { Unit8DecodeOptions, Unit8EncodeOptions } from "./options.js";

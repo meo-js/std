@@ -1,4 +1,4 @@
-import { asUint8Array, Endian } from "../../utils/typed-array.js";
+import { asUint8Array, Endian } from "../../typed-array.js";
 import { throwInvalidChar, throwInvalidSurrogate } from "../error.js";
 import * as decodeFallback from "./decode-fallback.js";
 import * as encodeFallback from "./encode-fallback.js";

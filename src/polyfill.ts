@@ -5,6 +5,25 @@
  *
  * @module
  */
-
-// Promise.withResolvers() is need Node.js
+// Promise.withResolvers() not widely popular
+import "core-js/proposals/promise-with-resolvers.js";
+// at() not widely popular
+import "core-js/proposals/relative-indexing-method.js";
+// error.cause not widely popular
+import "core-js/proposals/error-cause.js";
+// using/dispose not widely popular
+import "core-js/proposals/explicit-resource-management.js";
+// hasOwn() not widely popular
+import "core-js/proposals/accessible-object-hasownproperty.js";
+// decorator metadata not widely popular
+import "core-js/proposals/decorator-metadata-v2.js";
+// Promise.try() not widely popular
+import "core-js/proposals/promise-try.js";
+// queueMicrotask() not widely popular
+if (typeof globalThis.queueMicrotask !== "function") {
+    globalThis.queueMicrotask = function (callback) {
+        setTimeout(callback);
+    };
+}
+// Promise.withResolvers() not widely popular
 import "core-js/proposals/promise-with-resolvers.js";

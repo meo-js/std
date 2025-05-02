@@ -25,10 +25,20 @@
             "require": "./dist/index.cjs",
             "types": "./dist/index.d.ts"
         },
+        "./macro": {
+            "import": "./dist/macro.mjs",
+            "require": "./dist/macro.cjs",
+            "types": "./dist/macro.d.ts"
+        },
         "./encoding": {
             "import": "./dist/encoding.mjs",
             "require": "./dist/encoding.cjs",
             "types": "./dist/encoding.d.ts"
+        },
+        "./global": {
+            "import": "./dist/global.mjs",
+            "require": "./dist/global.cjs",
+            "types": "./dist/global.d.ts"
         },
         "./polyfill": {
             "import": "./dist/polyfill.mjs",
@@ -61,12 +71,14 @@
         "dev": "npx unbuild --watch",
         "clean": "rimraf ./dist",
         "lint": "eslint",
-        "prepare": "simple-git-hooks"
+        "prepare": "simple-git-hooks",
+        "gen-exports": "npx tsx ./scripts/exports-generator.ts"
     },
     "devDependencies": {
         "@commitlint/cli": "^19.8.0",
         "@commitlint/config-conventional": "^19.8.0",
-        "@meojs/cfgs": "^2.0.10",
+        "@meojs/cfgs": "^2.0.13",
+        "@meojs/types": "^1.0.1",
         "@types/node": "^20",
         "cross-env": "^7.0.3",
         "eslint": "^9.22.0",
@@ -78,7 +90,7 @@
     "dependencies": {
         "chardet": "^2.1.0",
         "core-js": "^3.41.0",
-        "pathe": "^2.0.3",
-        "type-fest": "^4.37.0"
+        "string-ts": "^2.2.1",
+        "type-fest": "^4.40.1"
     }
 }

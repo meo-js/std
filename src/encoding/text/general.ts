@@ -1,4 +1,4 @@
-import { Endian } from "../../utils/typed-array.js";
+import { Endian } from "../../typed-array.js";
 import { throwUnsupportedEncoding } from "../error.js";
 import * as ascii from "./ascii.js";
 import { CodecableTextEncoding, TextEncoding } from "./enum.js";

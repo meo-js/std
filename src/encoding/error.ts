@@ -4,7 +4,7 @@
  * @internal
  */
 
-import { isString } from "../utils/guard.js";
+import { isString } from "../guard.js";
 
 export function throwUnexpectedEnd(): never {
     throw new RangeError("unexpected end of data.");

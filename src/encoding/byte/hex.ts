@@ -1,5 +1,5 @@
-import { isString } from "../../utils/guard.js";
-import { asUint8Array } from "../../utils/typed-array.js";
+import { isString } from "../../guard.js";
+import { asUint8Array } from "../../typed-array.js";
 import { unit8 } from "../byte.js";
 import { throwInvalidChar, throwInvalidLength } from "../error.js";
 import { textEncoding } from "../text.js";

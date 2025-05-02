@@ -1,4 +1,4 @@
-import { Endian, asDataView, asUint8Array } from "../../utils/typed-array.js";
+import { Endian, asDataView, asUint8Array } from "../../typed-array.js";
 import {
     throwInvalidLength,
     throwInvalidSurrogate,

@@ -1,4 +1,4 @@
-import type { Endian } from "../utils/typed-array.js";
+import type { Endian } from "../typed-array.js";
 
 /**
  * 支持编解码的字节序

@@ -1,11 +1,11 @@
-import { isString } from "../../utils/guard.js";
-import { fromCharCodes } from "../../utils/string.js";
+import { isString } from "../../guard.js";
+import { fromCharCodes } from "../../string.js";
 import {
     asDataView,
     asUint16Array,
     Endian,
     getBufferInfo,
-} from "../../utils/typed-array.js";
+} from "../../typed-array.js";
 import { throwInvalidLength } from "../error.js";
 import { textEncoding } from "../text.js";
 import type { Unit16DecodeOptions, Unit16EncodeOptions } from "./options.js";

@@ -4,11 +4,11 @@
  * 默认为 {@link console}
  */
 export interface InternalLogger {
-    trace(...msgs: any[]): void;
-    debug(...msgs: any[]): void;
-    info(...msgs: any[]): void;
-    warn(...msgs: any[]): void;
-    error(...msgs: any[]): void;
+    trace(...msgs: unknown[]): void;
+    debug(...msgs: unknown[]): void;
+    info(...msgs: unknown[]): void;
+    warn(...msgs: unknown[]): void;
+    error(...msgs: unknown[]): void;
 }
 
 /**

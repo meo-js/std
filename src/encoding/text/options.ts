@@ -1,4 +1,4 @@
-import type { Endian } from "../../utils/typed-array.js";
+import type { Endian } from "../../typed-array.js";
 import type { CodecableEndian } from "../shared.js";
 import type { TextDecodeFallback } from "./decode-fallback.js";
 import type { TextEncodeFallback } from "./encode-fallback.js";

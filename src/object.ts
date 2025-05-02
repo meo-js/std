@@ -1,0 +1,94 @@
+/**
+ * @public
+ *
+ * @module
+ */
+import * as tf from "type-fest";
+import { isPlainObject } from "./guard.js";
+
+/**
+ * `Record<PropertyKey, V>` 的别名类型
+ */
+export type RecordObject<V = unknown> = Record<PropertyKey, V>;
+
+/**
+ * 只有字符串键的对象，等同于 `Record<string, V>`
+ */
+export type PlainObject<V = unknown> = Record<string, V>;
+
+/**
+ * 严格为空的对象，比使用 `{}` 更像是预期的 `{}` 行为
+ */
+export type EmptyObject = tf.EmptyObject;
+
+/**
+ * 修剪所有值为 `undefined` 的属性，返回经过修剪的对象
+ *
+ * @returns 若 {@link opts.update} 为 `true`，则返回修剪过后的原对象，否则返回一个新对象
+ */
+export function prune<T extends object>(
+    v: T,
+    opts?: {
+        /**
+         * 是否深度递归地修剪
+         *
+         * 仅会修剪通过 {@link isPlainObject} 严格模式下判定为 `true` 的对象。
+         *
+         * @default false
+         */
+        deep?: boolean;
+
+        /**
+         * 是否修剪原对象
+         *
+         * @default false
+         */
+        update?: boolean;
+    },
+): T {
+    const deep = opts?.deep ?? false;
+    const update = opts?.update ?? false;
+
+    if (!update) {
+        return _prune_new(v, deep, opts);
+    } else {
+        return _prune_update(v, deep, opts);
+    }
+}
+
+function _prune_new<T extends object>(
+    v: T,
+    deep: boolean,
+    opts: object | undefined,
+): T {
+    if (deep) {
+        return Object.fromEntries(
+            Object.entries(v)
+                .filter(([, value]) => value !== undefined)
+                .map(([key, value]) => [key, prune(value, opts)]),
+        ) as T;
+    } else {
+        return Object.fromEntries(
+            Object.entries(v).filter(([, value]) => value !== undefined),
+        ) as T;
+    }
+}
+
+function _prune_update<T extends object>(
+    v: T,
+    deep: boolean,
+    opts: object | undefined,
+): T {
+    for (const key in v) {
+        if (Object.hasOwn(v, key)) {
+            const value = v[key];
+            if (value === undefined) {
+                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- checked.
+                delete v[key];
+            } else if (deep) {
+                v[key] = isPlainObject(value) ? prune(value, opts) : value;
+            }
+        }
+    }
+    return v;
+}
