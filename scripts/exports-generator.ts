@@ -10,7 +10,7 @@ const PACKAGE_JSON_PATH = join(ROOT_DIR, "package.json");
 
 // 匹配模块注释的正则表达式
 const MODULE_COMMENT_REGEX =
-    /\/\*\*\s*\n\s*\*\s*@public\s*\n\s*\*\s*\n\s*\*\s*@module\s*\n\s*\*\//;
+    /\/\*\*\s*\n\s*\*\s*@public\s*\n\s*\*\s*\n\s*\*\s*@module\s*\n\s*\*\//u;
 
 /**
  * 递归获取目录中所有的 TypeScript 文件
@@ -18,7 +18,9 @@ const MODULE_COMMENT_REGEX =
 function getAllTsFiles(dir: string): string[] {
     const files: string[] = [];
 
-    for (const file of readdirSync(dir)) {
+    for (const file of readdirSync(dir, {
+        encoding: "utf-8",
+    })) {
         const filePath = join(dir, file);
         const stat = statSync(filePath);
 
@@ -50,14 +52,21 @@ async function hasModuleComment(filePath: string): Promise<boolean> {
  */
 function getExportPath(filePath: string): string {
     const relativePath = relative(SRC_DIR, filePath);
-    return `./${relativePath.replace(/\.ts$/, "")}`;
+    return `./${relativePath.replace(/\.ts$/u, "")}`;
 }
 
 /**
  * 构建导出配置
  */
 function buildExportConfig(exportPath: string): Record<string, unknown> {
-    const distPath = exportPath.replace(/^\.\//, "./dist/");
+    if (exportPath === ".") {
+        return {
+            import: "./dist/index.mjs",
+            require: "./dist/index.cjs",
+            types: "./dist/index.d.ts",
+        };
+    }
+    const distPath = exportPath.replace(/^\.\//u, "./dist/");
     return {
         import: `${distPath}.mjs`,
         require: `${distPath}.cjs`,
@@ -82,10 +91,10 @@ function getExportKey(filePath: string): string {
         if (parts[0] === "index.ts") {
             return "./";
         }
-        return `./${parts[0].replace(/\.ts$/, "")}`;
+        return `./${parts[0].replace(/\.ts$/u, "")}`;
     } else {
         // 次级目录文件，例如 encoding/byte.ts
-        return `./${parts[0]}`;
+        return `./${relativePath.replace(/\.ts$/u, "")}`;
     }
 }
 
@@ -98,7 +107,7 @@ async function main() {
         const tsFiles = getAllTsFiles(SRC_DIR);
 
         // 2. 过滤出带有模块注释的文件并按导出键分组
-        const moduleFilesByKey: Record<string, string[]> = {};
+        const moduleFilesByKey: Record<string, string[] | undefined> = {};
 
         for (const filePath of tsFiles) {
             if (await hasModuleComment(filePath)) {
@@ -112,18 +121,21 @@ async function main() {
 
         // 3. 读取现有的 package.json
         const packageJsonContent = await readFile(PACKAGE_JSON_PATH, "utf-8");
-        const packageJson = JSON.parse(packageJsonContent);
+        const packageJson = JSON.parse(packageJsonContent) as Record<
+            string,
+            unknown
+        > & { exports?: Record<string, unknown> };
 
         // 如果没有 exports 字段，创建一个空对象
-        if (!packageJson.exports) {
-            packageJson.exports = {};
-        }
+        packageJson.exports = {};
 
         // 4. 更新 exports 对象
-        for (const exportKey of Object.keys(moduleFilesByKey)) {
-            packageJson.exports[exportKey] = buildExportConfig(
-                exportKey === "./" ? "." : exportKey,
-            );
+        // 获取并排序导出键
+        const sortedExportKeys = Object.keys(moduleFilesByKey).sort();
+
+        for (const exportKey of sortedExportKeys) {
+            const key = exportKey === "./" ? "." : exportKey;
+            packageJson.exports[key] = buildExportConfig(key);
         }
 
         // 5. 写回 package.json

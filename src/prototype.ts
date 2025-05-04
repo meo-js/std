@@ -1,4 +1,10 @@
 /**
+ * @public
+ *
+ * @module
+ */
+
+/**
  * @returns 返回按顺序遍历的迭代器，最后一个元素是根原型
  */
 export function* walkPrototypeChain<T extends object>(

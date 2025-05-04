@@ -25,26 +25,6 @@
             "require": "./dist/index.cjs",
             "types": "./dist/index.d.ts"
         },
-        "./macro": {
-            "import": "./dist/macro.mjs",
-            "require": "./dist/macro.cjs",
-            "types": "./dist/macro.d.ts"
-        },
-        "./encoding": {
-            "import": "./dist/encoding.mjs",
-            "require": "./dist/encoding.cjs",
-            "types": "./dist/encoding.d.ts"
-        },
-        "./global": {
-            "import": "./dist/global.mjs",
-            "require": "./dist/global.cjs",
-            "types": "./dist/global.d.ts"
-        },
-        "./polyfill": {
-            "import": "./dist/polyfill.mjs",
-            "require": "./dist/polyfill.cjs",
-            "types": "./dist/polyfill.d.ts"
-        },
         "./array": {
             "import": "./dist/array.mjs",
             "require": "./dist/array.cjs",
@@ -61,24 +41,39 @@
             "types": "./dist/class.d.ts"
         },
         "./collection": {
-          "import": "./dist/collection.mjs",
-          "require": "./dist/collection.cjs",
-          "types": "./dist/collection.d.ts"
+            "import": "./dist/collection.mjs",
+            "require": "./dist/collection.cjs",
+            "types": "./dist/collection.d.ts"
         },
         "./collection/map": {
-          "import": "./dist/collection/map.mjs",
-          "require": "./dist/collection/map.cjs",
-          "types": "./dist/collection/map.d.ts"
+            "import": "./dist/collection/map.mjs",
+            "require": "./dist/collection/map.cjs",
+            "types": "./dist/collection/map.d.ts"
         },
         "./collection/set": {
-          "import": "./dist/collection/set.mjs",
-          "require": "./dist/collection/set.cjs",
-          "types": "./dist/collection/set.d.ts"
+            "import": "./dist/collection/set.mjs",
+            "require": "./dist/collection/set.cjs",
+            "types": "./dist/collection/set.d.ts"
         },
         "./decorator": {
             "import": "./dist/decorator.mjs",
             "require": "./dist/decorator.cjs",
             "types": "./dist/decorator.d.ts"
+        },
+        "./encoding": {
+            "import": "./dist/encoding.mjs",
+            "require": "./dist/encoding.cjs",
+            "types": "./dist/encoding.d.ts"
+        },
+        "./encoding/byte": {
+            "import": "./dist/encoding/byte.mjs",
+            "require": "./dist/encoding/byte.cjs",
+            "types": "./dist/encoding/byte.d.ts"
+        },
+        "./encoding/text": {
+            "import": "./dist/encoding/text.mjs",
+            "require": "./dist/encoding/text.cjs",
+            "types": "./dist/encoding/text.d.ts"
         },
         "./enum": {
             "import": "./dist/enum.mjs",
@@ -100,6 +95,11 @@
             "require": "./dist/generator.cjs",
             "types": "./dist/generator.d.ts"
         },
+        "./global": {
+            "import": "./dist/global.mjs",
+            "require": "./dist/global.cjs",
+            "types": "./dist/global.d.ts"
+        },
         "./guard": {
             "import": "./dist/guard.mjs",
             "require": "./dist/guard.cjs",
@@ -109,6 +109,11 @@
             "import": "./dist/json.mjs",
             "require": "./dist/json.cjs",
             "types": "./dist/json.d.ts"
+        },
+        "./macro": {
+            "import": "./dist/macro.mjs",
+            "require": "./dist/macro.cjs",
+            "types": "./dist/macro.d.ts"
         },
         "./object": {
             "import": "./dist/object.mjs",
@@ -130,6 +135,11 @@
             "require": "./dist/protocol.cjs",
             "types": "./dist/protocol.d.ts"
         },
+        "./prototype": {
+            "import": "./dist/prototype.mjs",
+            "require": "./dist/prototype.cjs",
+            "types": "./dist/prototype.d.ts"
+        },
         "./string": {
             "import": "./dist/string.mjs",
             "require": "./dist/string.cjs",
@@ -149,11 +159,6 @@
             "import": "./dist/typed-array.mjs",
             "require": "./dist/typed-array.cjs",
             "types": "./dist/typed-array.d.ts"
-        },
-        "./prototype": {
-          "import": "./dist/prototype.mjs",
-          "require": "./dist/prototype.cjs",
-          "types": "./dist/prototype.d.ts"
         }
     },
     "files": [

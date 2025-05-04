@@ -1,8 +1,3 @@
-/**
- * @public
- *
- * @module
- */
 import type { uncertain } from "../ts/semantic.js";
 
 /**
