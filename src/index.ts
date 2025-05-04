@@ -7,3 +7,7 @@
 // #region Generated exports
 
 // #endregion
+
+// 推荐使用命名空间导入的模块
+export * as metadata from "./metadata.js";
+export * as prototype from "./prototype.js";

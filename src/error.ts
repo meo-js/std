@@ -4,7 +4,7 @@
  * @module
  */
 import type { Class } from "./class.js";
-import { getEnumMembers } from "./enum.js";
+import { getMembers } from "./enum.js";
 import type { uncertain } from "./ts/semantic.js";
 
 /**
@@ -32,25 +32,21 @@ export class BaseError<T extends number = number> extends Error {
 BaseError.prototype.name = "Error";
 
 /**
- * 创建错误工厂对象
+ * 创建定义了一系列返回错误实例的函数的对象
  *
- * @param errorClass 错误类或名称
+ * @param errorClass 错误类
  * @param errorCodes 错误码枚举
  */
-export function createErrorFactory<
-    TClass extends Class<BaseError, [code: number, ...args: uncertain]>,
-    TEnum extends object,
->(errorClass: TClass, errorCodes: TEnum) {
-    const codes = getEnumMembers(errorCodes);
-    const obj = {} as {
-        [key in keyof TEnum]: (
-            ...args: ConstructorParametersWithoutFirst<TClass>
-        ) => InstanceType<TClass>;
-    };
+export function defineErrors<
+    T extends Class<BaseError, [code: number, ...args: uncertain]>,
+    Enum extends object,
+>(errorClass: T, errorCodes: Enum): ErrorBuilder<T, Enum> {
+    const codes = getMembers(errorCodes);
+    const obj = {} as ErrorBuilder<T, Enum>;
 
     for (const [prop, code] of codes) {
-        obj[prop] = (...args: ConstructorParametersWithoutFirst<TClass>) => {
-            return new errorClass(code, ...args) as InstanceType<TClass>;
+        obj[prop] = (...args: ArgumentsWithoutCode<T>) => {
+            return new errorClass(code, ...args) as InstanceType<T>;
         };
     }
 
@@ -58,7 +54,16 @@ export function createErrorFactory<
 }
 
 /**
- * 获取构造函数参数除第一个外的类型
+ * 错误构造器
+ *
+ * 由 {@link defineErrors} 返回的对象类型
  */
-type ConstructorParametersWithoutFirst<T extends Class> =
+export type ErrorBuilder<
+    T extends Class<BaseError, [code: number, ...args: uncertain]>,
+    Enum extends object,
+> = {
+    [key in keyof Enum]: (...args: ArgumentsWithoutCode<T>) => InstanceType<T>;
+};
+
+type ArgumentsWithoutCode<T extends Class> =
     T extends Class<object, [code: number, ...args: infer R]> ? R : [];

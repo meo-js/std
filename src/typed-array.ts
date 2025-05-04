@@ -77,7 +77,7 @@ export class BufferInfo {
     }
 }
 
-let _platformEndianNess: Endian | undefined;
+let _platformEndian: Endian | undefined;
 
 /**
  * 将 {@link BufferSource} 转换为 {@link Uint8Array}
@@ -249,18 +249,18 @@ export function getBufferInfo(v: BufferSource): BufferInfo {
 /**
  * 获取平台字节序
  */
-export function getPlatformEndianNess() {
-    if (_platformEndianNess == null) {
+export function getPlatformEndian(): Endian {
+    if (_platformEndian == null) {
         const uInt32 = new Uint32Array([0x11223344]);
         const uInt8 = new Uint8Array(uInt32.buffer);
         if (uInt8[0] === 0x44) {
-            _platformEndianNess = Endian.Little;
+            _platformEndian = Endian.Little;
         } else if (uInt8[0] === 0x11) {
-            _platformEndianNess = Endian.Big;
+            _platformEndian = Endian.Big;
         } else {
-            _platformEndianNess = Endian.Unknown;
+            _platformEndian = Endian.Unknown;
         }
     }
 
-    return _platformEndianNess;
+    return _platformEndian;
 }

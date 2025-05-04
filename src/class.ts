@@ -3,6 +3,7 @@
  *
  * @module
  */
+import { isFunction } from "./guard.js";
 import type { uncertain } from "./ts/semantic.js";
 
 /**
@@ -30,23 +31,6 @@ export type AbstractClass<
     Arguments extends readonly unknown[] = uncertain,
     Statics extends object = {},
 > = (abstract new (...args: Arguments) => T) & Statics;
-
-/**
- * 类
- *
- * @template T 类
- * @template Instance 构造对象，默认从 {@link T} 中提取
- * @template Statics 类的静态属性，默认从 {@link T} 中提取
- * @template Abstract 是否为抽象类，传入 `unknown` 则默认与传入的类一致
- */
-export type ClassOf<
-    T extends AbstractConstructor,
-    Instance extends object = InstanceType<T>,
-    Statics extends object = Omit<T, "prototype">,
-    Abstract extends boolean = T extends AbstractConstructor ? true : false,
-> = Abstract extends true
-    ? AbstractClass<Instance, ConstructorParameters<T>, Statics>
-    : Class<Instance, ConstructorParameters<T>, Statics>;
 
 /**
  * 构造函数
@@ -90,31 +74,48 @@ export function getSuperClass<R extends AbstractClass = Class>(
 }
 
 /**
- * 获取用于遍历继承链上所有父类的迭代器
+ * 获取用于遍历继承链上所有类的迭代器
  *
  * @returns 返回按顺序遍历的迭代器，最后一个元素是根父类
  */
-export function* walkSuperClassChain<R extends AbstractClass = Class>(
-    targetClass: AbstractClass,
-): Generator<R, void, never> {
-    let parentClass: R | undefined = targetClass as R;
+export function* walkClassChain<R extends AbstractClass = Class>(
+    target: AbstractClass | object,
+    includeSelf: boolean = true,
+): Generator<R, void, void> {
+    target = isFunction(target) ? target : getClass(target);
+
+    if (includeSelf) {
+        yield target as R;
+    }
+
+    let parentClass: R | undefined = target as R;
     while ((parentClass = getSuperClass<R>(parentClass))) {
         yield parentClass;
     }
 }
 
 /**
- * 获取继承链上的所有父类
+ * 获取继承链上所有的类
  *
  * @param targetClass 类
+ * @param target
+ * @param includeSelf
  * @returns 返回按顺序排列的数组，最后一个元素是根父类
  */
-export function getSuperClassChain<R extends AbstractClass = Class>(
-    targetClass: AbstractClass,
+export function getClassChain<R extends AbstractClass = Class>(
+    target: AbstractClass | object,
+    includeSelf: boolean = true,
 ): R[] {
+    target = isFunction(target) ? target : getClass(target);
+
     const classes: R[] = [];
-    let parentClass: R | undefined;
-    while ((parentClass = getSuperClass<R>(targetClass))) {
+
+    if (includeSelf) {
+        classes.push(target as R);
+    }
+
+    let parentClass: R | undefined = target as R;
+    while ((parentClass = getSuperClass<R>(parentClass))) {
         classes.push(parentClass);
     }
     return classes;

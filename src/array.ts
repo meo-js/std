@@ -9,19 +9,19 @@ import { is } from "./protocol/equatable.js";
 import type { PositiveInfinity, Sub } from "./ts/math.js";
 
 /**
- * 数组索引的联合类型
+ * 数组值类型
  */
-export type Indices<T extends readonly unknown[]> = tf.ArrayIndices<T>;
+export type ValueOf<T extends readonly unknown[]> = tf.ArrayValues<T>;
 
 /**
  * 数组索引的联合类型
  */
-export type Values<T extends readonly unknown[]> = tf.ArrayValues<T>;
+export type IndexUnion<T extends readonly unknown[]> = tf.ArrayIndices<T>;
 
 /**
- * 数组转为对象类型
+ * 数组值的联合类型
  */
-export type ToObject<T extends readonly unknown[]> = tf.TupleToObject<T>;
+export type ValueUnion<T extends readonly unknown[]> = ValueOf<T>;
 
 /**
  * 数组的第一个元素
@@ -88,6 +88,11 @@ export type FlatDeep<T extends readonly unknown[]> = Flat<T, PositiveInfinity>;
  * 值或值类型的数组
  */
 export type Arrayable<T> = tf.Arrayable<T>;
+
+/**
+ * 数组转为对象类型
+ */
+export type ToObject<T extends readonly unknown[]> = tf.TupleToObject<T>;
 
 /**
  * 移除数组指定下标元素

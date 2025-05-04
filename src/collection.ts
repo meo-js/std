@@ -36,7 +36,7 @@ export type AnySet<T = unknown> = Set<T> | WeakSet<T & WeakKey>;
 /**
  * {@link AnyCollection} 的键类型
  */
-export type CollectionKey<T extends AnyMap> =
+export type Keyof<T extends AnyMap> =
     T extends Map<infer K, infer V>
         ? K
         : T extends WeakMap<infer K, infer V>
@@ -46,7 +46,7 @@ export type CollectionKey<T extends AnyMap> =
 /**
  * {@link AnyCollection} 的值类型
  */
-export type CollectionValue<T extends AnyCollection> =
+export type ValueOf<T extends AnyCollection> =
     T extends Map<infer K, infer V>
         ? V
         : T extends WeakMap<infer K, infer V>

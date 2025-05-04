@@ -23,9 +23,9 @@ export type fn<
 export type GenFn<
     Arguments extends readonly unknown[] = uncertain,
     T = unknown,
-    TReturn = unknown,
-    TNext = unknown,
-> = fn<Arguments, Generator<T, TReturn, TNext>>;
+    Return = unknown,
+    Next = uncertain,
+> = fn<Arguments, Generator<T, Return, Next>>;
 
 /**
  * 异步生成器函数
@@ -33,9 +33,9 @@ export type GenFn<
 export type AsyncGenFn<
     Arguments extends readonly unknown[] = uncertain,
     T = unknown,
-    TReturn = unknown,
-    TNext = unknown,
-> = fn<Arguments, AsyncGenerator<T, TReturn, TNext>>;
+    Return = unknown,
+    Next = uncertain,
+> = fn<Arguments, AsyncGenerator<T, Return, Next>>;
 
 /**
  * 异步函数
