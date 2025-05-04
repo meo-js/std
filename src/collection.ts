@@ -24,19 +24,19 @@ export type WeakCollection<T extends WeakKey = WeakKey, V = unknown> =
 /**
  * 类 {@link Map} 集合类型
  */
-export type MapCollection<K = unknown, V = unknown> =
+export type AnyMap<K = unknown, V = unknown> =
     | Map<K, V>
     | WeakMap<K & WeakKey, V>;
 
 /**
  * 类 {@link Set} 集合类型
  */
-export type SetCollection<T = unknown> = Set<T> | WeakSet<T & WeakKey>;
+export type AnySet<T = unknown> = Set<T> | WeakSet<T & WeakKey>;
 
 /**
- * {@link MapCollection} 的键类型
+ * {@link AnyCollection} 的键类型
  */
-export type CollectionKey<T extends MapCollection> =
+export type CollectionKey<T extends AnyMap> =
     T extends Map<infer K, infer V>
         ? K
         : T extends WeakMap<infer K, infer V>

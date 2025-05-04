@@ -2,11 +2,8 @@ import { asUint8Array, Endian } from "../../typed-array.js";
 import { throwInvalidChar, throwInvalidSurrogate } from "../error.js";
 import * as decodeFallback from "./decode-fallback.js";
 import * as encodeFallback from "./encode-fallback.js";
-import { TextEncoding } from "./enum.js";
-import type {
-    TextDecodeSingleByteOptions,
-    Utf8EncodeOptions,
-} from "./options.js";
+import { Encoding } from "./enum.js";
+import type { SingleByteDecodeOptions, Utf8EncodeOptions } from "./options.js";
 import { replacementCharRegex } from "./replacement-char.js";
 
 const bom = [0xef, 0xbb, 0xbf];
@@ -15,12 +12,12 @@ const bom = [0xef, 0xbb, 0xbf];
  * 以 UTF-8 解码字节数据为字符串
  *
  * @param bytes 字节数据
- * @param opts {@link TextDecodeSingleByteOptions}
+ * @param opts {@link SingleByteDecodeOptions}
  * @returns 字符串
  */
 export function decode(
     bytes: BufferSource,
-    opts?: TextDecodeSingleByteOptions,
+    opts?: SingleByteDecodeOptions,
 ): string {
     const fatal = opts?.fatal ?? false;
     const fallback = opts?.fallback ?? decodeFallback.replace;
@@ -65,7 +62,7 @@ export function decode(
                 throwInvalidSurrogate(byte1, offset);
             } else {
                 chars.push(
-                    fallback(data, offset, Endian.Little, TextEncoding.Utf8),
+                    fallback(data, offset, Endian.Little, Encoding.Utf8),
                 );
                 offset += 1;
                 continue;
@@ -78,7 +75,7 @@ export function decode(
                 throwInvalidSurrogate(byte1, offset);
             } else {
                 chars.push(
-                    fallback(data, offset, Endian.Little, TextEncoding.Utf8),
+                    fallback(data, offset, Endian.Little, Encoding.Utf8),
                 );
                 break;
             }
@@ -107,7 +104,7 @@ export function decode(
                         data,
                         originalOffset,
                         Endian.Little,
-                        TextEncoding.Utf8,
+                        Encoding.Utf8,
                     ),
                 );
                 offset = originalOffset + 1;
@@ -141,7 +138,7 @@ export function decode(
                         data,
                         originalOffset,
                         Endian.Little,
-                        TextEncoding.Utf8,
+                        Encoding.Utf8,
                     ),
                 );
                 continue;
@@ -210,18 +207,14 @@ export function encode(text: string, opts?: Utf8EncodeOptions): Uint8Array {
                 if (fatal) {
                     throwInvalidSurrogate(code, i);
                 } else {
-                    chars.push(
-                        fallback(text, i, Endian.Little, TextEncoding.Utf8),
-                    );
+                    chars.push(fallback(text, i, Endian.Little, Encoding.Utf8));
                 }
             } else {
                 // 孤立的低代理项
                 if (fatal) {
                     throwInvalidSurrogate(code, i);
                 } else {
-                    chars.push(
-                        fallback(text, i, Endian.Little, TextEncoding.Utf8),
-                    );
+                    chars.push(fallback(text, i, Endian.Little, Encoding.Utf8));
                 }
             }
         } else {

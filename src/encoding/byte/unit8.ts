@@ -2,7 +2,7 @@ import { isString } from "../../guard.js";
 import { fromCharCodes } from "../../string.js";
 import { asUint8Array } from "../../typed-array.js";
 import { throwInvalidChar } from "../error.js";
-import { textEncoding } from "../text.js";
+import * as text from "../text.js";
 import type { Unit8DecodeOptions, Unit8EncodeOptions } from "./options.js";
 
 /**
@@ -22,7 +22,7 @@ export function encode(
         const encoding = opts?.encoding;
         if (encoding != null) {
             return encode(
-                textEncoding.encode(bytes, encoding, opts?.encodingOptions),
+                text.encode(bytes, encoding, opts?.encodingOptions),
                 opts,
             );
         } else {

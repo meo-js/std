@@ -3,7 +3,7 @@
  *
  * 键值参考 [W3C Encoding Standard](https://encoding.spec.whatwg.org/)，但并不与其完全一致
  */
-export enum TextEncoding {
+export enum Encoding {
     Unknown = "unknown",
     Ascii = "ascii",
     Big5 = "big5",
@@ -47,14 +47,14 @@ export enum TextEncoding {
 /**
  * 支持编解码的文本编码格式
  */
-export enum CodecableTextEncoding {
-    Ascii = TextEncoding.Ascii,
-    Utf8 = TextEncoding.Utf8,
-    Utf16 = TextEncoding.Utf16,
-    Utf16le = TextEncoding.Utf16le,
-    Utf16be = TextEncoding.Utf16be,
+export enum CodecableEncoding {
+    Ascii = Encoding.Ascii,
+    Utf8 = Encoding.Utf8,
+    Utf16 = Encoding.Utf16,
+    Utf16le = Encoding.Utf16le,
+    Utf16be = Encoding.Utf16be,
     /**
      * 别名：`latin1`
      */
-    Iso8859_1 = TextEncoding.Iso8859_1,
+    Iso8859_1 = Encoding.Iso8859_1,
 }

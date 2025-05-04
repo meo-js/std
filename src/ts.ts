@@ -8,6 +8,7 @@
 export * from "./ts/covariant.js";
 export * from "./ts/literal.js";
 export * from "./ts/math.js";
+export * from "./ts/modifier.js";
 export * from "./ts/nominal.js";
 export * from "./ts/semantic.js";
 export * from "./ts/simplify.js";

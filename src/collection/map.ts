@@ -3,6 +3,65 @@
  *
  * @module
  */
+
+import type { AnyMap, CollectionKey, CollectionValue } from "../collection.js";
+import type { Getter } from "../protocol.js";
+
+/**
+ * {@link upsert} 处理函数类型
+ */
+export type UpsertHandler<T> = (value: T, update: boolean) => T;
+
+/**
+ * 获取现有键值，若不存在则插入新键值对
+ */
+// FIXME: getsert 提案普及后移除 https://github.com/tc39/proposal-upsert
+export function getsert<T extends AnyMap>(
+    map: T,
+    key: CollectionKey<T>,
+    insertValue: CollectionValue<T>,
+): CollectionValue<T> {
+    if (!map.has(key as WeakKey)) {
+        map.set(key as WeakKey, insertValue);
+    }
+    return map.get(key as WeakKey) as CollectionValue<T>;
+}
+
+/**
+ * 获取现有键值，若不存在则插入新键值对
+ */
+// FIXME: getsert 提案普及后移除 https://github.com/tc39/proposal-upsert
+export function getsertComputed<T extends AnyMap>(
+    map: T,
+    key: CollectionKey<T>,
+    insertValueGetter: Getter<CollectionValue<T>>,
+): CollectionValue<T> {
+    if (!map.has(key as WeakKey)) {
+        map.set(key as WeakKey, insertValueGetter());
+    }
+    return map.get(key as WeakKey) as CollectionValue<T>;
+}
+
+/**
+ * 更新现有键值，若不存在则插入新键值对
+ */
+export function upsert<T extends AnyMap>(
+    map: T,
+    key: CollectionKey<T>,
+    handler: UpsertHandler<CollectionValue<T>>,
+): CollectionValue<T> {
+    if (map.has(key as WeakKey)) {
+        let value = map.get(key as WeakKey) as CollectionValue<T>;
+        value = handler(value, true);
+        map.set(key as WeakKey, value);
+        return value;
+    } else {
+        const value = handler(undefined!, false);
+        map.set(key as WeakKey, value);
+        return value;
+    }
+}
+
 /**
  * 修剪 {@link Map} 所有键或值为 `undefined` 的键值对
  */

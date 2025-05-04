@@ -8,18 +8,18 @@ import { Endian, asUint8Array } from "../../typed-array.js";
 import { throwInvalidChar } from "../error.js";
 import * as decodeFallback from "./decode-fallback.js";
 import * as encodeFallback from "./encode-fallback.js";
-import { TextEncoding } from "./enum.js";
+import { Encoding } from "./enum.js";
 import type {
-    TextDecodeSingleByteOptions,
-    TextEncodeSingleByteOptions,
+    SingleByteDecodeOptions,
+    SingleByteEncodeOptions,
 } from "./options.js";
 import { replacementCharRegex } from "./replacement-char.js";
 
 export function _decode(
     maxCode: number,
-    encoding: TextEncoding,
+    encoding: Encoding,
     bytes: BufferSource,
-    opts?: TextDecodeSingleByteOptions,
+    opts?: SingleByteDecodeOptions,
 ): string {
     const fatal = opts?.fatal ?? false;
     const fallback = opts?.fallback ?? decodeFallback.replace;
@@ -50,9 +50,9 @@ export function _decode(
 
 export function _encode(
     maxCode: number,
-    encoding: TextEncoding,
+    encoding: Encoding,
     text: string,
-    opts?: TextEncodeSingleByteOptions,
+    opts?: SingleByteEncodeOptions,
 ): Uint8Array {
     const fatal = opts?.fatal ?? false;
     const fallback = opts?.fallback ?? encodeFallback.replace;

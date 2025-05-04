@@ -5,9 +5,9 @@
  */
 import type {
     AnyCollection,
+    AnyMap,
+    AnySet,
     Collection,
-    MapCollection,
-    SetCollection,
     WeakCollection,
 } from "./collection.js";
 import type { AsyncGenFn, GenFn } from "./function.js";
@@ -116,12 +116,10 @@ export function isPlainObject<T extends object = object>(
     value: unknown,
     strict: boolean = true,
 ): value is T {
-    if (value == null) {
-        return false;
-    }
-
     if (strict) {
-        return Object.getPrototypeOf(value) === Object.prototype;
+        return (
+            value != null && Object.getPrototypeOf(value) === Object.prototype
+        );
     } else {
         return Object.prototype.toString.call(value) === "[object Object]";
     }
@@ -157,11 +155,11 @@ export function isWeakMap<K extends WeakKey = WeakKey, V = unknown>(
 
 /**
  * @param value 任意值
- * @returns 是否为 {@link MapCollection}
+ * @returns 是否为 {@link AnyMap}
  */
 export function isAnyMap<K = unknown, V = unknown>(
     value: unknown,
-): value is MapCollection<K, V> {
+): value is AnyMap<K, V> {
     return isMap<K, V>(value) || isWeakMap<K & WeakKey, V>(value);
 }
 
@@ -185,11 +183,9 @@ export function isWeakSet<T extends WeakKey = WeakKey>(
 
 /**
  * @param value 任意值
- * @returns 是否为 {@link SetCollection}
+ * @returns 是否为 {@link AnySet}
  */
-export function isAnySet<T = unknown>(
-    value: unknown,
-): value is SetCollection<T> {
+export function isAnySet<T = unknown>(value: unknown): value is AnySet<T> {
     return isSet<T>(value) || isWeakSet<T & WeakKey>(value);
 }
 
@@ -245,6 +241,14 @@ export function isWeakRef<T extends object = object>(
     value: unknown,
 ): value is WeakRef<T> {
     return value instanceof WeakRef;
+}
+
+/**
+ * @param value 任意值
+ * @returns 是否为 [Module Namespace Object](https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects)
+ */
+export function isModule(value: unknown) {
+    return Object.prototype.toString.call(value) === "[object Module]";
 }
 
 /**

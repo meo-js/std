@@ -1,9 +1,9 @@
 import { Endian } from "../../typed-array.js";
 import { throwUnsupportedEncoding } from "../error.js";
 import * as ascii from "./ascii.js";
-import { CodecableTextEncoding, TextEncoding } from "./enum.js";
+import { CodecableEncoding, Encoding } from "./enum.js";
 import * as latin1 from "./latin1.js";
-import type { TextDecodeOptions, TextEncodeOptions } from "./options.js";
+import type { DecodeOptions, EncodeOptions } from "./options.js";
 import * as utf16 from "./utf16.js";
 import * as utf8 from "./utf8.js";
 
@@ -12,27 +12,27 @@ import * as utf8 from "./utf8.js";
  */
 export function encode(
     text: string,
-    encoding: CodecableTextEncoding,
-    opts?: TextEncodeOptions,
+    encoding: CodecableEncoding,
+    opts?: EncodeOptions,
 ): Uint8Array {
     switch (encoding) {
-        case CodecableTextEncoding.Ascii:
+        case CodecableEncoding.Ascii:
             return ascii.encode(text, opts);
-        case CodecableTextEncoding.Utf8:
+        case CodecableEncoding.Utf8:
             return utf8.encode(text, opts);
-        case CodecableTextEncoding.Utf16:
+        case CodecableEncoding.Utf16:
             return utf16.encode(text, opts);
-        case CodecableTextEncoding.Utf16le:
+        case CodecableEncoding.Utf16le:
             return utf16.encode(text, {
                 ...opts,
                 endian: Endian.Little,
             });
-        case CodecableTextEncoding.Utf16be:
+        case CodecableEncoding.Utf16be:
             return utf16.encode(text, {
                 ...opts,
                 endian: Endian.Big,
             });
-        case CodecableTextEncoding.Iso8859_1:
+        case CodecableEncoding.Iso8859_1:
             return latin1.encode(text, opts);
         default:
             throwUnsupportedEncoding(encoding);
@@ -44,27 +44,27 @@ export function encode(
  */
 export function decode(
     bytes: BufferSource,
-    encoding: CodecableTextEncoding,
-    opts?: TextDecodeOptions,
+    encoding: CodecableEncoding,
+    opts?: DecodeOptions,
 ): string {
     switch (encoding) {
-        case CodecableTextEncoding.Ascii:
+        case CodecableEncoding.Ascii:
             return ascii.decode(bytes, opts);
-        case CodecableTextEncoding.Utf8:
+        case CodecableEncoding.Utf8:
             return utf8.decode(bytes, opts);
-        case CodecableTextEncoding.Utf16:
+        case CodecableEncoding.Utf16:
             return utf16.decode(bytes, opts);
-        case CodecableTextEncoding.Utf16le:
+        case CodecableEncoding.Utf16le:
             return utf16.decode(bytes, {
                 ...opts,
                 endian: Endian.Little,
             });
-        case CodecableTextEncoding.Utf16be:
+        case CodecableEncoding.Utf16be:
             return utf16.decode(bytes, {
                 ...opts,
                 endian: Endian.Big,
             });
-        case CodecableTextEncoding.Iso8859_1:
+        case CodecableEncoding.Iso8859_1:
             return latin1.decode(bytes, opts);
         default:
             throwUnsupportedEncoding(encoding);
@@ -74,6 +74,6 @@ export function decode(
 /**
  * @returns 返回该编码是否可进行编解码
  */
-export function isCodecable(encoding: TextEncoding) {
-    return encoding in CodecableTextEncoding;
+export function isCodecable(encoding: Encoding) {
+    return encoding in CodecableEncoding;
 }

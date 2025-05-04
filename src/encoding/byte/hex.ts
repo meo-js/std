@@ -2,7 +2,7 @@ import { isString } from "../../guard.js";
 import { asUint8Array } from "../../typed-array.js";
 import { unit8 } from "../byte.js";
 import { throwInvalidChar, throwInvalidLength } from "../error.js";
-import { textEncoding } from "../text.js";
+import * as text from "../text.js";
 import type { HexDecodeOptions, HexEncodeOptions } from "./options.js";
 
 const encodeTable = [
@@ -295,7 +295,7 @@ export function encode(
         const encoding = opts?.encoding;
         if (encoding != null) {
             return encode(
-                textEncoding.encode(bytes, encoding, opts?.encodingOptions),
+                text.encode(bytes, encoding, opts?.encodingOptions),
                 opts,
             );
         } else {

@@ -1,5 +1,5 @@
 import type { CodecableEndian } from "../shared.js";
-import { TextEncoding } from "./enum.js";
+import { Encoding } from "./enum.js";
 import { unicodeReplacementChar } from "./replacement-char.js";
 
 /**
@@ -10,11 +10,11 @@ import { unicodeReplacementChar } from "./replacement-char.js";
  * @param endian 字节序
  * @param encoding 编码格式
  */
-export type TextDecodeFallback = (
+export type DecodeFallback = (
     data: ArrayBufferView,
     offset: number,
     endian: CodecableEndian,
-    encoding: TextEncoding,
+    encoding: Encoding,
 ) => string;
 
 /**
@@ -24,7 +24,7 @@ export type TextDecodeFallback = (
  * - Unicode 编码的替换字符为 `0xFFFD`
  * - Ascii 编码的替换字符为 `0x1A`
  */
-export const replace: TextDecodeFallback = (data, offset, endian, encoding) => {
+export const replace: DecodeFallback = (data, offset, endian, encoding) => {
     switch (encoding) {
         default:
             return unicodeReplacementChar;
@@ -34,7 +34,7 @@ export const replace: TextDecodeFallback = (data, offset, endian, encoding) => {
 /**
  * 忽略无效数据
  */
-export const ignore: TextDecodeFallback = (data, offset, endian, encoding) => {
+export const ignore: DecodeFallback = (data, offset, endian, encoding) => {
     switch (encoding) {
         default:
             return "";

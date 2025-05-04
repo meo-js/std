@@ -1,12 +1,12 @@
 import type { Endian } from "../../typed-array.js";
 import type { CodecableEndian } from "../shared.js";
-import type { TextDecodeFallback } from "./decode-fallback.js";
-import type { TextEncodeFallback } from "./encode-fallback.js";
+import type { DecodeFallback } from "./decode-fallback.js";
+import type { EncodeFallback } from "./encode-fallback.js";
 
 /**
  * 文本编码选项
  */
-export interface TextEncodeOptions {
+export interface EncodeOptions {
     /**
      * 指定多字节编码时的字节序
      *
@@ -26,7 +26,7 @@ export interface TextEncodeOptions {
      *
      * @default {@link textEncodeFallback.replace}
      */
-    fallback?: TextEncodeFallback;
+    fallback?: EncodeFallback;
 
     /**
      * 遇到无效数据时是否直接抛出错误，否则将使用 {@link fallback} 函数处理。
@@ -39,7 +39,7 @@ export interface TextEncodeOptions {
 /**
  * 文本解码选项
  */
-export interface TextDecodeOptions {
+export interface DecodeOptions {
     /**
      * 指定多字节解码未检测到 BOM 时使用的字节序
      *
@@ -52,7 +52,7 @@ export interface TextDecodeOptions {
      *
      * @default {@link textDecodeFallback.replace}
      */
-    fallback?: TextDecodeFallback;
+    fallback?: DecodeFallback;
 
     /**
      * 遇到无效数据时是否直接抛出错误，否则无效字节将使用 {@link fallback} 函数处理。
@@ -65,17 +65,14 @@ export interface TextDecodeOptions {
 /**
  * 单字节文本编码选项
  */
-export type TextEncodeSingleByteOptions = Omit<
-    TextEncodeOptions,
-    "endian" | "bom"
->;
+export type SingleByteEncodeOptions = Omit<EncodeOptions, "endian" | "bom">;
 
 /**
  * 单字节文本解码选项
  */
-export type TextDecodeSingleByteOptions = Omit<TextDecodeOptions, "endian">;
+export type SingleByteDecodeOptions = Omit<DecodeOptions, "endian">;
 
 /**
  * UTF-8 编码选项
  */
-export type Utf8EncodeOptions = Omit<TextEncodeOptions, "endian">;
+export type Utf8EncodeOptions = Omit<EncodeOptions, "endian">;

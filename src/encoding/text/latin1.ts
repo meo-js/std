@@ -1,7 +1,7 @@
-import { TextEncoding } from "./enum.js";
+import { Encoding } from "./enum.js";
 import type {
-    TextDecodeSingleByteOptions,
-    TextEncodeSingleByteOptions,
+    SingleByteDecodeOptions,
+    SingleByteEncodeOptions,
 } from "./options.js";
 import { _decode, _encode, _isWellFormed, _verify } from "./single-byte.js";
 
@@ -11,28 +11,28 @@ const maxCode = 255;
  * 以 Latin1 解码字节数据为字符串
  *
  * @param bytes 字节数据
- * @param opts {@link TextDecodeSingleByteOptions}
+ * @param opts {@link SingleByteDecodeOptions}
  * @returns 字符串
  */
 export function decode(
     bytes: BufferSource,
-    opts?: TextDecodeSingleByteOptions,
+    opts?: SingleByteDecodeOptions,
 ): string {
-    return _decode(maxCode, TextEncoding.Iso8859_1, bytes, opts);
+    return _decode(maxCode, Encoding.Iso8859_1, bytes, opts);
 }
 
 /**
  * 编码字符串为 Latin1 字节数据
  *
  * @param text 字符串
- * @param opts {@link TextEncodeSingleByteOptions}
+ * @param opts {@link SingleByteEncodeOptions}
  * @returns Latin1 字节数据
  */
 export function encode(
     text: string,
-    opts?: TextEncodeSingleByteOptions,
+    opts?: SingleByteEncodeOptions,
 ): Uint8Array {
-    return _encode(maxCode, TextEncoding.Iso8859_1, text, opts);
+    return _encode(maxCode, Encoding.Iso8859_1, text, opts);
 }
 
 /**

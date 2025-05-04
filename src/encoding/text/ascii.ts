@@ -1,7 +1,7 @@
-import { TextEncoding } from "./enum.js";
+import { Encoding } from "./enum.js";
 import type {
-    TextDecodeSingleByteOptions,
-    TextEncodeSingleByteOptions,
+    SingleByteDecodeOptions,
+    SingleByteEncodeOptions,
 } from "./options.js";
 import { _decode, _encode, _isWellFormed, _verify } from "./single-byte.js";
 
@@ -11,28 +11,28 @@ const maxCode = 127;
  * 以 Ascii 解码字节数据为字符串
  *
  * @param bytes 字节数据
- * @param opts {@link TextDecodeSingleByteOptions}
+ * @param opts {@link SingleByteDecodeOptions}
  * @returns 字符串
  */
 export function decode(
     bytes: BufferSource,
-    opts?: TextDecodeSingleByteOptions,
+    opts?: SingleByteDecodeOptions,
 ): string {
-    return _decode(maxCode, TextEncoding.Ascii, bytes, opts);
+    return _decode(maxCode, Encoding.Ascii, bytes, opts);
 }
 
 /**
  * 编码字符串为 Ascii 字节数据
  *
  * @param text 字符串
- * @param opts {@link TextEncodeSingleByteOptions}
+ * @param opts {@link SingleByteEncodeOptions}
  * @returns Ascii 字节数据
  */
 export function encode(
     text: string,
-    opts?: TextEncodeSingleByteOptions,
+    opts?: SingleByteEncodeOptions,
 ): Uint8Array {
-    return _encode(maxCode, TextEncoding.Ascii, text, opts);
+    return _encode(maxCode, Encoding.Ascii, text, opts);
 }
 
 /**

@@ -7,6 +7,7 @@ import type * as ccenv from "cc/env";
 import * as dev from "compile-constants/dev";
 import type { COCOS, NODE } from "compile-constants/env";
 import * as flags from "compile-constants/flags";
+import { is } from "./protocol/equatable.js";
 
 /**
  * 是否处于调试模式
@@ -28,3 +29,12 @@ export const DEBUG = dev.DEBUG;
  */
 // FIXME: 新 decorator 提案普及后移除该 flag
 export const USE_LEGACY_DECORATOR = flags.USE_LEGACY_DECORATOR;
+
+/**
+ * 是否使用自定义相等比较函数
+ *
+ * 这将影响 {@link is} 函数的行为
+ *
+ * @default false
+ */
+export const USE_CUSTOM_EQUAL = flags.USE_CUSTOM_EQUAL;

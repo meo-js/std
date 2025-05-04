@@ -1,13 +1,13 @@
-import type { TextEncoding } from "./enum.js";
+import type { Encoding } from "./enum.js";
 
 /**
  * 编码分析结果项
  */
-export interface TextEncodingAnalyseResultItem {
+export interface AnalyseResultItem {
     /**
      * 编码格式
      */
-    name: TextEncoding;
+    name: Encoding;
 
     /**
      * 置信度，范围 0 - 100
@@ -23,4 +23,4 @@ export interface TextEncodingAnalyseResultItem {
 /**
  * 编码分析结果
  */
-export type TextEncodingAnalyseResult = TextEncodingAnalyseResultItem[];
+export type AnalyseResult = AnalyseResultItem[];

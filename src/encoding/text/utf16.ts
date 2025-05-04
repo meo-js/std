@@ -7,8 +7,8 @@ import {
 import type { CodecableEndian } from "../shared.js";
 import * as decodeFallback from "./decode-fallback.js";
 import * as encodeFallback from "./encode-fallback.js";
-import { TextEncoding } from "./enum.js";
-import type { TextDecodeOptions, TextEncodeOptions } from "./options.js";
+import { Encoding } from "./enum.js";
+import type { DecodeOptions, EncodeOptions } from "./options.js";
 import { replacementCharRegex } from "./replacement-char.js";
 
 const bomCode = 0xfeff;
@@ -18,10 +18,10 @@ const reverseBomCode = 0xfffe;
  * 以 UTF-16 解码字节数据为字符串
  *
  * @param bytes 字节数据
- * @param opts {@link TextDecodeOptions}
+ * @param opts {@link DecodeOptions}
  * @returns 字符串
  */
-export function decode(bytes: BufferSource, opts?: TextDecodeOptions): string {
+export function decode(bytes: BufferSource, opts?: DecodeOptions): string {
     const fatal = opts?.fatal ?? false;
     const fallback = opts?.fallback ?? decodeFallback.replace;
     let endian = opts?.endian ?? Endian.Little;
@@ -39,7 +39,7 @@ export function decode(bytes: BufferSource, opts?: TextDecodeOptions): string {
     }
 
     if (data.byteLength === 1) {
-        return fallback(data, 0, endian, TextEncoding.Utf16);
+        return fallback(data, 0, endian, Encoding.Utf16);
     }
 
     let offset = 0;
@@ -94,7 +94,7 @@ export function decode(bytes: BufferSource, opts?: TextDecodeOptions): string {
                             data,
                             pos,
                             endian,
-                            TextEncoding.Utf16,
+                            Encoding.Utf16,
                         );
                     }
                 } else {
@@ -106,7 +106,7 @@ export function decode(bytes: BufferSource, opts?: TextDecodeOptions): string {
                             data,
                             pos,
                             endian,
-                            TextEncoding.Utf16,
+                            Encoding.Utf16,
                         );
                     }
                 }
@@ -125,7 +125,7 @@ export function decode(bytes: BufferSource, opts?: TextDecodeOptions): string {
                     data,
                     data.byteLength - 1,
                     endian,
-                    TextEncoding.Utf16,
+                    Encoding.Utf16,
                 );
             }
         }
@@ -142,10 +142,10 @@ export function decode(bytes: BufferSource, opts?: TextDecodeOptions): string {
  * 编码字符串为 UTF-16 字节数据
  *
  * @param text 字符串
- * @param opts {@link TextEncodeOptions}
+ * @param opts {@link EncodeOptions}
  * @returns UTF-16 字节数据
  */
-export function encode(text: string, opts?: TextEncodeOptions): Uint8Array {
+export function encode(text: string, opts?: EncodeOptions): Uint8Array {
     const endian = opts?.endian ?? Endian.Little;
     const addBom = opts?.bom ?? true;
     const big = endian === Endian.Big;
@@ -192,7 +192,7 @@ export function encode(text: string, opts?: TextEncodeOptions): Uint8Array {
                 } else {
                     data.setUint16(
                         pos,
-                        fallback(text, i, endian, TextEncoding.Utf16),
+                        fallback(text, i, endian, Encoding.Utf16),
                         !big,
                     );
                 }
@@ -203,7 +203,7 @@ export function encode(text: string, opts?: TextEncodeOptions): Uint8Array {
                 } else {
                     data.setUint16(
                         pos,
-                        fallback(text, i, endian, TextEncoding.Utf16),
+                        fallback(text, i, endian, Encoding.Utf16),
                         !big,
                     );
                 }

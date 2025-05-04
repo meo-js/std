@@ -11,5 +11,6 @@ declare module "compile-constants/dev" {
 
 declare module "compile-constants/flags" {
     export const USE_LEGACY_DECORATOR: boolean;
+    export const USE_CUSTOM_EQUAL: boolean;
 }
 // #endregion

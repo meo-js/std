@@ -5,22 +5,23 @@
  */
 import type * as tf from "type-fest";
 import type { Rng } from "./protocol.js";
+import { is } from "./protocol/equatable.js";
 import type { PositiveInfinity, Sub } from "./ts/math.js";
 
 /**
  * 数组索引的联合类型
  */
-export type ArrayIndices<T extends readonly unknown[]> = tf.ArrayIndices<T>;
+export type Indices<T extends readonly unknown[]> = tf.ArrayIndices<T>;
 
 /**
  * 数组索引的联合类型
  */
-export type ArrayValues<T extends readonly unknown[]> = tf.ArrayValues<T>;
+export type Values<T extends readonly unknown[]> = tf.ArrayValues<T>;
 
 /**
  * 数组转为对象类型
  */
-export type ArrayToObject<T extends readonly unknown[]> = tf.TupleToObject<T>;
+export type ToObject<T extends readonly unknown[]> = tf.TupleToObject<T>;
 
 /**
  * 数组的第一个元素
@@ -89,35 +90,7 @@ export type FlatDeep<T extends readonly unknown[]> = Flat<T, PositiveInfinity>;
 export type Arrayable<T> = tf.Arrayable<T>;
 
 /**
- * 快速移除数组指定下标成员
- *
- * 采用直接与最后一位成员交换的方式进行移除，函数未进行下标检查。
- *
- * @param arr 数组
- * @param index 数组下标
- */
-export function fastRemoveAt(arr: unknown[], index: number) {
-    arr[index] = arr[arr.length - 1];
-    arr.pop();
-}
-
-/**
- * 快速移除数组指定成员，返回是否移除成功
- *
- * 采用直接与最后一位成员交换的方式进行移除。
- *
- * @param arr 数组
- * @param value 成员
- */
-export function fastRemove(arr: unknown[], value: unknown) {
-    const index = arr.indexOf(value);
-    if (index === -1) return false;
-    fastRemoveAt(arr, index);
-    return true;
-}
-
-/**
- * 移除数组指定下标成员
+ * 移除数组指定下标元素
  *
  * 函数未进行下标检查。
  *
@@ -129,16 +102,58 @@ export function removeAt(arr: unknown[], index: number) {
 }
 
 /**
- * 移除指定数组成员，返回是否移除成功
+ * 移除指定数组元素，返回是否移除成功
  *
  * @param arr 数组
- * @param value 成员
+ * @param value 元素
  */
 export function remove(arr: unknown[], value: unknown) {
     const index = arr.indexOf(value);
     if (index === -1) return false;
     removeAt(arr, index);
     return true;
+}
+
+/**
+ * 快速移除数组指定下标元素
+ *
+ * 采用直接与最后一位元素交换的方式进行移除，函数未进行下标检查。
+ *
+ * @param arr 数组
+ * @param index 数组下标
+ */
+export function removeAtBySwap(arr: unknown[], index: number) {
+    arr[index] = arr[arr.length - 1];
+    arr.pop();
+}
+
+/**
+ * 快速移除数组指定元素，返回是否移除成功
+ *
+ * 采用直接与最后一位元素交换的方式进行移除。
+ *
+ * @param arr 数组
+ * @param value 元素
+ */
+export function removeBySwap(arr: unknown[], value: unknown) {
+    const index = arr.indexOf(value);
+    if (index === -1) return false;
+    removeAtBySwap(arr, index);
+    return true;
+}
+
+/**
+ * 交换数组指定下标的两个元素
+ *
+ * @param arr 数组
+ * @param indexA 下标 A
+ * @param indexB 下标 B
+ */
+export function swap<T>(arr: T[], indexA: number, indexB: number): T[] {
+    const temp = arr[indexA];
+    arr[indexA] = arr[indexB];
+    arr[indexB] = temp;
+    return arr;
 }
 
 /**
@@ -150,6 +165,57 @@ export function remove(arr: unknown[], value: unknown) {
  */
 export function insert(arr: unknown[], value: unknown, index: number) {
     arr.splice(index, 0, value);
+}
+
+/**
+ * 随机选取一个数组元素
+ *
+ * @param arr 数组
+ * @param rng 随机数生成函数，默认 {@link Math.random}
+ */
+export function sample<T>(
+    arr: T[],
+    rng: () => number = Math.random,
+): T | undefined {
+    return arr[Math.floor(rng() * arr.length)];
+}
+
+/**
+ * 随机选取指定数量的数组元素
+ *
+ * @param arr 数组
+ * @param count 数量
+ * @param duplicate 是否允许重复选取，默认 `false`
+ * @param rng 随机数生成函数，默认 {@link Math.random}
+ */
+export function samples<T>(
+    arr: T[],
+    count: number,
+    duplicate: boolean = false,
+    rng: () => number = Math.random,
+) {
+    count = Math.min(count, arr.length);
+
+    const result = new Array<T>(count);
+
+    if (duplicate) {
+        for (let i = 0; i < count; i++) {
+            result[i] = arr[Math.floor(rng() * arr.length)];
+        }
+    } else {
+        // 必须用 Set 存储下标而不是存储元素本身，因为元素本身可能重复
+        const used = new Set<number>();
+        for (let i = 0; i < count; i++) {
+            let index = Math.floor(rng() * arr.length);
+            while (used.has(index)) {
+                index = Math.floor(rng() * arr.length);
+            }
+            used.add(index);
+            result[i] = arr[index];
+        }
+    }
+
+    return result;
 }
 
 /**
@@ -183,4 +249,64 @@ export function prune<T extends unknown[]>(v: T): T {
         }
     }
     return v;
+}
+
+/**
+ * 判断数组 A 是否包含数组 B 的所有元素
+ *
+ * @param a 数组 A
+ * @param b 数组 B
+ */
+export function contains(a: unknown[], b: unknown[]) {
+    if (a.length < b.length) return false;
+
+    for (const v of b) {
+        let find = false;
+        for (let i = 0; i < a.length; i++) {
+            const v2 = a[i];
+            if (is(v, v2)) {
+                find = true;
+                break;
+            }
+        }
+        if (!find) return false;
+    }
+    return true;
+}
+
+/**
+ * 判断两个数组是否完全相同
+ *
+ * @param a 数组 A
+ * @param b 数组 B
+ * @param strictOrder 是否要求一致的成员顺序，默认 `false`
+ */
+export function containsExactly(
+    a: unknown[],
+    b: unknown[],
+    strictOrder: boolean = false,
+) {
+    if (a.length !== b.length) return false;
+
+    if (strictOrder) {
+        for (let i = 0; i < a.length; i++) {
+            if (!is(a[i], b[i])) return false;
+        }
+        return true;
+    } else {
+        const temp = [...b];
+        for (const v of a) {
+            let find = false;
+            for (let i = 0; i < b.length; i++) {
+                const v2 = b[i];
+                if (is(v, v2)) {
+                    find = true;
+                    temp.splice(i, 1);
+                    break;
+                }
+            }
+            if (!find) return false;
+        }
+        return true;
+    }
 }

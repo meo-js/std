@@ -1,9 +1,9 @@
 import { throwUnsupportedEncoding } from "../error.js";
 import * as base64Url from "./base64-url.js";
 import * as base64 from "./base64.js";
-import { ByteEncoding } from "./enum.js";
+import { Encoding } from "./enum.js";
 import * as hex from "./hex.js";
-import type { ByteDecodeOptions, ByteEncodeOptions } from "./options.js";
+import type { DecodeOptions, EncodeOptions } from "./options.js";
 import * as unit16 from "./unit16.js";
 import * as unit8 from "./unit8.js";
 
@@ -12,19 +12,19 @@ import * as unit8 from "./unit8.js";
  */
 export function encode(
     bytes: string | BufferSource,
-    encoding: ByteEncoding,
-    opts?: ByteEncodeOptions,
+    encoding: Encoding,
+    opts?: EncodeOptions,
 ): string {
     switch (encoding) {
-        case ByteEncoding.Hex:
+        case Encoding.Hex:
             return hex.encode(bytes, opts);
-        case ByteEncoding.Base64:
+        case Encoding.Base64:
             return base64.encode(bytes, opts);
-        case ByteEncoding.Base64Url:
+        case Encoding.Base64Url:
             return base64Url.encode(bytes, opts);
-        case ByteEncoding.Unit8:
+        case Encoding.Unit8:
             return unit8.encode(bytes, opts);
-        case ByteEncoding.Unit16:
+        case Encoding.Unit16:
             return unit16.encode(bytes, opts);
         default:
             throwUnsupportedEncoding(encoding);
@@ -36,19 +36,19 @@ export function encode(
  */
 export function decode(
     text: string,
-    encoding: ByteEncoding,
-    opts?: ByteDecodeOptions,
+    encoding: Encoding,
+    opts?: DecodeOptions,
 ): Uint8Array {
     switch (encoding) {
-        case ByteEncoding.Hex:
+        case Encoding.Hex:
             return hex.decode(text);
-        case ByteEncoding.Base64:
+        case Encoding.Base64:
             return base64.decode(text);
-        case ByteEncoding.Base64Url:
+        case Encoding.Base64Url:
             return base64Url.decode(text);
-        case ByteEncoding.Unit8:
+        case Encoding.Unit8:
             return unit8.decode(text);
-        case ByteEncoding.Unit16:
+        case Encoding.Unit16:
             return unit16.decode(text, opts);
         default:
             throwUnsupportedEncoding(encoding);

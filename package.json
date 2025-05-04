@@ -44,6 +44,116 @@
             "import": "./dist/polyfill.mjs",
             "require": "./dist/polyfill.cjs",
             "types": "./dist/polyfill.d.ts"
+        },
+        "./array": {
+            "import": "./dist/array.mjs",
+            "require": "./dist/array.cjs",
+            "types": "./dist/array.d.ts"
+        },
+        "./callstack": {
+            "import": "./dist/callstack.mjs",
+            "require": "./dist/callstack.cjs",
+            "types": "./dist/callstack.d.ts"
+        },
+        "./class": {
+            "import": "./dist/class.mjs",
+            "require": "./dist/class.cjs",
+            "types": "./dist/class.d.ts"
+        },
+        "./collection": {
+          "import": "./dist/collection.mjs",
+          "require": "./dist/collection.cjs",
+          "types": "./dist/collection.d.ts"
+        },
+        "./collection/map": {
+          "import": "./dist/collection/map.mjs",
+          "require": "./dist/collection/map.cjs",
+          "types": "./dist/collection/map.d.ts"
+        },
+        "./collection/set": {
+          "import": "./dist/collection/set.mjs",
+          "require": "./dist/collection/set.cjs",
+          "types": "./dist/collection/set.d.ts"
+        },
+        "./decorator": {
+            "import": "./dist/decorator.mjs",
+            "require": "./dist/decorator.cjs",
+            "types": "./dist/decorator.d.ts"
+        },
+        "./enum": {
+            "import": "./dist/enum.mjs",
+            "require": "./dist/enum.cjs",
+            "types": "./dist/enum.d.ts"
+        },
+        "./error": {
+            "import": "./dist/error.mjs",
+            "require": "./dist/error.cjs",
+            "types": "./dist/error.d.ts"
+        },
+        "./function": {
+            "import": "./dist/function.mjs",
+            "require": "./dist/function.cjs",
+            "types": "./dist/function.d.ts"
+        },
+        "./generator": {
+            "import": "./dist/generator.mjs",
+            "require": "./dist/generator.cjs",
+            "types": "./dist/generator.d.ts"
+        },
+        "./guard": {
+            "import": "./dist/guard.mjs",
+            "require": "./dist/guard.cjs",
+            "types": "./dist/guard.d.ts"
+        },
+        "./json": {
+            "import": "./dist/json.mjs",
+            "require": "./dist/json.cjs",
+            "types": "./dist/json.d.ts"
+        },
+        "./object": {
+            "import": "./dist/object.mjs",
+            "require": "./dist/object.cjs",
+            "types": "./dist/object.d.ts"
+        },
+        "./primitive": {
+            "import": "./dist/primitive.mjs",
+            "require": "./dist/primitive.cjs",
+            "types": "./dist/primitive.d.ts"
+        },
+        "./promise": {
+            "import": "./dist/promise.mjs",
+            "require": "./dist/promise.cjs",
+            "types": "./dist/promise.d.ts"
+        },
+        "./protocol": {
+            "import": "./dist/protocol.mjs",
+            "require": "./dist/protocol.cjs",
+            "types": "./dist/protocol.d.ts"
+        },
+        "./string": {
+            "import": "./dist/string.mjs",
+            "require": "./dist/string.cjs",
+            "types": "./dist/string.d.ts"
+        },
+        "./timer": {
+            "import": "./dist/timer.mjs",
+            "require": "./dist/timer.cjs",
+            "types": "./dist/timer.d.ts"
+        },
+        "./ts": {
+            "import": "./dist/ts.mjs",
+            "require": "./dist/ts.cjs",
+            "types": "./dist/ts.d.ts"
+        },
+        "./typed-array": {
+            "import": "./dist/typed-array.mjs",
+            "require": "./dist/typed-array.cjs",
+            "types": "./dist/typed-array.d.ts"
+        },
+        "./prototype": {
+          "import": "./dist/prototype.mjs",
+          "require": "./dist/prototype.cjs",
+          "types": "./dist/prototype.d.ts"
         }
     },
     "files": [

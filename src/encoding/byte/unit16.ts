@@ -7,7 +7,7 @@ import {
     getBufferInfo,
 } from "../../typed-array.js";
 import { throwInvalidLength } from "../error.js";
-import { textEncoding } from "../text.js";
+import * as text from "../text.js";
 import type { Unit16DecodeOptions, Unit16EncodeOptions } from "./options.js";
 
 /**
@@ -27,7 +27,7 @@ export function encode(
         const encoding = opts?.encoding;
         if (encoding != null) {
             return encode(
-                textEncoding.encode(bytes, encoding, opts?.encodingOptions),
+                text.encode(bytes, encoding, opts?.encodingOptions),
                 opts,
             );
         } else {

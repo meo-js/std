@@ -1,7 +1,7 @@
 /**
  * 二进制编码枚举
  */
-export enum ByteEncoding {
+export enum Encoding {
     /**
      * 别名：`base16`
      */

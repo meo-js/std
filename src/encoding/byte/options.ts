@@ -1,12 +1,12 @@
 import type { CodecableEndian } from "../shared.js";
-import type { CodecableTextEncoding } from "../text/enum.js";
-import type { TextEncodeOptions } from "../text/options.js";
-import { ByteEncoding } from "./enum.js";
+import type { CodecableEncoding as CodecableTextEncoding } from "../text/enum.js";
+import type { EncodeOptions as TextEncodeOptions } from "../text/options.js";
+import { Encoding } from "./enum.js";
 
 /**
  * 字节数据编码多字节选项
  */
-export interface ByteEncodingMultibyteOptions {
+export interface MultibyteOptions {
     /**
      * 指定多字节编解码时的字节序
      *
@@ -18,19 +18,19 @@ export interface ByteEncodingMultibyteOptions {
 /**
  * 字节数据编码多字节选项
  */
-export interface ByteEncodingFatalOptions {
+export interface FatalOptions {
     /**
      * 遇到无效数据时是否直接抛出错误，否则将尽可能快地返回数据，无论是否有效或截断。
      *
      * @default true
      *
-     * @example {@link ByteEncoding.Unit8}
+     * @example {@link Encoding.Unit8}
      * `fatal` 为 `false` 时，不会检查字符代码是否超出 `0xff`。
-     * @example {@link ByteEncoding.Unit16}
+     * @example {@link Encoding.Unit16}
      * `fatal` 为 `false` 时，数据可能会被截断返回。
-     * @example {@link ByteEncoding.Hex}
+     * @example {@link Encoding.Hex}
      * `fatal` 为 `false` 时，数据可能会被截断且带有无效字节 `0x00` 返回。
-     * @example {@link ByteEncoding.Base64}
+     * @example {@link Encoding.Base64}
      * `fatal` 为 `false` 时，数据可能会被截断且带有任何无效数据返回。
      */
     fatal?: boolean;
@@ -39,7 +39,7 @@ export interface ByteEncodingFatalOptions {
 /**
  * 字节数据编码 `string` 输入选项
  */
-export interface ByteEncodeStringOptions {
+export interface StringOptions {
     /**
      * `string` 文本编码
      *
@@ -64,13 +64,13 @@ export interface ByteEncodeStringOptions {
 /**
  * 字节数据编码针对 Base64 的编码选项
  */
-export interface ByteEncodeBase64Options {
+export interface Base64Options {
     /**
      * 是否添加填充符
      *
      * @default true
      *
-     * @example {@link ByteEncoding.Base64}
+     * @example {@link Encoding.Base64}
      *
      * `dGVzdA` -> `dGVzdA==`
      */
@@ -80,13 +80,13 @@ export interface ByteEncodeBase64Options {
 /**
  * 字节数据编码针对 Hex 的编码选项
  */
-export interface ByteEncodeHexOptions {
+export interface HexOptions {
     /**
      * 是否美化输出
      *
      * @default false
      *
-     * @example {@link ByteEncoding.Hex}
+     * @example {@link Encoding.Hex}
      *
      * `48656c6c6f` -> `6F 6C 6C 6F`
      */
@@ -96,61 +96,55 @@ export interface ByteEncodeHexOptions {
 /**
  * Base64 编码选项
  */
-export type Base64EncodeOptions = ByteEncodeStringOptions
-    & ByteEncodingFatalOptions
-    & ByteEncodeBase64Options;
+export type Base64EncodeOptions = StringOptions & FatalOptions & Base64Options;
 
 /**
  * Base64 解码选项
  */
-export type Base64DecodeOptions = ByteEncodingFatalOptions;
+export type Base64DecodeOptions = FatalOptions;
 
 /**
  * Unit8 编码选项
  */
-export type Unit8EncodeOptions = ByteEncodeStringOptions
-    & ByteEncodingFatalOptions;
+export type Unit8EncodeOptions = StringOptions & FatalOptions;
 
 /**
  * Unit8 解码选项
  */
-export type Unit8DecodeOptions = ByteEncodingFatalOptions;
+export type Unit8DecodeOptions = FatalOptions;
 
 /**
  * Unit16 编码选项
  */
-export type Unit16EncodeOptions = ByteEncodeStringOptions
-    & ByteEncodingMultibyteOptions
-    & ByteEncodingFatalOptions;
+export type Unit16EncodeOptions = StringOptions
+    & MultibyteOptions
+    & FatalOptions;
 
 /**
  * Unit16 解码选项
  */
-export type Unit16DecodeOptions = ByteEncodingMultibyteOptions;
+export type Unit16DecodeOptions = MultibyteOptions;
 
 /**
  * Hex 编码选项
  */
-export type HexEncodeOptions = ByteEncodeStringOptions
-    & ByteEncodingFatalOptions
-    & ByteEncodeHexOptions;
+export type HexEncodeOptions = StringOptions & FatalOptions & HexOptions;
 
 /**
  * Hex 解码选项
  */
-export type HexDecodeOptions = ByteEncodingFatalOptions;
+export type HexDecodeOptions = FatalOptions;
 
 /**
  * 字节数据编码选项
  */
-export type ByteEncodeOptions = ByteEncodeStringOptions
-    & ByteEncodingMultibyteOptions
-    & ByteEncodingFatalOptions
-    & ByteEncodeBase64Options
-    & ByteEncodeHexOptions;
+export type EncodeOptions = StringOptions
+    & MultibyteOptions
+    & FatalOptions
+    & Base64Options
+    & HexOptions;
 
 /**
  * 字节数据解码选项
  */
-export type ByteDecodeOptions = ByteEncodingMultibyteOptions
-    & ByteEncodingFatalOptions;
+export type DecodeOptions = MultibyteOptions & FatalOptions;

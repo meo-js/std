@@ -1,7 +1,7 @@
 import { isString } from "../../guard.js";
 import { asUint8Array } from "../../typed-array.js";
 import { throwInvalidChar, throwUnexpectedEnd } from "../error.js";
-import { textEncoding } from "../text.js";
+import * as text from "../text.js";
 import type { Base64DecodeOptions, Base64EncodeOptions } from "./options.js";
 import * as unit8 from "./unit8.js";
 
@@ -74,7 +74,7 @@ export function _encode(
         const encoding = opts?.encoding;
         if (encoding != null) {
             return encode(
-                textEncoding.encode(bytes, encoding, opts?.encodingOptions),
+                text.encode(bytes, encoding, opts?.encodingOptions),
                 opts,
             );
         } else {

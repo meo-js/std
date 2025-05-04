@@ -22,6 +22,20 @@ export type PlainObject<V = unknown> = Record<string, V>;
 export type EmptyObject = tf.EmptyObject;
 
 /**
+ * @returns 若属性在原型链中存在则返回 `true`，否则返回 `false`
+ */
+export function hasProperty(o: object, v: PropertyKey): boolean {
+    return v in o;
+}
+
+/**
+ * @returns 若属性在对象中存在则返回 `true`，否则返回 `false`
+ */
+export function hasOwnProperty(o: object, v: PropertyKey): boolean {
+    return Object.hasOwn(o, v);
+}
+
+/**
  * 修剪所有值为 `undefined` 的属性，返回经过修剪的对象
  *
  * @returns 若 {@link opts.update} 为 `true`，则返回修剪过后的原对象，否则返回一个新对象
