@@ -3,7 +3,6 @@
  *
  * @module
  */
-import type * as st from "string-ts";
 import { MAX_CALLSTACK_SIZE } from "./callstack.js";
 import { isArray } from "./guard.js";
 import type { TypedArray } from "./typed-array.js";
@@ -76,4 +75,4 @@ export function fromCodePoints(arr: TypedArray | number[]) {
     }
 }
 
-type AAA = st.CamelCase;
+// TODO type AAA = st.CamelCase;

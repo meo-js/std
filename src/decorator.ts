@@ -6,7 +6,7 @@
 import type { AbstractClass } from "./class.js";
 import type { fn } from "./function.js";
 import type { Accessor, Getter, Setter } from "./protocol/accessor.js";
-import type { uncertain } from "./ts/semantic.js";
+import type { uncertain } from "./ts.js";
 
 /**
  * 类字段属性装饰器的返回类型

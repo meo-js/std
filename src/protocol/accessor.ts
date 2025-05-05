@@ -1,4 +1,4 @@
-import type { uncertain } from "../ts/semantic.js";
+import type { uncertain } from "../ts.js";
 
 /**
  * 标准 `getter` 类型

@@ -4,7 +4,7 @@
  * @module
  */
 import { isFunction } from "./guard.js";
-import type { uncertain } from "./ts/semantic.js";
+import type { uncertain } from "./ts.js";
 
 /**
  * 类

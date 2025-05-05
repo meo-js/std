@@ -5,7 +5,7 @@
  */
 import { isFunction } from "./guard.js";
 import type { RecordObject } from "./object.js";
-import type { Literal } from "./ts/literal.js";
+import type { Literal } from "./ts.js";
 
 const global = globalThis as unknown as Partial<
     Record<typeof key, Map<string, GlobalModule.Options>>

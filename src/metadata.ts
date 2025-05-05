@@ -15,7 +15,7 @@
  * @experimental
  */
 import { getSuperClass, type AbstractClass } from "./class.js";
-import type { none } from "./ts/semantic.js";
+import type { none } from "./ts.js";
 
 /**
  * 元数据 `getter` 函数

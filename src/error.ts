@@ -5,7 +5,7 @@
  */
 import type { Class } from "./class.js";
 import { getMembers } from "./enum.js";
-import type { uncertain } from "./ts/semantic.js";
+import type { uncertain } from "./ts.js";
 
 /**
  * 基础错误类

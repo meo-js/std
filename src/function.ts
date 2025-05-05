@@ -3,8 +3,8 @@
  *
  * @module
  */
+import type { uncertain } from "./ts.js";
 import type { SetThis } from "./ts/modifier.js";
-import type { uncertain } from "./ts/semantic.js";
 
 /**
  * 函数

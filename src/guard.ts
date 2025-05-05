@@ -13,7 +13,7 @@ import type {
 } from "./collection.js";
 import type { AsyncGenFn, GenFn } from "./function.js";
 import type { Primitive } from "./primitive.js";
-import type { none } from "./ts/semantic.js";
+import type { none } from "./ts.js";
 import type { TypedArray } from "./typed-array.js";
 
 const GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
