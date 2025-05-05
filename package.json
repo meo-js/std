@@ -155,6 +155,26 @@
             "require": "./dist/ts.cjs",
             "types": "./dist/ts.d.ts"
         },
+        "./ts/math": {
+            "import": "./dist/ts/math.mjs",
+            "require": "./dist/ts/math.cjs",
+            "types": "./dist/ts/math.d.ts"
+        },
+        "./ts/modifier": {
+            "import": "./dist/ts/modifier.mjs",
+            "require": "./dist/ts/modifier.cjs",
+            "types": "./dist/ts/modifier.d.ts"
+        },
+        "./ts/nominal": {
+            "import": "./dist/ts/nominal.mjs",
+            "require": "./dist/ts/nominal.cjs",
+            "types": "./dist/ts/nominal.d.ts"
+        },
+        "./ts/union": {
+            "import": "./dist/ts/union.mjs",
+            "require": "./dist/ts/union.cjs",
+            "types": "./dist/ts/union.d.ts"
+        },
         "./typed-array": {
             "import": "./dist/typed-array.mjs",
             "require": "./dist/typed-array.cjs",

@@ -1,3 +1,8 @@
+/**
+ * @public
+ *
+ * @module
+ */
 import type * as tf from "type-fest";
 
 /**
@@ -14,7 +19,7 @@ import type * as tf from "type-fest";
  * // I = A & B & C
  * ```
  */
-export type Intersection<Union> = tf.UnionToIntersection<Union>;
+export type ToIntersection<Union> = tf.UnionToIntersection<Union>;
 
 /**
  * 转换为联合类型
@@ -23,7 +28,7 @@ export type Intersection<Union> = tf.UnionToIntersection<Union>;
  *
  * - {@link Array}
  */
-export type Union<T> = tf.TupleToUnion<T>;
+export type ToUnion<T> = tf.TupleToUnion<T>;
 
 /**
  * 将联合类型转换为数组
@@ -35,4 +40,4 @@ export type Union<T> = tf.TupleToUnion<T>;
  * // I = ["cat", "dog", "snake"]
  * ```
  */
-export type UnionToArray<T> = tf.UnionToTuple<T>;
+export type ToArray<T> = tf.UnionToTuple<T>;

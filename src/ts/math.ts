@@ -1,3 +1,8 @@
+/**
+ * @public
+ *
+ * @module
+ */
 import * as tf from "type-fest";
 
 /**

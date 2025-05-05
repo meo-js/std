@@ -20,7 +20,7 @@ export type PromisableLike<T = unknown> = T | PromiseLike<T>;
  *
  * 与 {@link Awaited} 不同的是不会递归地解析。
  */
-export type UnwrapThenable<T> = T extends null | undefined
+export type Unwrap<T> = T extends null | undefined
     ? T
     : T extends object & {
             then(onfulfilled: infer F, ...args: infer _): unknown;

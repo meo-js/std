@@ -1,3 +1,8 @@
+/**
+ * @public
+ *
+ * @module
+ */
 import type { ApplyDefaultOptions } from "type-fest/source/internal/object.js";
 import type {
     AbstractClass,
