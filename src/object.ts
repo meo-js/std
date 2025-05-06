@@ -43,7 +43,7 @@ export type RequireLeastOneKey<
 export type OmitKey<T, K extends keyof T> = tf.Except<
     T,
     K,
-    { requireExactProps: true }
+    { requireExactProps: false }
 >;
 
 /**
