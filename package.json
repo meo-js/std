@@ -110,6 +110,11 @@
             "require": "./dist/macro.cjs",
             "types": "./dist/macro.d.ts"
         },
+        "./math": {
+            "import": "./dist/math.mjs",
+            "require": "./dist/math.cjs",
+            "types": "./dist/math.d.ts"
+        },
         "./object": {
             "import": "./dist/object.mjs",
             "require": "./dist/object.cjs",
@@ -154,11 +159,6 @@
             "import": "./dist/ts.mjs",
             "require": "./dist/ts.cjs",
             "types": "./dist/ts.d.ts"
-        },
-        "./ts/math": {
-            "import": "./dist/ts/math.mjs",
-            "require": "./dist/ts/math.cjs",
-            "types": "./dist/ts/math.d.ts"
         },
         "./ts/modifier": {
             "import": "./dist/ts/modifier.mjs",
