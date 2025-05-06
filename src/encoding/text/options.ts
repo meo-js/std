@@ -1,3 +1,4 @@
+import type { OmitKey } from "../../object.js";
 import type { Endian } from "../../typed-array.js";
 import type { CodecableEndian } from "../shared.js";
 import type { DecodeFallback } from "./decode-fallback.js";
@@ -65,14 +66,14 @@ export interface DecodeOptions {
 /**
  * 单字节文本编码选项
  */
-export type SingleByteEncodeOptions = Omit<EncodeOptions, "endian" | "bom">;
+export type SingleByteEncodeOptions = OmitKey<EncodeOptions, "endian" | "bom">;
 
 /**
  * 单字节文本解码选项
  */
-export type SingleByteDecodeOptions = Omit<DecodeOptions, "endian">;
+export type SingleByteDecodeOptions = OmitKey<DecodeOptions, "endian">;
 
 /**
  * UTF-8 编码选项
  */
-export type Utf8EncodeOptions = Omit<EncodeOptions, "endian">;
+export type Utf8EncodeOptions = OmitKey<EncodeOptions, "endian">;

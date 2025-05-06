@@ -189,6 +189,8 @@ export function truncate(
  *
  * @param len 长度
  * @param opts {@link opts}
+ * @param opts.dict {@inheritdoc opts.dict}
+ * @param opts.rng {@inheritdoc opts.rng}
  */
 export function randomText(
     len: number = 16,

@@ -22,6 +22,41 @@ export type PlainObject<V = unknown> = Record<string, V>;
 export type EmptyObject = tf.EmptyObject;
 
 /**
+ * 创建一个类型，该类型至少需要给定键中的一个
+ *
+ * @template T - 对象
+ * @template K - 键的联合类型，默认值为任意一个键
+ */
+export type RequireLeastOneKey<
+    T extends object,
+    K extends keyof T = keyof T,
+> = tf.RequireAtLeastOne<T, K>;
+
+/**
+ * 创建一个排除指定键的类型
+ *
+ * 该类型相当于更严格版本的 {@link Omit} 类型。
+ *
+ * @template T - 对象
+ * @template K - 键的联合类型
+ */
+export type OmitKey<T, K extends keyof T> = tf.Except<
+    T,
+    K,
+    { requireExactProps: true }
+>;
+
+/**
+ * 创建一个仅包含指定键的类型
+ *
+ * 该类型相当于 {@link Pick} 类型。
+ *
+ * @template T - 对象
+ * @template K - 键的联合类型
+ */
+export type PickKey<T, K extends keyof T> = Pick<T, K>;
+
+/**
  * @returns 若属性在原型链中存在则返回 `true`，否则返回 `false`
  */
 export function hasProperty(o: object, v: PropertyKey): boolean {
