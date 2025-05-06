@@ -9,19 +9,14 @@ import type { Rng } from "./protocol.js";
 import { is } from "./protocol/equatable.js";
 
 /**
+ * 数组索引类型
+ */
+export type IndicesOf<T extends readonly unknown[]> = tf.ArrayIndices<T>;
+
+/**
  * 数组值类型
  */
 export type ValueOf<T extends readonly unknown[]> = tf.ArrayValues<T>;
-
-/**
- * 数组索引的联合类型
- */
-export type IndexUnion<T extends readonly unknown[]> = tf.ArrayIndices<T>;
-
-/**
- * 数组值的联合类型
- */
-export type ValueUnion<T extends readonly unknown[]> = ValueOf<T>;
 
 /**
  * 数组的第一个元素
@@ -314,4 +309,11 @@ export function containsExactly(
         }
         return true;
     }
+}
+
+/**
+ * 将 {@link Arrayable} 值转换为值数组
+ */
+export function toArray<T>(value: Arrayable<T>): T[] {
+    return Array.isArray(value) ? value : [value];
 }

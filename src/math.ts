@@ -22,7 +22,7 @@ export type NINF = tf.NegativeInfinity;
  * 注意：
  * - 仅支持数值范围 `-999 ~ 999`
  */
-export type Add<A extends number, B extends number> = tf.Sum<A, B>;
+export type Sum<A extends number, B extends number> = tf.Sum<A, B>;
 
 /**
  * 返回 {@link A} 减去 {@link B} 的结果
@@ -31,6 +31,19 @@ export type Add<A extends number, B extends number> = tf.Sum<A, B>;
  * - 仅支持数值范围 `-999 ~ 999`
  */
 export type Sub<A extends number, B extends number> = tf.Subtract<A, B>;
+
+/**
+ * 返回指定范围内的整数联合类型
+ *
+ * @template Start - 起始值
+ * @template End - 结束值（不包括）
+ * @template Step - 步长，默认为 `1`
+ */
+export type IntRange<
+    Start extends number,
+    End extends number,
+    Step extends number = 1,
+> = tf.IntRange<Start, End, Step>;
 
 /**
  * {@link Number.POSITIVE_INFINITY}

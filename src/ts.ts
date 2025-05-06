@@ -4,6 +4,7 @@
  * @module
  */
 import type * as tf from "type-fest";
+import type { ApplyDefaultOptions as _ApplyDefaultOptions } from "type-fest/source/internal/object.js";
 import type { fn } from "./function.js";
 import type { Primitive } from "./primitive.js";
 
@@ -34,6 +35,11 @@ export type Covariant<T extends fn> = T extends (...args: infer A) => infer R
     : never;
 
 /**
+ * 创建一个不变类型，不允许接受该类型的任何父子类型
+ */
+export type Invariant<T> = tf.InvariantOf<T>;
+
+/**
  * 允许组合原始类型和字面量类型，同时不会失去 IDE 的自动完成功能
  *
  * 这是解决 [TypeScript#29729](https://github.com/Microsoft/TypeScript/issues/29729) 问题的一种方法，一旦不再需要，它将被移除。
@@ -44,9 +50,61 @@ export type Literal<T, BaseType extends Primitive> = tf.LiteralUnion<
 >;
 
 /**
+ * 将字面量转换为原始类型
+ */
+export type ToPrimitive<T> = tf.LiteralToPrimitive<T>;
+
+/**
+ * 将字面量转换为原始类型
+ */
+export type ToPrimitiveDeep<T> = tf.LiteralToPrimitiveDeep<T>;
+
+/**
  * 转换为可能为 {@link none} 的类型
  */
 export type Nullable<T> = T | none;
+
+/**
+ * 转换为可变类型
+ */
+export type Mutable<T> = tf.Writable<T>;
+
+/**
+ * 深度转换为可变类型
+ */
+export type MutableDeep<T> = tf.WritableDeep<T>;
+
+/**
+ * 深度转换为只读类型
+ */
+export type ReadonlyDeep<T> = tf.ReadonlyDeep<T>;
+
+/**
+ * 深度转换为必须类型
+ */
+export type RequiredDeep<T> = tf.RequiredDeep<T>;
+
+/**
+ * 深度转换为可选类型
+ */
+export type PartialDeep<T> = tf.PartialDeep<T>;
+
+/**
+ * 用于处理带默认值选项对象的类型工具
+ *
+ * 此工具类型帮助你合并选项的默认值，类似于 `const { value = default, ... } = options ?? {}` 语句。
+ *
+ * @example
+ * 可参考 {@link SetClass} 类型的实现来了解具体用法。
+ */
+export type ApplyDefaultOptions<
+    Options extends object,
+    Default extends Simplify<
+        Omit<Required<Options>, tf.RequiredKeysOf<Options>>
+            & Partial<Record<tf.RequiredKeysOf<Options>, never>>
+    >,
+    Input extends Options,
+> = _ApplyDefaultOptions<Options, Default, Input>;
 
 /**
  * 类型 `null | undefined` 的简写形式

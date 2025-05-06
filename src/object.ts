@@ -33,6 +33,59 @@ export type RequireLeastOneKey<
 > = tf.RequireAtLeastOne<T, K>;
 
 /**
+ * 创建一个类型，该类型只能提供给定键中的一个
+ *
+ * @template T - 对象
+ * @template K - 键的联合类型，默认值为任意一个键
+ */
+export type RequireExactlyOneKey<
+    T extends object,
+    K extends keyof T = keyof T,
+> = tf.RequireAtLeastOne<T, K>;
+
+/**
+ * 创建一个类型，该类型只能提供给定键中的一个，或者不提供给定键
+ *
+ * @template T - 对象
+ * @template K - 键的联合类型，默认值为任意一个键
+ */
+export type RequireOneOrNoneKey<
+    T extends object,
+    K extends keyof T = keyof T,
+> = tf.RequireOneOrNone<T, K>;
+
+/**
+ * 创建一个类型，该类型只能提供所有或者完全不提供给定键
+ *
+ * @template T - 对象
+ * @template K - 键的联合类型，默认值为任意一个键
+ */
+export type RequireAllOrNoneKey<
+    T extends object,
+    K extends keyof T = keyof T,
+> = tf.RequireAllOrNone<T, K>;
+
+/**
+ * 创建一个仅包含指定值类型的键的联合类型
+ *
+ * 该类型类似 `keyof T`，但仅包含指定值类型的键。
+ *
+ * @template T - 对象
+ * @template V - 值的联合类型
+ */
+export type PickKeysByValue<T, V> = tf.ConditionalKeys<T, V>;
+
+/**
+ * 创建一个排除指定值类型的键的联合类型
+ *
+ * 该类型类似 `keyof T`，但排除了指定值类型的键。
+ *
+ * @template T - 对象
+ * @template V - 值的联合类型
+ */
+export type OmitKeysByValue<T, V> = Exclude<keyof T, tf.ConditionalKeys<T, V>>;
+
+/**
  * 创建一个排除指定键的类型
  *
  * 该类型相当于更严格版本的 {@link Omit} 类型。
@@ -55,6 +108,27 @@ export type OmitKey<T, K extends keyof T> = tf.Except<
  * @template K - 键的联合类型
  */
 export type PickKey<T, K extends keyof T> = Pick<T, K>;
+
+/**
+ * 创建一个排除指定值类型的键的类型
+ *
+ * @template T - 对象
+ * @template V - 值的联合类型
+ */
+export type OmitValue<T, V> = tf.ConditionalExcept<T, V>;
+
+/**
+ * 创建一个仅包含指定值类型的键的类型
+ *
+ * @template T - 对象
+ * @template V - 值的联合类型
+ */
+export type PickValue<T, V> = tf.ConditionalPick<T, V>;
+
+/**
+ * 合并两个类型，第二个类型的键将覆盖第一种类型的键
+ */
+export type Assign<Dest, Source> = tf.Merge<Dest, Source>;
 
 /**
  * @returns 若属性在原型链中存在则返回 `true`，否则返回 `false`

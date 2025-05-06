@@ -3,7 +3,6 @@
  *
  * @module
  */
-import type { ApplyDefaultOptions } from "type-fest/source/internal/object.js";
 import type {
     AbstractClass,
     AbstractConstructor,
@@ -11,6 +10,7 @@ import type {
     Constructor,
 } from "../class.js";
 import type { fn } from "../function.js";
+import type { ApplyDefaultOptions } from "../ts.js";
 
 /**
  * 绑定函数的 `this` 到指定类型
@@ -31,11 +31,8 @@ export type SetClass<
     T extends AbstractConstructor,
     Options extends SetClassOptions = {},
 > =
-    ApplyDefaultOptions<
-        SetClassOptions,
-        DefaultSetClassOptions<T>,
-        Options
-    > extends infer Options extends Required<SetClassOptions>
+    SetClassOptions.Applied<T, Options> extends infer Options extends
+        SetClassOptions.Result
         ? Options["abstract"] extends true
             ? AbstractClass<
                   Options["instance"],
@@ -74,15 +71,17 @@ export type SetClassOptions = {
     readonly abstract?: boolean;
 };
 
-type DefaultSetClassOptions<
-    T extends AbstractConstructor,
-    Arguments extends readonly unknown[] = ConstructorParameters<T>,
-    Instance extends object = InstanceType<T>,
-    Statics extends object = Omit<T, "prototype">,
-    Abstract extends boolean = T extends Constructor ? false : true,
-> = {
-    instance: Instance;
-    arguments: Arguments;
-    statics: Statics;
-    abstract: Abstract;
-};
+export declare namespace SetClassOptions {
+    export interface Default<T extends AbstractConstructor>
+        extends SetClassOptions {
+        instance: InstanceType<T>;
+        arguments: ConstructorParameters<T>;
+        statics: Omit<T, "prototype">;
+        abstract: T extends Constructor ? false : true;
+    }
+    export type Applied<
+        T extends AbstractConstructor,
+        Options extends SetClassOptions,
+    > = ApplyDefaultOptions<SetClassOptions, Default<T>, Options>;
+    export type Result = Required<SetClassOptions>;
+}

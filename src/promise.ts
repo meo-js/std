@@ -4,6 +4,8 @@
  * @module
  */
 import type * as tf from "type-fest";
+import type { fn } from "./function.js";
+import { isPromise } from "./predicate.js";
 
 /**
  * 值或 {@link Promise} 值类型
@@ -29,3 +31,20 @@ export type Unwrap<T> = T extends null | undefined
           ? V
           : never
       : T;
+
+/**
+ * 创建函数类型的异步版本
+ */
+export type Asyncify<T extends fn> = tf.Asyncify<T>;
+
+/**
+ * 将 {@link PromisableLike} 值转换为值数组
+ *
+ */
+export async function toPromise<T>(value?: PromisableLike<T>): Promise<T> {
+    if (isPromise(value)) {
+        return value;
+    } else {
+        return Promise.resolve(value!);
+    }
+}

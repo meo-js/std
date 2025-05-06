@@ -3,6 +3,7 @@
  *
  * @module
  */
+import type * as tf from "type-fest";
 import type { AbstractClass, Class } from "./class.js";
 import type {
     AnyCollection,
@@ -27,6 +28,36 @@ const ASYNC_GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
     async function* () {},
 ) as object;
+
+/**
+ * 是否为 `unknown` 类型
+ */
+export type IsUnknown<T> = tf.IsUnknown<T>;
+
+/**
+ * 是否为 `any` 类型
+ */
+export type IsAny<T> = tf.IsAny<T>;
+
+/**
+ * 是否为 `never` 类型
+ */
+export type IsNever<T> = tf.IsNever<T>;
+
+/**
+ * 是否为 `null` 类型
+ */
+export type IsNull<T> = T extends null ? true : false;
+
+/**
+ * 是否为 `undefined` 类型
+ */
+export type IsUndefined<T> = T extends undefined ? true : false;
+
+/**
+ * 是否为 {@link none} 类型
+ */
+export type IsNone<T> = T extends null | undefined ? true : false;
 
 /**
  * 检测值是否为 `null`

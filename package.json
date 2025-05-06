@@ -160,6 +160,11 @@
             "require": "./dist/ts.cjs",
             "types": "./dist/ts.d.ts"
         },
+        "./ts/logical": {
+            "import": "./dist/ts/logical.mjs",
+            "require": "./dist/ts/logical.cjs",
+            "types": "./dist/ts/logical.d.ts"
+        },
         "./ts/modifier": {
             "import": "./dist/ts/modifier.mjs",
             "require": "./dist/ts/modifier.cjs",
@@ -226,6 +231,6 @@
         "chardet": "^2.1.0",
         "core-js": "^3.42.0",
         "string-ts": "^2.2.1",
-        "type-fest": "^4.40.1"
+        "type-fest": "^4.41.0"
     }
 }

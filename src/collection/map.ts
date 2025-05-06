@@ -4,7 +4,7 @@
  * @module
  */
 
-import type { AnyMap, Keyof, ValueOf } from "../collection.js";
+import type { AnyMap, KeyOf, ValueOf } from "../collection.js";
 import type { Getter } from "../protocol.js";
 
 /**
@@ -18,7 +18,7 @@ export type UpsertHandler<T> = (value: T, update: boolean) => T;
 // FIXME: getsert 提案普及后移除 https://github.com/tc39/proposal-upsert
 export function getsert<T extends AnyMap>(
     map: T,
-    key: Keyof<T>,
+    key: KeyOf<T>,
     insertValue: ValueOf<T>,
 ): ValueOf<T> {
     if (!map.has(key as WeakKey)) {
@@ -33,7 +33,7 @@ export function getsert<T extends AnyMap>(
 // FIXME: getsert 提案普及后移除 https://github.com/tc39/proposal-upsert
 export function getsertComputed<T extends AnyMap>(
     map: T,
-    key: Keyof<T>,
+    key: KeyOf<T>,
     insertValueGetter: Getter<ValueOf<T>>,
 ): ValueOf<T> {
     if (!map.has(key as WeakKey)) {
@@ -47,7 +47,7 @@ export function getsertComputed<T extends AnyMap>(
  */
 export function upsert<T extends AnyMap>(
     map: T,
-    key: Keyof<T>,
+    key: KeyOf<T>,
     handler: UpsertHandler<ValueOf<T>>,
 ): ValueOf<T> {
     if (map.has(key as WeakKey)) {
