@@ -5,6 +5,7 @@
  */
 import { MAX_CALLSTACK_SIZE } from "./callstack.js";
 import { isArray, isFunction, isObject } from "./predicate.js";
+import type { Rng } from "./protocol.js";
 import type { TypedArray } from "./typed-array.js";
 
 // from https://github.com/ai/nanoid
@@ -176,7 +177,7 @@ export function template(str: string, ...args: unknown[]): string {
  */
 export function truncate(
     str: string,
-    length: number,
+    len: number,
     suffix: string,
     opts?: { unicode?: boolean },
 ) {
@@ -185,12 +186,32 @@ export function truncate(
 
 /**
  * 生成随机字符串
+ *
+ * @param len 长度
+ * @param opts {@link opts}
  */
-export function randomText(size: number = 16, dict = urlAlphabet) {
+export function randomText(
+    len: number = 16,
+    opts?: {
+        /**
+         * 随机字符串的字符集
+         *
+         * @default "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict"
+         */
+        dict?: string;
+        /**
+         * 随机数生成函数
+         *
+         * @default {@link Math.random}
+         */
+        rng?: Rng;
+    },
+) {
+    const { dict = urlAlphabet, rng = Math.random } = opts ?? {};
     let id = "";
-    let i = size;
-    const len = dict.length;
-    while (i--) id += dict[(Math.random() * len) | 0];
+    let i = len;
+    const _len = dict.length;
+    while (i--) id += dict[(rng() * _len) | 0];
     return id;
 }
 

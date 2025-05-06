@@ -88,15 +88,15 @@ export function isSafeInteger(value: unknown): boolean {
 }
 
 /**
- * 检测值是否为安全整数
+ * 检测值是否为整数
  *
- * 与 {@link Number.isInteger} 不同的是，该函数会正确检查 {@link BigInt} 类型的值。
+ * 该函数更像原生的 {@link Number.isSafeInteger} 而不是 {@link Number.isInteger}，不同的是无限值也会返回 `true`，且会正确检查 {@link BigInt} 类型的值。
  */
 export function isInteger(value: unknown): boolean {
     if (isBigInt(value)) {
         return true;
     } else {
-        return Number.isInteger(value);
+        return Number.isSafeInteger(value) || value === INF || value === NINF;
     }
 }
 
