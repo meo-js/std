@@ -4,6 +4,7 @@
  * @module
  */
 import * as tf from "type-fest";
+import { isBigInt } from "./predicate.js";
 
 /**
  * {@link Number.POSITIVE_INFINITY}
@@ -70,3 +71,44 @@ export const EPSILON = Number.EPSILON;
  * {@link Number.NaN}
  */
 export const NAN = Number.NaN;
+
+/**
+ * 检测值是否为安全整数
+ *
+ * 与 {@link Number.isSafeInteger} 不同的是，该函数会正确检查 {@link BigInt} 类型的值。
+ */
+export function isSafeInteger(value: unknown): boolean {
+    if (isBigInt(value)) {
+        return (
+            value >= Number.MIN_SAFE_INTEGER && value <= Number.MAX_SAFE_INTEGER
+        );
+    } else {
+        return Number.isSafeInteger(value);
+    }
+}
+
+/**
+ * 检测值是否为安全整数
+ *
+ * 与 {@link Number.isInteger} 不同的是，该函数会正确检查 {@link BigInt} 类型的值。
+ */
+export function isInteger(value: unknown): boolean {
+    if (isBigInt(value)) {
+        return true;
+    } else {
+        return Number.isInteger(value);
+    }
+}
+
+/**
+ * 检测值是否为有限数值
+ *
+ * 与 {@link Number.isFinite} 不同的是，该函数会正确检查 {@link BigInt} 类型的值。
+ */
+export function isFinite(value: unknown): boolean {
+    if (isBigInt(value)) {
+        return true;
+    } else {
+        return Number.isFinite(value);
+    }
+}
