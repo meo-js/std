@@ -107,7 +107,7 @@ export function getValues<T extends object>(tsEnum: T): number[] {
  * @param key 成员键
  * @param value 成员值
  */
-export function isMember<T extends object>(
+export function isMemberOf<T extends object>(
     tsEnum: T,
     key: string,
     value: number,
@@ -129,7 +129,7 @@ export function isMember<T extends object>(
  * @param tsEnum 枚举对象
  * @param key 成员键
  */
-export function isKey<T extends object>(tsEnum: T, key: string) {
+export function isKeyOf<T extends object>(tsEnum: T, key: string) {
     for (const k in tsEnum) {
         if (!Number.isNaN(Number(k))) continue;
         if (Object.hasOwn(tsEnum, k)) {
@@ -145,7 +145,7 @@ export function isKey<T extends object>(tsEnum: T, key: string) {
  * @param tsEnum 枚举对象
  * @param value 成员值
  */
-export function isValue<T extends object>(tsEnum: T, value: number) {
+export function isValueOf<T extends object>(tsEnum: T, value: number) {
     for (const key in tsEnum) {
         if (Object.hasOwn(tsEnum, key)) {
             const v = Number(tsEnum[key]);

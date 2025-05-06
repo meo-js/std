@@ -14,6 +14,7 @@ import type {
 } from "./collection.js";
 import type { AsyncGenFn, GenFn } from "./function.js";
 import type { Jsonifiable } from "./json.js";
+import type { Numeric } from "./math.js";
 import type { PlainObject, RecordObject } from "./object.js";
 import type { Primitive } from "./primitive.js";
 import type { none } from "./ts.js";
@@ -148,7 +149,7 @@ export function isBigInt(value: unknown): value is bigint {
  * @param value 任意值
  * @returns `boolean`
  */
-export function isNumerical(value: unknown): value is number | bigint {
+export function isNumeric(value: unknown): value is Numeric {
     const type = typeof value;
     return !Number.isNaN(value) && (type === "number" || type === "bigint");
 }

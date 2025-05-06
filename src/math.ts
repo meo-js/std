@@ -5,6 +5,12 @@
  */
 import * as tf from "type-fest";
 import { isBigInt } from "./predicate.js";
+import type { And, Not } from "./ts/logical.js";
+
+/**
+ * {@link Number} 或 {@link BigInt} 类型
+ */
+export type Numeric = number | bigint;
 
 /**
  * {@link Number.POSITIVE_INFINITY}
@@ -33,6 +39,39 @@ export type Sum<A extends number, B extends number> = tf.Sum<A, B>;
 export type Sub<A extends number, B extends number> = tf.Subtract<A, B>;
 
 /**
+ * 判断 {@link A} 是否大于 {@link B}
+ */
+export type Gt<A extends number, B extends number> = tf.GreaterThan<A, B>;
+
+/**
+ * 判断 {@link A} 是否大于等于 {@link B}
+ */
+export type Gte<A extends number, B extends number> = tf.GreaterThanOrEqual<
+    A,
+    B
+>;
+
+/**
+ * 判断 {@link A} 是否小于 {@link B}
+ */
+export type Lt<A extends number, B extends number> = tf.LessThan<A, B>;
+
+/**
+ * 判断 {@link A} 是否小于等于 {@link B}
+ */
+export type Lte<A extends number, B extends number> = tf.LessThanOrEqual<A, B>;
+
+/**
+ * 判断 {@link A} 是否等于 {@link B}
+ */
+export type Eq<A extends number, B extends number> = And<Gte<A, B>, Lte<A, B>>;
+
+/**
+ * 判断 {@link A} 是否不等于 {@link B}
+ */
+export type Neq<A extends number, B extends number> = Not<Eq<A, B>>;
+
+/**
  * 返回指定范围内的整数联合类型
  *
  * @template Start - 起始值
@@ -44,6 +83,21 @@ export type IntRange<
     End extends number,
     Step extends number = 1,
 > = tf.IntRange<Start, End, Step>;
+
+/**
+ * 判断是否为负数
+ */
+export type IsNegative<T extends Numeric> = tf.IsNegative<T>;
+
+/**
+ * 判断是否为整数
+ */
+export type IsInteger<T extends Numeric> = tf.IsInteger<T>;
+
+/**
+ * 判断是否为浮点数
+ */
+export type IsFloat<T extends Numeric> = tf.IsFloat<T>;
 
 /**
  * {@link Number.POSITIVE_INFINITY}

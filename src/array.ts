@@ -3,6 +3,7 @@
  *
  * @module
  */
+import type * as sts from "string-ts";
 import type * as tf from "type-fest";
 import type { INF, Sub } from "./math.js";
 import type { Rng } from "./protocol.js";
@@ -78,6 +79,38 @@ export type Flat<
  * ```
  */
 export type FlatDeep<T extends readonly unknown[]> = Flat<T, INF>;
+
+/**
+ * 返回一个布尔值，用于判断给定数组是否包含给定项
+ */
+export type Includes<T extends readonly unknown[], Item> = tf.Includes<T, Item>;
+
+/**
+ * 返回数组指定范围的切片
+ */
+export type Slice<
+    T extends readonly unknown[],
+    Start extends number = never,
+    End extends number = never,
+> = tf.ArraySlice<T, Start, End>;
+
+/**
+ * 在数组中指定索引范围内添加或删除元素
+ */
+export type Splice<
+    T extends readonly unknown[],
+    Start extends number,
+    DeleteCount extends number,
+    Items extends readonly unknown[] = [],
+> = tf.ArraySplice<T, Start, DeleteCount, Items>;
+
+/**
+ * 将字符串数组拼接为字符串
+ */
+export type Join<T extends string[], Delimiter extends string = ","> = sts.Join<
+    T,
+    Delimiter
+>;
 
 /**
  * 值或值类型的数组

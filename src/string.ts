@@ -3,10 +3,178 @@
  *
  * @module
  */
+import * as sts from "string-ts";
 import { MAX_CALLSTACK_SIZE } from "./callstack.js";
-import { isArray, isFunction, isObject } from "./predicate.js";
+import { isArray, isFunction, isObject, type IsNever } from "./predicate.js";
 import type { Rng } from "./protocol.js";
+import type { If } from "./ts/logical.js";
 import type { TypedArray } from "./typed-array.js";
+
+/**
+ * 获取字符串指定位置的字符
+ */
+export type CharAt<T extends string, I extends number> = sts.CharAt<T, I>;
+
+/**
+ * 拼接字符串
+ */
+export type Concat<T extends string[]> = sts.Concat<T>;
+
+/**
+ * 判断字符串是否以指定字符串开头
+ */
+export type StartsWith<T extends string, S extends string> = sts.StartsWith<
+    T,
+    S
+>;
+
+/**
+ * 判断字符串是否以指定字符串结尾
+ */
+export type EndsWith<T extends string, S extends string> = sts.EndsWith<T, S>;
+
+/**
+ * 判断字符串是否包含指定字符串
+ */
+export type Includes<T extends string, S extends string> = sts.Includes<T, S>;
+
+/**
+ * 填充指定的一定次数的字符串到字符串头部
+ */
+export type PadStart<
+    T extends string,
+    Times extends number,
+    Pad extends string = " ",
+> = sts.PadStart<T, Times, Pad>;
+
+/**
+ * 填充指定的一定次数的字符串到字符串尾部
+ */
+export type PadEnd<
+    T extends string,
+    Times extends number,
+    Pad extends string = " ",
+> = sts.PadEnd<T, Times, Pad>;
+
+/**
+ * 重复指定字符串
+ */
+export type Repeat<T extends string, Times extends number> = sts.Repeat<
+    T,
+    Times
+>;
+
+/**
+ * 替换指定字符串一次
+ */
+export type Replace<
+    T extends string,
+    From extends string,
+    To extends string,
+> = sts.Replace<T, From, To>;
+
+/**
+ * 替换所有指定的字符串
+ */
+export type ReplaceAll<
+    T extends string,
+    From extends string,
+    To extends string,
+> = sts.ReplaceAll<T, From, To>;
+
+/**
+ * 反转字符串
+ */
+export type Reverse<T extends string> = sts.Reverse<T>;
+
+/**
+ * 返回字符串指定范围的切片
+ */
+export type Slice<
+    T extends string,
+    Start extends number = 0,
+    End extends number = never,
+> = sts.Slice<T, Start, If<IsNever<End>, undefined, End>>;
+
+/**
+ * 以指定字符串分割为字符串数组
+ */
+export type Split<T extends string, Delimiter extends string> = sts.Split<
+    T,
+    Delimiter
+>;
+
+/**
+ * 去除字符串中的首尾空格
+ */
+export type Trim<T extends string> = sts.Trim<T>;
+
+/**
+ * 去除字符串中的头部空格
+ */
+export type TrimStart<T extends string> = sts.TrimStart<T>;
+
+/**
+ * 去除字符串中的尾部空格
+ */
+export type TrimEnd<T extends string> = sts.TrimEnd<T>;
+
+/**
+ * 截断字符串到指定长度
+ */
+export type Truncate<
+    T extends string,
+    Len extends number,
+    Suffix extends string = "...",
+> = sts.Truncate<T, Len, Suffix>;
+
+/**
+ * 将字符串分割为单词数组
+ */
+export type WordsOf<T extends string> = sts.Words<T>;
+
+/**
+ * 返回字符串长度
+ */
+export type LengthOf<T extends string> = sts.Length<T>;
+
+/**
+ * 将字符串转换为驼峰命名格式（camelCase）
+ */
+export type ToCamelCase<T extends string> = sts.CamelCase<T>;
+
+/**
+ * 将字符串转换为常量命名格式（CONSTANT_CASE）
+ */
+export type ToConstantCase<T extends string> = sts.ConstantCase<T>;
+
+/**
+ * 将字符串按指定分隔符分隔
+ */
+export type ToDelimiterCase<
+    T extends string,
+    Delimiter extends string,
+> = sts.DelimiterCase<T, Delimiter>;
+
+/**
+ * 将字符串转换为烤串命名格式（kebab-case）
+ */
+export type ToKebabCase<T extends string> = sts.KebabCase<T>;
+
+/**
+ * 将字符串转换为帕斯卡命名格式（PascalCase）
+ */
+export type ToPascalCase<T extends string> = sts.PascalCase<T>;
+
+/**
+ * 将字符串转换为蛇形命名格式（snake_case）
+ */
+export type ToSnakeCase<T extends string> = sts.SnakeCase<T>;
+
+/**
+ * 将字符串转换为标题命名格式（每个单词首字母大写）
+ */
+export type ToTitleCase<T extends string> = sts.TitleCase<T>;
 
 // from https://github.com/ai/nanoid
 const urlAlphabet =
@@ -178,9 +346,20 @@ export function template(str: string, ...args: unknown[]): string {
 export function truncate(
     str: string,
     len: number,
-    suffix: string,
+    suffix: string = "...",
     opts?: { unicode?: boolean },
 ) {
+    // TODO
+}
+
+/**
+ * 翻转字符串
+ */
+export function reverse(str: string, opts?: { unicode?: boolean }) {
+    // TODO
+}
+
+export function getWords(str: string, opts?: { unicode?: boolean }) {
     // TODO
 }
 
@@ -217,4 +396,104 @@ export function randomText(
     return id;
 }
 
-// TODO type AAA = st.CamelCase;
+/**
+ * 将字符串的首字母转换为大写
+ *
+ * @example
+ * capitalize("hello") // "Hello"
+ * capitalize("world") // "World"
+ */
+export function capitalize(str: string): string {
+    return sts.capitalize(str);
+}
+
+/**
+ * 将字符串的首字母转换为小写
+ *
+ * @example
+ * uncapitalize("Hello") // "hello"
+ * uncapitalize("World") // "world"
+ */
+export function uncapitalize(str: string): string {
+    return sts.uncapitalize(str);
+}
+
+/**
+ * 将字符串转换为驼峰命名格式（camelCase）
+ *
+ * @example
+ * toCamelCase("hello world") // "helloWorld"
+ * toCamelCase("foo_bar-baz") // "fooBarBaz"
+ */
+export function toCamelCase(str: string): string {
+    return sts.camelCase(str);
+}
+
+/**
+ * 将字符串转换为常量命名格式（CONSTANT_CASE）
+ *
+ * @example
+ * toConstantCase("hello world") // "HELLO_WORLD"
+ * toConstantCase("fooBar") // "FOO_BAR"
+ */
+export function toConstantCase(str: string): string {
+    return sts.constantCase(str);
+}
+
+/**
+ * 将字符串按指定分隔符分隔
+ *
+ * @param str 字符串
+ * @param delimiter 分隔符
+ *
+ * @example
+ * toDelimiterCase("hello world", "-") // "hello-world"
+ * toDelimiterCase("fooBar", "_") // "foo_Bar"
+ */
+export function toDelimiterCase(str: string, delimiter: string): string {
+    return sts.delimiterCase(str, delimiter);
+}
+
+/**
+ * 将字符串转换为烤串命名格式（kebab-case）
+ *
+ * @example
+ * toKebabCase("hello world") // "hello-world"
+ * toKebabCase("fooBar") // "foo-bar"
+ */
+export function toKebabCase(str: string): string {
+    return sts.kebabCase(str);
+}
+
+/**
+ * 将字符串转换为帕斯卡命名格式（PascalCase）
+ *
+ * @example
+ * toPascalCase("hello world") // "HelloWorld"
+ * toPascalCase("foo_bar") // "FooBar"
+ */
+export function toPascalCase(str: string): string {
+    return sts.pascalCase(str);
+}
+
+/**
+ * 将字符串转换为蛇形命名格式（snake_case）
+ *
+ * @example
+ * toSnakeCase("hello world") // "hello_world"
+ * toSnakeCase("fooBar") // "foo_bar"
+ */
+export function toSnakeCase(str: string): string {
+    return sts.snakeCase(str);
+}
+
+/**
+ * 将字符串转换为标题命名格式（每个单词首字母大写）
+ *
+ * @example
+ * toTitleCase("hello world") // "Hello World"
+ * toTitleCase("foo_bar") // "Foo Bar"
+ */
+export function toTitleCase(str: string): string {
+    return sts.titleCase(str);
+}

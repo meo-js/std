@@ -107,6 +107,11 @@ export type ApplyDefaultOptions<
 > = _ApplyDefaultOptions<Options, Default, Input>;
 
 /**
+ * 允许通过 {@link structuredClone} 的类型
+ */
+export type StructuredCloneable = tf.StructuredCloneable;
+
+/**
  * 类型 `null | undefined` 的简写形式
  */
 export type none = null | undefined;
