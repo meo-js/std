@@ -3,7 +3,7 @@
  *
  * @module
  */
-import { isFunction } from "./guard.js";
+import { isFunction } from "./predicate.js";
 import type { uncertain } from "./ts.js";
 
 /**
@@ -97,9 +97,8 @@ export function* walkClassChain<R extends AbstractClass = Class>(
 /**
  * 获取继承链上所有的类
  *
- * @param targetClass 类
- * @param target
- * @param includeSelf
+ * @param target 类
+ * @param includeSelf 是否包含自身类，默认 `true`
  * @returns 返回按顺序排列的数组，最后一个元素是根父类
  */
 export function getClassChain<R extends AbstractClass = Class>(

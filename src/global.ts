@@ -3,14 +3,14 @@
  *
  * @module
  */
-import { isFunction } from "./guard.js";
 import type { RecordObject } from "./object.js";
+import { isFunction } from "./predicate.js";
 import type { Literal } from "./ts.js";
 
-const global = globalThis as unknown as Partial<
-    Record<typeof key, Map<string, GlobalModule.Options>>
-> // eslint-disable-next-line @typescript-eslint/no-explicit-any -- checked.
-    & RecordObject<any>;
+const global = <
+    Partial<Record<typeof key, Map<string, GlobalModule.Options>>> // eslint-disable-next-line @typescript-eslint/no-explicit-any -- checked.
+        & RecordObject<any>
+>globalThis;
 
 const key = Symbol.for("@meojs/utils/global-module");
 const globalModules = global[key] ?? new Map<string, GlobalModule.Options>();

@@ -4,9 +4,9 @@
  * @module
  */
 import type * as tf from "type-fest";
+import type { INF, Sub } from "./math.js";
 import type { Rng } from "./protocol.js";
 import { is } from "./protocol/equatable.js";
-import type { PositiveInfinity, Sub } from "./ts/math.js";
 
 /**
  * 数组值类型
@@ -82,7 +82,7 @@ export type Flat<
  * // [1, 2, 3, 4, 5, 6, 7]
  * ```
  */
-export type FlatDeep<T extends readonly unknown[]> = Flat<T, PositiveInfinity>;
+export type FlatDeep<T extends readonly unknown[]> = Flat<T, INF>;
 
 /**
  * 值或值类型的数组

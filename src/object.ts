@@ -4,7 +4,7 @@
  * @module
  */
 import * as tf from "type-fest";
-import { isPlainObject } from "./guard.js";
+import { isRecordObject } from "./predicate.js";
 
 /**
  * `Record<PropertyKey, V>` 的别名类型
@@ -46,7 +46,7 @@ export function prune<T extends object>(
         /**
          * 是否深度递归地修剪
          *
-         * 仅会修剪通过 {@link isPlainObject} 严格模式下判定为 `true` 的对象。
+         * 仅会修剪通过 {@link isRecordObject} 判定为 `true` 的对象。
          *
          * @default false
          */
@@ -100,7 +100,7 @@ function _prune_update<T extends object>(
                 // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- checked.
                 delete v[key];
             } else if (deep) {
-                v[key] = isPlainObject(value) ? prune(value, opts) : value;
+                v[key] = isRecordObject(value) ? prune(value, opts) : value;
             }
         }
     }

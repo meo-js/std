@@ -1,4 +1,4 @@
-import { isString } from "../../guard.js";
+import { isString } from "../../predicate.js";
 import { fromCharCodes } from "../../string.js";
 import {
     asDataView,

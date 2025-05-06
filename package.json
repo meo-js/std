@@ -100,11 +100,6 @@
             "require": "./dist/global.cjs",
             "types": "./dist/global.d.ts"
         },
-        "./guard": {
-            "import": "./dist/guard.mjs",
-            "require": "./dist/guard.cjs",
-            "types": "./dist/guard.d.ts"
-        },
         "./json": {
             "import": "./dist/json.mjs",
             "require": "./dist/json.cjs",
@@ -119,6 +114,11 @@
             "import": "./dist/object.mjs",
             "require": "./dist/object.cjs",
             "types": "./dist/object.d.ts"
+        },
+        "./predicate": {
+            "import": "./dist/predicate.mjs",
+            "require": "./dist/predicate.cjs",
+            "types": "./dist/predicate.d.ts"
         },
         "./primitive": {
             "import": "./dist/primitive.mjs",
@@ -217,14 +217,14 @@
         "@types/node": "^20",
         "cross-env": "^7.0.3",
         "eslint": "^9.22.0",
-        "lint-staged": "^15.5.0",
+        "lint-staged": "^15.5.1",
         "prettier": "^3.5.3",
         "rimraf": "^6.0.1",
-        "simple-git-hooks": "^2.11.1"
+        "simple-git-hooks": "^2.13.0"
     },
     "dependencies": {
         "chardet": "^2.1.0",
-        "core-js": "^3.41.0",
+        "core-js": "^3.42.0",
         "string-ts": "^2.2.1",
         "type-fest": "^4.40.1"
     }

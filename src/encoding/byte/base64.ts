@@ -1,4 +1,4 @@
-import { isString } from "../../guard.js";
+import { isString } from "../../predicate.js";
 import { asUint8Array } from "../../typed-array.js";
 import { throwInvalidChar, throwUnexpectedEnd } from "../error.js";
 import * as text from "../text.js";

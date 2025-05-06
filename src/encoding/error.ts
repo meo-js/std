@@ -4,7 +4,7 @@
  * @internal
  */
 
-import { isString } from "../guard.js";
+import { isString } from "../predicate.js";
 
 export function throwUnexpectedEnd(): never {
     throw new RangeError("unexpected end of data.");

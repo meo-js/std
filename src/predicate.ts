@@ -12,6 +12,8 @@ import type {
     WeakCollection,
 } from "./collection.js";
 import type { AsyncGenFn, GenFn } from "./function.js";
+import type { Jsonifiable } from "./json.js";
+import type { PlainObject, RecordObject } from "./object.js";
 import type { Primitive } from "./primitive.js";
 import type { none } from "./ts.js";
 import type { TypedArray } from "./typed-array.js";
@@ -27,13 +29,43 @@ const ASYNC_GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
 ) as object;
 
 /**
- * 检测值是否为 {@link none} 类型
+ * 检测值是否为 `null`
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isNull(value: unknown): value is null {
+    return value === null;
+}
+
+/**
+ * 检测值是否为 `undefined`
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isUndefined(value: unknown): value is undefined {
+    return value === undefined;
+}
+
+/**
+ * 检测值是否为 {@link none}
  *
  * @param value 任意值
  * @returns `boolean`
  */
 export function isNone(value: unknown): value is none {
     return value == null;
+}
+
+/**
+ * 检测值是否为有效值（即非 `null`、`undefined`、`NaN`）
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isValidValue(value: unknown): boolean {
+    return value != null && !Number.isNaN(value);
 }
 
 /**
@@ -80,6 +112,27 @@ export function isBigInt(value: unknown): value is bigint {
 }
 
 /**
+ * 检测值是否为 {@link Number} 或 {@link BigInt} 类型，`NaN` 不被视为有效值。
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isNumerical(value: unknown): value is number | bigint {
+    const type = typeof value;
+    return !Number.isNaN(value) && (type === "number" || type === "bigint");
+}
+
+/**
+ * 检测值是否为 {@link NaN}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isNaN(value: unknown): boolean {
+    return Number.isNaN(value);
+}
+
+/**
  * 检测值是否为 {@link Boolean} 类型
  *
  * @param value 任意值
@@ -100,7 +153,7 @@ export function isSymbol(value: unknown): value is symbol {
 }
 
 /**
- * 检测值是否为 {@link Object} 类型，但不包括 {@link Function}
+ * 检测值是否为 {@link Object} 类型，不包括 {@link Function}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -112,12 +165,12 @@ export function isObject<T extends object = object>(
 }
 
 /**
- * 检测值是否为 {@link Object} 类型，包括 {@link Function}
+ * 检测值是否为 {@link Object} 或 {@link Function} 类型
  *
  * @param value 任意值
  * @returns `boolean`
  */
-export function isAnyObject<T extends object = object>(
+export function isObjectLike<T extends object = object>(
     value: unknown,
 ): value is T {
     return (
@@ -130,20 +183,162 @@ export function isAnyObject<T extends object = object>(
  * 检测值是否为普通对象
  *
  * @param value 任意值
- * @param strict `true` 则判断原型是否为 {@link Object.prototype}，`false` 则判断 {@link Object.prototype.toString} 是否为 `[object Object]`
+ * @returns `boolean`
+ *
+ * @example
+ * ```ts
+ * // true:
+ * isRecordObject({});
+ * isRecordObject({ key: 'value' });
+ * isRecordObject({ key: new Date() });
+ * isRecordObject(new Object());
+ * isRecordObject(Object.create(null));
+ * isRecordObject(new Proxy({}, {}));
+ * isRecordObject({ [Symbol('tag')]: 'A' });
+ *
+ * // false:
+ * isRecordObject(new Test());
+ * isRecordObject(10);
+ * isRecordObject(null);
+ * isRecordObject('hello');
+ * isRecordObject([]);
+ * isRecordObject(new Date());
+ * isRecordObject(new Uint8Array([1]));
+ * isRecordObject(Buffer.from('ABC'));
+ * isRecordObject(Promise.resolve({}));
+ * isRecordObject(Object.create({}));
+ * isRecordObject(globalThis);
+ * ```
+ */
+export function isRecordObject<T extends object = RecordObject>(
+    value: unknown,
+): value is T {
+    if (!value || typeof value !== "object") {
+        return false;
+    }
+
+    const proto = Object.getPrototypeOf(value) as
+        | typeof Object.prototype
+        | null;
+
+    const hasObjectPrototype =
+        proto === null
+        || proto === Object.prototype
+        // Required to support node:vm.runInNewContext({})
+        || Object.getPrototypeOf(proto) === null;
+
+    if (!hasObjectPrototype) {
+        return false;
+    }
+
+    return Object.prototype.toString.call(value) === "[object Object]";
+}
+
+/**
+ * 检测值是否为只有字符串键的普通对象
+ *
+ * @param value 任意值
  * @returns `boolean`
  */
-export function isPlainObject<T extends object = object>(
+export function isPlainObject<T extends object = PlainObject>(
     value: unknown,
-    strict: boolean = true,
 ): value is T {
-    if (strict) {
-        return (
-            value != null && Object.getPrototypeOf(value) === Object.prototype
-        );
-    } else {
-        return Object.prototype.toString.call(value) === "[object Object]";
+    if (!isRecordObject(value)) {
+        return false;
     }
+
+    const keys = Reflect.ownKeys(value);
+
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+
+        if (typeof key !== "string") {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * 检查值是否为有效的 Json 字符串
+ *
+ * 注意：该函数执行 {@link JSON.parse} 来验证字符串是否有效的 Json 格式，性能消耗可能很高。
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ *
+ * @example
+ * isJson('{"name":"John","age":30}'); // true
+ * isJson('[1,2,3]'); // true
+ * isJson('true'); // true
+ * isJson('invalid json'); // false
+ * isJson(null); // false (not a string)
+ */
+export function isJson(value: unknown): value is string {
+    if (typeof value !== "string") {
+        return false;
+    }
+
+    try {
+        JSON.parse(value);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * 检查值是否能序列化为 Json 字符串
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isJsonifiable(value: unknown): value is Jsonifiable {
+    switch (typeof value) {
+        case "object": {
+            return value === null || isJsonArray(value) || isJsonObject(value);
+        }
+        case "string":
+        case "number":
+        case "boolean": {
+            return true;
+        }
+        default: {
+            return false;
+        }
+    }
+}
+
+function isJsonArray(value: unknown): value is unknown[] {
+    if (!Array.isArray(value)) {
+        return false;
+    }
+
+    return value.every(item => isJsonifiable(item));
+}
+
+function isJsonObject(obj: unknown): obj is RecordObject {
+    if (!isRecordObject(obj)) {
+        return false;
+    }
+
+    const keys = Reflect.ownKeys(obj);
+
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const value = obj[key];
+
+        if (typeof key !== "string") {
+            return false;
+        }
+
+        if (!isJsonifiable(value)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -157,7 +352,7 @@ export function isArray<T = unknown>(value: unknown): value is T[] {
 }
 
 /**
- * 检测值是否为 {@link Map} 类型
+ * 检测值是否为 {@link Map}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -169,7 +364,7 @@ export function isMap<K = unknown, V = unknown>(
 }
 
 /**
- * 检测值是否为 {@link WeakMap} 类型
+ * 检测值是否为 {@link WeakMap}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -181,7 +376,7 @@ export function isWeakMap<K extends WeakKey = WeakKey, V = unknown>(
 }
 
 /**
- * 检测值是否为 {@link AnyMap} 类型
+ * 检测值是否为 {@link AnyMap}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -193,7 +388,7 @@ export function isAnyMap<K = unknown, V = unknown>(
 }
 
 /**
- * 检测值是否为 {@link Set} 类型
+ * 检测值是否为 {@link Set}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -203,7 +398,7 @@ export function isSet<T = unknown>(value: unknown): value is Set<T> {
 }
 
 /**
- * 检测值是否为 {@link WeakSet} 类型
+ * 检测值是否为 {@link WeakSet}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -259,7 +454,7 @@ export function isAnyCollection(value: unknown): value is AnyCollection {
 }
 
 /**
- * 检测值是否为 {@link Date} 类型
+ * 检测值是否为 {@link Date}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -269,7 +464,7 @@ export function isDate(value: unknown): value is Date {
 }
 
 /**
- * 检测值是否为 {@link RegExp} 类型
+ * 检测值是否为 {@link RegExp}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -279,7 +474,7 @@ export function isRegExp(value: unknown): value is RegExp {
 }
 
 /**
- * 检测值是否为 {@link WeakRef} 类型
+ * 检测值是否为 {@link WeakRef}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -291,7 +486,7 @@ export function isWeakRef<T extends object = object>(
 }
 
 /**
- * 检测值是否为 [Module Namespace Object](https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects) 类型
+ * 检测值是否为 [Module Namespace Object](https://tc39.github.io/ecma262/#sec-module-namespace-exotic-objects)
  *
  * @param value 任意值
  * @returns `boolean`
@@ -369,7 +564,7 @@ export function isAsyncGeneratorFunction<
  * @returns `boolean`
  */
 export function isGenerator(value: unknown): value is Generator {
-    if (isAnyObject(value)) {
+    if (isObjectLike(value)) {
         return (
             <keyof Generator>"next" in value
             && <keyof Generator>"return" in value
@@ -388,7 +583,7 @@ export function isGenerator(value: unknown): value is Generator {
  * @returns `boolean`
  */
 export function isAsyncGenerator(value: unknown): value is AsyncGenerator {
-    if (isAnyObject(value)) {
+    if (isObjectLike(value)) {
         return (
             <keyof AsyncGenerator>"next" in value
             && <keyof AsyncGenerator>"return" in value
@@ -407,7 +602,7 @@ export function isAsyncGenerator(value: unknown): value is AsyncGenerator {
  * @returns `boolean`
  */
 export function isIterable(value: unknown): value is Iterable<unknown> {
-    return isAnyObject(value) && Symbol.iterator in value;
+    return isObjectLike(value) && Symbol.iterator in value;
 }
 
 /**
@@ -419,18 +614,18 @@ export function isIterable(value: unknown): value is Iterable<unknown> {
 export function isAsyncIterable(
     value: unknown,
 ): value is AsyncIterable<unknown> {
-    return isAnyObject(value) && Symbol.asyncIterator in value;
+    return isObjectLike(value) && Symbol.asyncIterator in value;
 }
 
 /**
- * 检测值是否为 {@link PromiseLike} 对象类型
+ * 检测值是否为 {@link PromiseLike} 类型
  *
  * @param value 任意值
  * @returns `boolean`
  */
 export function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
     return (
-        isAnyObject(value)
+        isObjectLike(value)
         && typeof (<Partial<PromiseLike<unknown>>>value).then === "function"
     );
 }
@@ -468,7 +663,7 @@ export function isNativeCode(target: Function): boolean {
 }
 
 /**
- * 检测值是否为 {@link ArrayBuffer} 类型
+ * 检测值是否为 {@link ArrayBuffer}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -494,11 +689,7 @@ export function isArrayBufferView(value: unknown): value is ArrayBufferView {
  * @returns `boolean`
  */
 export function isTypedArray(value: unknown): value is TypedArray {
-    return (
-        isAnyObject(value)
-        && ArrayBuffer.isView(value)
-        && !(value instanceof DataView)
-    );
+    return ArrayBuffer.isView(value) && !(value instanceof DataView);
 }
 
 /**
@@ -509,12 +700,13 @@ export function isTypedArray(value: unknown): value is TypedArray {
  */
 export function isBufferSource(value: unknown): value is BufferSource {
     return (
-        isAnyObject(value) && (isArrayBuffer(value) || isArrayBufferView(value))
+        isObjectLike(value)
+        && (isArrayBuffer(value) || isArrayBufferView(value))
     );
 }
 
 /**
- * 检测值是否为 {@link DataView} 类型
+ * 检测值是否为 {@link DataView}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -524,7 +716,7 @@ export function isDataView(value: unknown): value is DataView {
 }
 
 /**
- * 检测值是否为 {@link Int8Array} 类型
+ * 检测值是否为 {@link Int8Array}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -534,7 +726,7 @@ export function isInt8Array(value: unknown): value is Int8Array {
 }
 
 /**
- * 检测值是否为 {@link Uint8Array} 类型
+ * 检测值是否为 {@link Uint8Array}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -544,7 +736,7 @@ export function isUint8Array(value: unknown): value is Uint8Array {
 }
 
 /**
- * 检测值是否为 {@link Uint8ClampedArray} 类型
+ * 检测值是否为 {@link Uint8ClampedArray}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -556,7 +748,7 @@ export function isUint8ClampedArray(
 }
 
 /**
- * 检测值是否为 {@link Int16Array} 类型
+ * 检测值是否为 {@link Int16Array}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -566,7 +758,7 @@ export function isInt16Array(value: unknown): value is Int16Array {
 }
 
 /**
- * 检测值是否为 {@link Uint16Array} 类型
+ * 检测值是否为 {@link Uint16Array}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -576,7 +768,7 @@ export function isUint16Array(value: unknown): value is Uint16Array {
 }
 
 /**
- * 检测值是否为 {@link Int32Array} 类型
+ * 检测值是否为 {@link Int32Array}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -586,7 +778,7 @@ export function isInt32Array(value: unknown): value is Int32Array {
 }
 
 /**
- * 检测值是否为 {@link Uint32Array} 类型
+ * 检测值是否为 {@link Uint32Array}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -596,7 +788,7 @@ export function isUint32Array(value: unknown): value is Uint32Array {
 }
 
 /**
- * 检测值是否为 {@link Float32Array} 类型
+ * 检测值是否为 {@link Float32Array}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -606,7 +798,7 @@ export function isFloat32Array(value: unknown): value is Float32Array {
 }
 
 /**
- * 检测值是否为 {@link Float64Array} 类型
+ * 检测值是否为 {@link Float64Array}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -616,7 +808,7 @@ export function isFloat64Array(value: unknown): value is Float64Array {
 }
 
 /**
- * 检测值是否为 {@link BigInt64Array} 类型
+ * 检测值是否为 {@link BigInt64Array}
  *
  * @param value 任意值
  * @returns `boolean`
@@ -626,11 +818,52 @@ export function isBigInt64Array(value: unknown): value is BigInt64Array {
 }
 
 /**
- * 检测值是否为 {@link BigUint64Array} 类型
+ * 检测值是否为 {@link BigUint64Array}
  *
  * @param value 任意值
  * @returns `boolean`
  */
 export function isBigUint64Array(value: unknown): value is BigUint64Array {
     return value instanceof BigUint64Array;
+}
+
+/**
+ * 检测值是否为安全整数
+ *
+ * 与 {@link Number.isSafeInteger} 不同的是，该函数会正确检查 {@link BigInt} 类型的值。
+ */
+export function isSafeInteger(value: unknown): boolean {
+    if (isBigInt(value)) {
+        return (
+            value >= Number.MIN_SAFE_INTEGER && value <= Number.MAX_SAFE_INTEGER
+        );
+    } else {
+        return Number.isSafeInteger(value);
+    }
+}
+
+/**
+ * 检测值是否为安全整数
+ *
+ * 与 {@link Number.isInteger} 不同的是，该函数会正确检查 {@link BigInt} 类型的值。
+ */
+export function isInteger(value: unknown): boolean {
+    if (isBigInt(value)) {
+        return true;
+    } else {
+        return Number.isInteger(value);
+    }
+}
+
+/**
+ * 检测值是否为有限数值
+ *
+ * 与 {@link Number.isFinite} 不同的是，该函数会正确检查 {@link BigInt} 类型的值。
+ */
+export function isFinite(value: unknown): boolean {
+    if (isBigInt(value)) {
+        return true;
+    } else {
+        return Number.isFinite(value);
+    }
 }

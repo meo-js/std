@@ -9,7 +9,6 @@ import type { Primitive } from "./primitive.js";
 
 // #export * from "!sub-modules"
 // #region Generated exports
-export * from "./ts/math.js";
 export * from "./ts/modifier.js";
 export * from "./ts/nominal.js";
 export * from "./ts/union.js";
@@ -45,6 +44,11 @@ export type Literal<T, BaseType extends Primitive> = tf.LiteralUnion<
 >;
 
 /**
+ * 转换为可能为 {@link none} 的类型
+ */
+export type Nullable<T> = T | none;
+
+/**
  * 类型 `null | undefined` 的简写形式
  */
 export type none = null | undefined;
@@ -56,3 +60,10 @@ export type none = null | undefined;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- checked.
 export type uncertain = any;
+
+/**
+ * 类型 `never` 的别名
+ *
+ * 请勿滥用，一般用于类型的边缘情况。
+ */
+export type checked = never;

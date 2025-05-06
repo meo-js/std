@@ -1,5 +1,5 @@
 import { USE_CUSTOM_EQUAL } from "compile-constants/flags";
-import { isAnyObject } from "../guard.js";
+import { isObjectLike } from "../predicate.js";
 import { equal as _equal } from "./symbols.js";
 
 /**
@@ -18,13 +18,13 @@ export interface Equatable {
  * 若其中一个值是实现了 {@link Equatable} 接口的对象则使用自定义比较函数，否则使用 {@link Object.is} 进行判定
  */
 export function equal(a: unknown, b: unknown): boolean {
-    if (isAnyObject(a)) {
+    if (isObjectLike(a)) {
         const equal = (<Partial<Equatable>>a)[_equal];
         if (equal) {
             return equal.call(a, b);
         }
     }
-    if (isAnyObject(b)) {
+    if (isObjectLike(b)) {
         const equal = (<Partial<Equatable>>b)[_equal];
         if (equal) {
             return equal.call(b, a);

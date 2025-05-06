@@ -17,7 +17,7 @@ import {
     isUint32Array,
     isUint8Array,
     isUint8ClampedArray,
-} from "./guard.js";
+} from "./predicate.js";
 
 /**
  * 类型化数组
