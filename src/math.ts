@@ -13,6 +13,11 @@ import type { And, Not } from "./ts/logical.js";
 export type Numeric = number | bigint;
 
 /**
+ * 数值 0
+ */
+export type Zero = 0 | 0n;
+
+/**
  * {@link Number.POSITIVE_INFINITY}
  */
 export type INF = tf.PositiveInfinity;
@@ -78,7 +83,7 @@ export type Neq<A extends number, B extends number> = Not<Eq<A, B>>;
  * @template End - 结束值（不包括）
  * @template Step - 步长，默认为 `1`
  */
-export type IntRange<
+export type IntRangeOf<
     Start extends number,
     End extends number,
     Step extends number = 1,
@@ -88,6 +93,20 @@ export type IntRange<
  * 判断是否为负数
  */
 export type IsNegative<T extends Numeric> = tf.IsNegative<T>;
+
+/**
+ * 判断是否为正数
+ */
+export type IsPositive<T extends Numeric> = T extends Zero
+    ? false
+    : `${T}` extends `-${string}`
+      ? false
+      : true;
+
+/**
+ * 判断是否为零
+ */
+export type IsZero<T extends Numeric> = T extends Zero ? true : false;
 
 /**
  * 判断是否为整数
