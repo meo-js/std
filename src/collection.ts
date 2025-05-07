@@ -56,3 +56,17 @@ export type ValueOf<T extends AnyCollection> =
             : T extends WeakSet<infer V>
               ? V
               : never;
+
+/**
+ * {@link AnyCollection} 的元素类型
+ */
+export type EntriesOf<T extends AnyCollection> =
+    T extends Map<infer K, infer V>
+        ? [K, V][]
+        : T extends WeakMap<infer K, infer V>
+          ? [K, V][]
+          : T extends Set<infer V>
+            ? [V, V][]
+            : T extends WeakSet<infer V>
+              ? [V, V][]
+              : never;

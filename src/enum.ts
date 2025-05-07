@@ -6,10 +6,10 @@
 import type { PlainObject } from "./object.js";
 
 /**
- * 枚举键的联合类型
+ * 枚举键类型
  *
  * @example
- * Keys<typeof Enum>;
+ * KeyOf<typeof Enum>;
  */
 export type KeyOf<T extends object> = keyof T;
 
@@ -17,7 +17,7 @@ export type KeyOf<T extends object> = keyof T;
  * 枚举值类型
  *
  * @example
- * Values<typeof Enum>;
+ * ValueOf<typeof Enum>;
  */
 export type ValueOf<T extends object> = T[keyof T];
 
@@ -25,9 +25,9 @@ export type ValueOf<T extends object> = T[keyof T];
  * 枚举成员类型
  *
  * @example
- * Members<typeof Enum>;
+ * EntriesOf<typeof Enum>;
  */
-export type MemberOf<T extends object> = [KeyOf<T>, ValueOf<T>][];
+export type EntriesOf<T extends object> = [KeyOf<T>, ValueOf<T>][];
 
 /**
  * 获取数值枚举所有成员
@@ -37,7 +37,7 @@ export type MemberOf<T extends object> = [KeyOf<T>, ValueOf<T>][];
  * @example
  * const result = [['A', 1], ['B', 2]];
  */
-export function getMembers<T extends object>(tsEnum: T): [keyof T, number][] {
+export function getEntries<T extends object>(tsEnum: T): [keyof T, number][] {
     const result: [keyof T, number][] = [];
     for (const key in tsEnum) {
         if (!Number.isNaN(Number(key))) continue;

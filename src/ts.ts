@@ -112,6 +112,11 @@ export type ApplyDefaultOptions<
 export type StructuredCloneable = tf.StructuredCloneable;
 
 /**
+ * 判断给定的类型是否为[字面量类型](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#literal-types)
+ */
+export type IsLiteral<T> = tf.IsLiteral<T>;
+
+/**
  * 类型 `null | undefined` 的简写形式
  */
 export type none = null | undefined;

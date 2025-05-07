@@ -6,18 +6,43 @@
 import type * as sts from "string-ts";
 import type * as tf from "type-fest";
 import type { INF, Sub } from "./math.js";
+import type { IsNever } from "./predicate.js";
 import type { Rng } from "./protocol.js";
 import { is } from "./protocol/equatable.js";
+import type { IsLiteral, ToArray } from "./ts.js";
+import type { If } from "./ts/logical.js";
 
 /**
  * 数组索引类型
  */
-export type IndicesOf<T extends readonly unknown[]> = tf.ArrayIndices<T>;
+export type IndicesOf<T extends readonly unknown[]> = If<
+    IsNever<tf.ArrayIndices<T>>,
+    number,
+    tf.ArrayIndices<T>
+>;
 
 /**
  * 数组值类型
  */
 export type ValueOf<T extends readonly unknown[]> = tf.ArrayValues<T>;
+
+/**
+ * 数组元素类型
+ *
+ * @example
+ * ```ts
+ * EntriesOf<["a", "b", "c"]>;
+ * // [[0, "a"], [1, "b"], [2, "c"]]
+ *
+ * EntriesOf<number[]>;
+ * // [number, number][]
+ * ```
+ */
+export type EntriesOf<T extends readonly unknown[]> = If<
+    IsLiteral<IndicesOf<T>>,
+    Zip<ToArray<IndicesOf<T>>, ToArray<ValueOf<T>>>,
+    [IndicesOf<T>, ValueOf<T>][]
+>;
 
 /**
  * 数组的第一个元素
@@ -107,10 +132,34 @@ export type Splice<
 /**
  * 将字符串数组拼接为字符串
  */
-export type Join<T extends string[], Delimiter extends string = ","> = sts.Join<
-    T,
-    Delimiter
->;
+export type Join<
+    T extends readonly string[],
+    Delimiter extends string = ",",
+> = sts.Join<T, Delimiter>;
+
+/**
+ * 将两个数组的元素配对为元组数组
+ *
+ * @example
+ * ```ts
+ * Zip<[1, 2, 3], ["a", "b", "c"]>;
+ * // [[1, "a"], [2, "b"], [3, "c"]]
+ *
+ * Zip<[1, 2], ["a", "b", "c"]>;
+ * // [[1, "a"], [2, "b"]]
+ *
+ * Zip<[1, 2, 3], ["a", "b"]>;
+ * // [[1, "a"], [2, "b"]]
+ * ```
+ */
+export type Zip<
+    A extends readonly unknown[],
+    B extends readonly unknown[],
+> = A extends readonly [infer AF, ...infer AR]
+    ? B extends readonly [infer BF, ...infer BR]
+        ? [[AF, BF], ...Zip<AR, BR>]
+        : []
+    : [];
 
 /**
  * 值或值类型的数组

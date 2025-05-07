@@ -4,7 +4,7 @@
  * @module
  */
 import type { Class } from "./class.js";
-import { getMembers } from "./enum.js";
+import { getEntries } from "./enum.js";
 import type { uncertain } from "./ts.js";
 
 /**
@@ -41,7 +41,7 @@ export function defineErrors<
     T extends Class<BaseError, [code: number, ...args: uncertain]>,
     Enum extends object,
 >(errorClass: T, errorCodes: Enum): ErrorBuilder<T, Enum> {
-    const codes = getMembers(errorCodes);
+    const codes = getEntries(errorCodes);
     const obj = {} as ErrorBuilder<T, Enum>;
 
     for (const [prop, code] of codes) {

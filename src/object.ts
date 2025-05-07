@@ -4,7 +4,30 @@
  * @module
  */
 import * as tf from "type-fest";
+import type { Zip } from "./array.js";
 import { isRecordObject } from "./predicate.js";
+import type { IsLiteral } from "./ts.js";
+import type { If } from "./ts/logical.js";
+import type { ToArray } from "./ts/union.js";
+
+/**
+ * 对象键类型
+ */
+export type KeyOf<T> = keyof T;
+
+/**
+ * 对象值类型
+ */
+export type ValueOf<T> = T[keyof T];
+
+/**
+ * 对象元素类型
+ */
+export type EntriesOf<T> = If<
+    IsLiteral<KeyOf<T>>,
+    Zip<ToArray<KeyOf<T>>, ToArray<ValueOf<T>>>,
+    [KeyOf<T>, ValueOf<T>][]
+>;
 
 /**
  * `Record<PropertyKey, V>` 的别名类型
@@ -145,12 +168,85 @@ export function hasOwnProperty(o: object, v: PropertyKey): boolean {
 }
 
 /**
+ * 获取对象自身属性的描述符
+ */
+export function getOwnPropertyDescriptor(
+    o: object,
+    v: PropertyKey,
+): PropertyDescriptor | undefined {
+    return Object.getOwnPropertyDescriptor(o, v);
+}
+
+/**
+ * 获取对象自身的所有属性键
+ *
+ * @param o 对象
+ */
+export function getOwnProperties(o: object): (string | symbol)[] {
+    return Reflect.ownKeys(o);
+}
+
+/**
+ * 获取对象自身所有属性的描述符
+ */
+export function getOwnPropertyDescriptors(
+    o: object,
+): RecordObject<PropertyDescriptor> {
+    return Object.getOwnPropertyDescriptors(o);
+}
+
+/**
+ * 获取对象自身的所有字符串属性键
+ *
+ * @param o 对象
+ */
+export function getOwnStringProperties(o: object): string[] {
+    return Object.getOwnPropertyNames(o);
+}
+
+/**
+ * 获取对象自身的所有字符串属性键
+ *
+ * @param o 对象
+ */
+export function getOwnSymbolProperties(o: object): symbol[] {
+    return Object.getOwnPropertySymbols(o);
+}
+
+/**
+ * 获取对象自身的所有可枚举字符串属性键
+ *
+ * @param o 对象
+ */
+export function getKeys(o: object): string[] {
+    return Object.keys(o);
+}
+
+/**
+ * 获取对象自身的所有可枚举字符串属性值
+ *
+ * @param o 对象
+ */
+export function getValues(o: object): unknown[] {
+    return Object.values(o);
+}
+
+/**
+ * 获取对象自身的所有可枚举字符串属性
+ *
+ * @param o 对象
+ */
+export function getEntries(o: object): [string, unknown][] {
+    return Object.entries(o);
+}
+
+/**
  * 修剪所有值为 `undefined` 的属性，返回经过修剪的对象
  *
  * @returns 若 {@link opts.update} 为 `true`，则返回修剪过后的原对象，否则返回一个新对象
  */
 export function prune<T extends object>(
-    v: T,
+    o: T,
     opts?: {
         /**
          * 是否深度递归地修剪
@@ -173,45 +269,71 @@ export function prune<T extends object>(
     const update = opts?.update ?? false;
 
     if (!update) {
-        return _prune_new(v, deep, opts);
+        return _prune_new(o, deep, opts);
     } else {
-        return _prune_update(v, deep, opts);
+        return _prune_update(o, deep, opts);
     }
 }
 
 function _prune_new<T extends object>(
-    v: T,
+    o: T,
     deep: boolean,
     opts: object | undefined,
 ): T {
     if (deep) {
         return Object.fromEntries(
-            Object.entries(v)
+            Object.entries(o)
                 .filter(([, value]) => value !== undefined)
                 .map(([key, value]) => [key, prune(value, opts)]),
         ) as T;
     } else {
         return Object.fromEntries(
-            Object.entries(v).filter(([, value]) => value !== undefined),
+            Object.entries(o).filter(([, value]) => value !== undefined),
         ) as T;
     }
 }
 
 function _prune_update<T extends object>(
-    v: T,
+    o: T,
     deep: boolean,
     opts: object | undefined,
 ): T {
-    for (const key in v) {
-        if (Object.hasOwn(v, key)) {
-            const value = v[key];
+    for (const key in o) {
+        if (Object.hasOwn(o, key)) {
+            const value = o[key];
             if (value === undefined) {
                 // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- checked.
-                delete v[key];
+                delete o[key];
             } else if (deep) {
-                v[key] = isRecordObject(value) ? prune(value, opts) : value;
+                o[key] = isRecordObject(value) ? prune(value, opts) : value;
             }
         }
     }
-    return v;
+    return o;
+}
+
+/**
+ * 返回一个反转对象中的键和值的新对象
+ *
+ * 如果输入对象有重复的值，则使用最后出现的键作为输出对象中新键的值。
+ *
+ * 不包含原型链上的属性。
+ *
+ * @example
+ * invert({ a: 1, b: 2, c: 3 });
+ * // { 1: "a", 2: "b", 3: "c" }
+ */
+export function invert<K extends PropertyKey, V extends PropertyKey>(
+    obj: Record<K, V>,
+): Record<V, K> {
+    const result = {} as Record<V, K>;
+
+    for (const key in obj) {
+        if (Object.hasOwn(obj, key)) {
+            const value = obj[key];
+            result[value] = key;
+        }
+    }
+
+    return result;
 }
