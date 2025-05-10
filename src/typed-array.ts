@@ -245,22 +245,3 @@ export function getBufferInfo(v: BufferSource): BufferInfo {
         return new BufferInfo(v.buffer, v.byteOffset, v.byteLength);
     }
 }
-
-/**
- * 获取平台字节序
- */
-export function getPlatformEndian(): Endian {
-    if (_platformEndian == null) {
-        const uInt32 = new Uint32Array([0x11223344]);
-        const uInt8 = new Uint8Array(uInt32.buffer);
-        if (uInt8[0] === 0x44) {
-            _platformEndian = Endian.Little;
-        } else if (uInt8[0] === 0x11) {
-            _platformEndian = Endian.Big;
-        } else {
-            _platformEndian = Endian.Unknown;
-        }
-    }
-
-    return _platformEndian;
-}

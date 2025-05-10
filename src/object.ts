@@ -4,9 +4,9 @@
  * @module
  */
 import * as tf from "type-fest";
-import type { Zip } from "./array.js";
+import type { ToObject, Zip } from "./array.js";
 import { isRecordObject } from "./predicate.js";
-import type { IsLiteral } from "./ts.js";
+import type { checked, IsLiteral, Mutable } from "./ts.js";
 import type { If } from "./ts/logical.js";
 import type { ToArray } from "./ts/union.js";
 
@@ -151,7 +151,16 @@ export type PickValue<T, V> = tf.ConditionalPick<T, V>;
 /**
  * 合并两个类型，第二个类型的键将覆盖第一种类型的键
  */
-export type Assign<Dest, Source> = tf.Merge<Dest, Source>;
+export type Assign<
+    Dest extends object,
+    Sources extends readonly unknown[],
+> = Sources extends [infer First, ...infer Rest]
+    ? Assign<tf.Merge<_EnsureObject<Dest>, _EnsureObject<First>>, Rest>
+    : _EnsureObject<Dest>;
+
+type _EnsureObject<T> = T extends readonly unknown[] ? ToObject<Mutable<T>> : T;
+
+let fastProto: unknown = null;
 
 /**
  * @returns 若属性在原型链中存在则返回 `true`，否则返回 `false`
@@ -238,6 +247,58 @@ export function getValues(o: object): unknown[] {
  */
 export function getEntries(o: object): [string, unknown][] {
     return Object.entries(o);
+}
+
+/**
+ * @returns 返回按顺序遍历的迭代器，最后一个元素是根原型
+ */
+export function* walkPrototypeChain<T extends object>(
+    o: object,
+): Generator<T, void, void> {
+    let proto: T | null = Object.getPrototypeOf(o) as T | null;
+    while (proto != null) {
+        yield proto;
+        proto = Object.getPrototypeOf(proto) as T | null;
+    }
+}
+
+/**
+ * @returns 返回按顺序排列的数组，最后一个元素是根原型
+ */
+export function getPrototypeChain<T extends object>(o: object): T[] {
+    const prototypes: T[] = [];
+    let proto: T | null = Object.getPrototypeOf(o) as T | null;
+    while (proto != null) {
+        prototypes.push(proto);
+        proto = Object.getPrototypeOf(proto) as T | null;
+    }
+    return prototypes;
+}
+
+/**
+ * @returns 返回对象的原型
+ */
+export function getPrototype<T extends object | null>(o: object): T {
+    return Object.getPrototypeOf(o) as T;
+}
+
+/**
+ * 设置对象的原型
+ */
+export function setPrototype(o: object, proto: object | null) {
+    Object.setPrototypeOf(o, proto);
+}
+
+/**
+ * 复制多个源对象的所有自身可枚举属性到目标对象并返回
+ *
+ * 相当于调用 {@link Object.assign} 方法。
+ */
+export function assign<T extends object, const R extends unknown[]>(
+    o: T,
+    ...args: R
+): Assign<T, R> {
+    return Object.assign(o, ...args) as checked;
 }
 
 /**
@@ -336,4 +397,27 @@ export function invert<K extends PropertyKey, V extends PropertyKey>(
     }
 
     return result;
+}
+
+/**
+ * 强制将对象转换为某些 JavaScript 引擎所谓的 “快速对象”
+ *
+ * @see https://github.com/sindresorhus/to-fast-properties
+ */
+export function forceToFastObject<T extends object>(o: T): T {
+    return _FastObject(o) as T;
+}
+
+function _FastObject(this: void, o: object) {
+    if (fastProto !== null) {
+        (<{ a: number }>(<unknown>this)).a = 1; // < SotreIC >
+        const res = fastProto;
+        fastProto = null;
+        return res;
+    }
+
+    fastProto = _FastObject.prototype = o;
+
+    // @ts-expect-error -- checked.
+    return new _FastObject() as unknown;
 }

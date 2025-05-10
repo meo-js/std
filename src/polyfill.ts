@@ -1,29 +1,38 @@
 /**
- * 对一些特定的 JavaScript 特性进行 polyfill，这些特性是我们认为应立即广泛开始使用但是当前运行环境未普遍支持的。
+ * 对一些特定的 JavaScript 特性进行 polyfill
+ *
+ * 这些特性都是我们认为应立即开始使用但当前还未被普遍支持的。
  *
  * @public
  *
  * @module
  */
-// Promise.withResolvers() not widely popular
-import "core-js/proposals/promise-with-resolvers.js";
-// at() not widely popular
-import "core-js/proposals/relative-indexing-method.js";
-// error.cause not widely popular
-import "core-js/proposals/error-cause.js";
-// using/dispose not widely popular
-import "core-js/proposals/explicit-resource-management.js";
-// hasOwn() not widely popular
+// --- ECMAScript 2020 ---
+import "core-js/proposals/global-this.js";
+import "core-js/proposals/promise-all-settled.js";
+import "core-js/proposals/string-match-all.js";
+// --- ECMAScript 2021 ---
+import "core-js/proposals/promise-any.js";
+import "core-js/proposals/string-replace-all-stage-4.js";
+// --- ECMAScript 2022 ---
 import "core-js/proposals/accessible-object-hasownproperty.js";
-// decorator metadata not widely popular
-import "core-js/proposals/decorator-metadata-v2.js";
-// Promise.try() not widely popular
-import "core-js/proposals/promise-try.js";
-// queueMicrotask() not widely popular
-if (typeof globalThis.queueMicrotask !== "function") {
-    globalThis.queueMicrotask = function (callback) {
-        setTimeout(callback);
-    };
-}
-// Promise.withResolvers() not widely popular
+import "core-js/proposals/error-cause.js";
+import "core-js/proposals/relative-indexing-method.js";
+// --- ECMAScript 2023 ---
+import "core-js/proposals/array-find-from-last.js";
+import "core-js/proposals/change-array-by-copy-stage-4.js";
+// --- ECMAScript 2024 ---
+import "core-js/proposals/array-grouping-v2.js";
 import "core-js/proposals/promise-with-resolvers.js";
+import "core-js/proposals/well-formed-unicode-strings.js";
+// --- ECMAScript 2025 ---
+import "core-js/proposals/iterator-helpers-stage-3-2.js";
+import "core-js/proposals/promise-try.js";
+import "core-js/proposals/regexp-escaping.js";
+import "core-js/proposals/set-methods-v2.js";
+// --- ECMAScript Next ---
+import "core-js/proposals/decorator-metadata-v2.js";
+import "core-js/proposals/explicit-resource-management.js";
+// --- Web API ---
+import "core-js/web/queue-microtask.js";
+import "core-js/web/structured-clone.js";

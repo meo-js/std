@@ -4,7 +4,7 @@
  * @module
  */
 import * as tf from "type-fest";
-import { isBigInt } from "./predicate.js";
+import { isBigInt, isNumber } from "./predicate.js";
 import type { And, Not } from "./ts/logical.js";
 
 /**
@@ -159,37 +159,41 @@ export const EPSILON = Number.EPSILON;
 export const NAN = Number.NaN;
 
 /**
- * 检测值是否为安全整数
+ * 检测值是否为整数
  *
- * 与 {@link Number.isSafeInteger} 不同的是，该函数会正确检查 {@link BigInt} 类型的值。
+ * - 如果值为 {@link BigInt}，则返回 `true`。
+ * - 如果值为 {@link Number}，则相当于调用 {@link Number.isSafeInteger}。
  */
-export function isSafeInteger(value: unknown): boolean {
+export function isInteger(value: unknown): boolean {
     if (isBigInt(value)) {
-        return (
-            value >= Number.MIN_SAFE_INTEGER && value <= Number.MAX_SAFE_INTEGER
-        );
+        return true;
     } else {
         return Number.isSafeInteger(value);
     }
 }
 
 /**
- * 检测值是否为整数
+ * 检测值是否为浮点数
  *
- * 该函数更像原生的 {@link Number.isSafeInteger} 而不是 {@link Number.isInteger}，不同的是无限值也会返回 `true`，且会正确检查 {@link BigInt} 类型的值。
+ * - 如果值为 {@link BigInt}，则返回 `false`。
+ * - 如果值为 {@link Number}，则相当于调用 {@link Number.isFinite} 并检查 {@link Math.floor} 后的值是否不相等。
  */
-export function isInteger(value: unknown): boolean {
+export function isFloat(value: unknown): boolean {
     if (isBigInt(value)) {
-        return true;
+        return false;
+    } else if (isNumber(value)) {
+        const int = Math.floor(value);
+        return isFinite(int) && int !== value;
     } else {
-        return Number.isSafeInteger(value) || value === INF || value === NINF;
+        return false;
     }
 }
 
 /**
  * 检测值是否为有限数值
  *
- * 与 {@link Number.isFinite} 不同的是，该函数会正确检查 {@link BigInt} 类型的值。
+ * - 如果值为 {@link BigInt}，则返回 `true`。
+ * - 如果值为 {@link Number}，则相当于调用 {@link Number.isFinite}。
  */
 export function isFinite(value: unknown): boolean {
     if (isBigInt(value)) {
@@ -197,4 +201,11 @@ export function isFinite(value: unknown): boolean {
     } else {
         return Number.isFinite(value);
     }
+}
+
+/**
+ * 检测值是否为无限数值
+ */
+export function isInfinity(value: unknown): boolean {
+    return value === INF || value === NINF;
 }

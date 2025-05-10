@@ -144,7 +144,7 @@ export function isBigInt(value: unknown): value is bigint {
 }
 
 /**
- * 检测值是否为 {@link Number} 或 {@link BigInt} 类型，`NaN` 不被视为有效值。
+ * 检测值是否为 {@link Number} 或 {@link BigInt} 类型，无限值被视为有效值，但 `NaN` 不被视为有效值。
  *
  * @param value 任意值
  * @returns `boolean`

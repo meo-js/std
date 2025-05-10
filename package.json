@@ -231,6 +231,7 @@
         "chardet": "^2.1.0",
         "core-js": "^3.42.0",
         "string-ts": "^2.2.1",
+        "temporal-polyfill": "^0.3.0",
         "type-fest": "^4.41.0"
     }
 }
