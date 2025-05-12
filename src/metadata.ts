@@ -212,7 +212,7 @@ export function getChain<T>(
 }
 
 /**
- * 确保类元数据具有继承链（不存在则创建）并返回元数据
+ * 确保传入类的元数据具有继承链（不存在则创建），并返回该类的元数据
  */
 export function from<T extends DecoratorMetadata>(target: AbstractClass): T {
     if (normalizedClasses.has(target)) {

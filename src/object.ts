@@ -402,7 +402,7 @@ export function invert<K extends PropertyKey, V extends PropertyKey>(
 /**
  * 强制将对象转换为某些 JavaScript 引擎所谓的 “快速对象”
  *
- * @see https://github.com/sindresorhus/to-fast-properties
+ * @see {@link https://github.com/sindresorhus/to-fast-properties}
  */
 export function forceToFastObject<T extends object>(o: T): T {
     return _FastObject(o) as T;

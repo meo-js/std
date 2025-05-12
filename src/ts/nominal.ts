@@ -56,8 +56,8 @@ export type MetadataOf<
  * 转换为允许隐式转换的名义类型
  */
 export type Weaken<T> =
-    T extends Tagged<infer Type, infer Token, infer Metadata>
-        ? WeakTagged<Type, Token, Metadata>
+    T extends Tagged<unknown, infer Token, infer Metadata>
+        ? WeakTagged<Unwrap<T>, Token, Metadata>
         : T;
 
 /**

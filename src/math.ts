@@ -209,3 +209,77 @@ export function isFinite(value: unknown): boolean {
 export function isInfinity(value: unknown): boolean {
     return value === INF || value === NINF;
 }
+
+/**
+ * 检测值是否能被另一个值整除
+ *
+ * @param dividend 被除数
+ * @param divisor 除数
+ * @returns 可以被整除则返回 `true`，否则返回 `false`
+ */
+export function divisibleBy(dividend: Numeric, divisor: Numeric): boolean {
+    if (isBigInt(dividend) || isBigInt(divisor)) {
+        return BigInt(dividend) % BigInt(divisor) === BigInt(0);
+    } else {
+        return dividend % divisor === 0;
+    }
+}
+
+/**
+ * 整数除法，返回截断小数的结果
+ *
+ * @param dividend 被除数
+ * @param divisor 除数
+ * @returns 计算结果
+ */
+export function idiv(dividend: number, divisor: number): number;
+export function idiv(dividend: Numeric, divisor: Numeric): bigint;
+export function idiv(dividend: Numeric, divisor: Numeric): Numeric {
+    if (isBigInt(dividend) || isBigInt(divisor)) {
+        return BigInt(dividend) / BigInt(divisor);
+    } else {
+        return Math.trunc(dividend / divisor);
+    }
+}
+
+/**
+ * 整数除法，返回向下取整的结果
+ *
+ * @param dividend 被除数
+ * @param divisor 除数
+ * @returns 计算结果
+ */
+export function fdiv(dividend: number, divisor: number): number;
+export function fdiv(dividend: Numeric, divisor: Numeric): bigint;
+export function fdiv(dividend: Numeric, divisor: Numeric): Numeric {
+    if (isBigInt(dividend) || isBigInt(divisor)) {
+        return _div(dividend, divisor, -1);
+    } else {
+        return Math.floor(dividend / divisor);
+    }
+}
+
+/**
+ * 整数除法，返回向上取整的结果
+ *
+ * @param dividend 被除数
+ * @param divisor 除数
+ * @returns 计算结果
+ */
+export function cdiv(dividend: number, divisor: number): number;
+export function cdiv(dividend: Numeric, divisor: Numeric): bigint;
+export function cdiv(dividend: Numeric, divisor: Numeric): Numeric {
+    if (isBigInt(dividend) || isBigInt(divisor)) {
+        return _div(dividend, divisor, 1);
+    } else {
+        return Math.ceil(dividend / divisor);
+    }
+}
+
+function _div(dividend: Numeric, divisor: Numeric, plus: number) {
+    const a = BigInt(dividend);
+    const b = BigInt(divisor);
+    const n0 = BigInt(0);
+    const n1 = BigInt(plus);
+    return a / b + (a % b < n0 ? n1 : n0);
+}
