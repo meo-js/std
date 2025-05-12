@@ -108,6 +108,9 @@ export type CalendarLike =
  */
 export type CalendarId = Tagged<string, "calendar-id">;
 
+// TODO {@link https://datatracker.ietf.org/doc/html/rfc9557|RFC 9557 string}
+export type RFC9557 = string;
+
 /**
  * 类时间对象
  */

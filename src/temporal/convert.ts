@@ -15,7 +15,7 @@ import {
  *
  * @param timestamp 以毫秒或纳秒为单位的 Unix 时间戳
  * @param timeZone 时区
- * @param calendar 日历
+ * @param calendar 日历，默认为 `iso8601`
  */
 export function toZonedDateTime(
     timestamp: Weaken<Timestamp | BigIntTimestamp>,
@@ -23,7 +23,7 @@ export function toZonedDateTime(
     calendar?: CalendarLike,
 ): Temporal.ZonedDateTime;
 export function toZonedDateTime(
-    timestamp: Weaken<Timestamp | BigIntTimestamp>,
+    text: Weaken<Timestamp | BigIntTimestamp>,
     timeZone: TimeZoneLike,
     calendar?: CalendarLike,
 ): Temporal.ZonedDateTime;
