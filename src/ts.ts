@@ -117,6 +117,11 @@ export type StructuredCloneable = tf.StructuredCloneable;
 export type IsLiteral<T> = tf.IsLiteral<T>;
 
 /**
+ * 当 {@link T} 符合类型 {@link A} 时返回类型 {@link B}
+ */
+export type MapOf<T, A, B = A> = T extends A ? B : never;
+
+/**
  * 类型 `null | undefined` 的简写形式
  */
 export type none = null | undefined;

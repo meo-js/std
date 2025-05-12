@@ -22,11 +22,11 @@ export function toZonedDateTime(
     timeZone: TimeZoneLike,
     calendar?: CalendarLike,
 ): Temporal.ZonedDateTime;
-export function toZonedDateTime(
-    text: Weaken<Timestamp | BigIntTimestamp>,
-    timeZone: TimeZoneLike,
-    calendar?: CalendarLike,
-): Temporal.ZonedDateTime;
+// export function toZonedDateTime(
+//     rfcText: string,
+//     timeZone: TimeZoneLike,
+//     calendar?: CalendarLike,
+// ): Temporal.ZonedDateTime;
 export function toZonedDateTime(
     timestamp: Weaken<Timestamp | BigIntTimestamp>,
     timeZone: TimeZoneLike,

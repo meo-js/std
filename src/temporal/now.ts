@@ -3,10 +3,9 @@ import { HAS_BIGINT } from "../env.js";
 import { fdiv } from "../math.js";
 import { throwUnsupported } from "./error.js";
 import {
-    isTimeZoneLike,
     TimestampUnit,
+    toTimeZoneId,
     type BigIntTimestamp,
-    type CalendarLike,
     type Timestamp,
     type TimeZoneId,
     type TimeZoneLike,
@@ -118,7 +117,7 @@ export function date(opts?: TimeZoneLike | TODO1Options): Temporal.PlainDate {
  * @param timeZone 指定返回时间的时区，默认为系统时区
  */
 export function time(timeZone?: TimeZoneLike): Temporal.PlainTime {
-    return Temporal.Now.plainTimeISO(timeZone);
+    return Temporal.Now.plainTimeISO(toTimeZoneId(timeZone));
 }
 
 /**
@@ -149,21 +148,23 @@ function _createDateLike<
         | typeof Temporal.Now.plainDateISO
         | typeof Temporal.Now.plainDateTimeISO,
 >(fn: T, opts?: TimeZoneLike | TODO1Options): ReturnType<T> {
-    let timeZone: TimeZoneLike | undefined;
-    let calendar: CalendarLike | undefined;
-    if (opts != null) {
-        if (isTimeZoneLike(opts)) {
-            timeZone = opts;
-        } else {
-            timeZone = opts.timeZone;
-            calendar = opts.calendar;
-        }
-    }
-    let date = fn(timeZone);
-    if (calendar != null) {
-        date = date.withCalendar(calendar);
-    }
-    return date as ReturnType<T>;
+    // TODO
+    // let timeZone: TimeZoneLike | undefined;
+    // let calendar: CalendarLike | undefined;
+    // if (opts != null) {
+    //     if (isTimeZoneLike(opts)) {
+    //         timeZone = opts;
+    //     } else {
+    //         timeZone = opts.timeZone;
+    //         calendar = opts.calendar;
+    //     }
+    // }
+    // let date = fn(timeZone);
+    // if (calendar != null) {
+    //     date = date.withCalendar(calendar);
+    // }
+    // return date as ReturnType<T>;
+    return undefined!;
 }
 
 /**
@@ -172,3 +173,5 @@ function _createDateLike<
 export function timeZoneId() {
     return Temporal.Now.timeZoneId() as TimeZoneId;
 }
+
+// TODO 获取当前日历

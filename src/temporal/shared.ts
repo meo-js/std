@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 import { isBigInt, isString } from "../predicate.js";
-import type { Tagged, Weaken } from "../ts.js";
+import type { MapOf, Tagged, Weaken } from "../ts.js";
 
 /**
  * Unix 时间戳
@@ -57,11 +57,33 @@ export interface TODO1Options {
 }
 
 /**
+ * TODO: 需要命名
+ */
+export interface TODO2Options {
+    /**
+     * 时区标识符
+     *
+     * @see {@link TimeZoneId}
+     */
+    readonly timeZoneId: Weaken<TimeZoneId>;
+}
+
+/**
+ * TODO: 需要命名
+ */
+export interface TODO3Options {
+    /**
+     * 日历标识符
+     *
+     * @see {@link CalendarId}
+     */
+    readonly calendarId: Weaken<CalendarId>;
+}
+
+/**
  * 类时区类型
  */
-export type TimeZoneLike =
-    | Weaken<TimeZoneId>
-    | Exclude<Temporal.TimeZoneLike, string>;
+export type TimeZoneLike = Weaken<TimeZoneId> | TODO2Options;
 
 /**
  * RFC 9557 标准的时区标识符
@@ -91,9 +113,7 @@ export type TimeZoneId = Tagged<string, "timezone-id">;
 /**
  * 类日历类型
  */
-export type CalendarLike =
-    | Weaken<CalendarId>
-    | Exclude<Temporal.CalendarLike, string>;
+export type CalendarLike = Weaken<CalendarId> | TODO3Options;
 
 /**
  * CLDR 日历标识符
@@ -123,6 +143,16 @@ export type TemporalLike =
     | Temporal.ZonedDateTime;
 
 /**
+ * 类瞬时对象
+ */
+export type InstantLike =
+    | Timestamp
+    | BigIntTimestamp
+    | Temporal.Instant
+    | Temporal.PlainDateTime
+    | Temporal.ZonedDateTime;
+
+/**
  * @internal
  */
 export function toBigIntTimestamp(
@@ -138,15 +168,31 @@ export function toBigIntTimestamp(
 /**
  * @internal
  */
-export function toTimeZoneId(timeZone: TimeZoneLike): TimeZoneId {
-    return (isString(timeZone) ? timeZone : timeZone.timeZoneId) as TimeZoneId;
+export function toTimeZoneId<T extends TimeZoneLike | undefined>(
+    timeZone: T,
+): TimeZoneId | MapOf<T, undefined> {
+    if (timeZone == null) {
+        return undefined!;
+    } else {
+        return (
+            isString(timeZone) ? timeZone : timeZone.timeZoneId
+        ) as TimeZoneId;
+    }
 }
 
 /**
  * @internal
  */
-export function toCalendarId(calendar: CalendarLike): CalendarId {
-    return (isString(calendar) ? calendar : calendar.calendarId) as CalendarId;
+export function toCalendarId<T extends CalendarLike | undefined>(
+    calendar: T,
+): CalendarId | MapOf<T, undefined> {
+    if (calendar == null) {
+        return undefined!;
+    } else {
+        return (
+            isString(calendar) ? calendar : calendar.calendarId
+        ) as CalendarId;
+    }
 }
 
 // TODO: 放到 predicate.ts 中
