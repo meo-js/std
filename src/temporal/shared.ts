@@ -129,6 +129,19 @@ export type NanosecondLike = {
     readonly nanosecond: number;
 };
 
+export type DurationLike = {
+    readonly days: number;
+    readonly hours: number;
+    readonly microseconds: number;
+    readonly milliseconds: number;
+    readonly minutes: number;
+    readonly months: number;
+    readonly nanoseconds: number;
+    readonly seconds: number;
+    readonly weeks: number;
+    readonly years: number;
+};
+
 /**
  * 可用于构造 UTC 偏移量的对象
  *
