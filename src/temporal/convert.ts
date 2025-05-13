@@ -17,25 +17,34 @@ import {
     type Timestamp,
     type TimeZoneIdLike,
     type TimeZoneLike,
+    type ZonedDateTimeInput,
 } from "./shared.js";
 
-/**
- * 将时间戳转换为 {@link Temporal.ZonedDateTime}
- *
- * @param timestamp 以毫秒或纳秒为单位的 Unix 时间戳
- * @param timeZone 时区
- * @param calendar 日历，默认为 `iso8601`
- */
+// /**
+//  * 将时间戳转换为 {@link Temporal.ZonedDateTime}
+//  *
+//  * @param timestamp 以毫秒或纳秒为单位的 Unix 时间戳
+//  * @param timeZone 时区
+//  * @param calendar 日历，默认为 `iso8601`
+//  */
 // export function toZonedDateTime(
 //     timestamp: Timestamp | BigIntTimestamp,
 //     timeZone: TimeZoneIdLike,
 //     calendar?: CalendarIdLike,
 // ): Temporal.ZonedDateTime;
+// /**
+//  * 将时间戳转换为 {@link Temporal.ZonedDateTime}
+//  *
+//  * @param info 以毫秒或纳秒为单位的 Unix 时间戳
+//  */
 // export function toZonedDateTime(
-//     info: Rfc9557Text | ,
+//     info: Rfc9557Text | ZonedDateTimeInput,
 // ): Temporal.ZonedDateTime;
 // export function toZonedDateTime(
-//     timestamp: Weaken<Timestamp | BigIntTimestamp>,
+//     timestamp:
+//         | Weaken<Timestamp | BigIntTimestamp>
+//         | Rfc9557Text
+//         | ZonedDateTimeInput,
 //     timeZone: TimeZoneLike,
 //     calendar?: CalendarLike,
 // ) {
@@ -45,6 +54,8 @@ import {
 //         calendar ? toCalendarId(calendar) : undefined,
 //     );
 // }
+
+// toZonedDateTime({year:2023, month: 10, day: 1});
 
 // Temporal.ZonedDateTime.from(item)
 

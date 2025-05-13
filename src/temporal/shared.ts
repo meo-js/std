@@ -129,17 +129,20 @@ export type NanosecondLike = {
     readonly nanosecond: number;
 };
 
+/**
+ * 可用于构造持续时间的对象
+ */
 export type DurationLike = {
+    readonly years: number;
+    readonly months: number;
+    readonly weeks: number;
     readonly days: number;
     readonly hours: number;
-    readonly microseconds: number;
-    readonly milliseconds: number;
     readonly minutes: number;
-    readonly months: number;
-    readonly nanoseconds: number;
     readonly seconds: number;
-    readonly weeks: number;
-    readonly years: number;
+    readonly milliseconds: number;
+    readonly microseconds: number;
+    readonly nanoseconds: number;
 };
 
 /**
@@ -261,7 +264,7 @@ export type TimeLike = HourLike
  * @see {@link DateLike}
  * @see {@link CalendarInfoLike}
  */
-export type DateInput = Required<DateLike> & Partial<CalendarInfoLike>;
+export type DateInput = DateLike & Partial<CalendarInfoLike>;
 
 /**
  * 输入构造时间的对象
