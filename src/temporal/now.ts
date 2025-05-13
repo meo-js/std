@@ -1,15 +1,19 @@
 import { Temporal } from "temporal-polyfill";
 import { HAS_BIGINT } from "../env.js";
 import { fdiv } from "../math.js";
+import { isString } from "../predicate.js";
 import { throwUnsupported } from "./error.js";
 import {
     TimestampUnit,
+    toCalendarId,
     toTimeZoneId,
+    type AdditionalInfoInput,
     type BigIntTimestamp,
+    type CalendarId,
     type Timestamp,
     type TimeZoneId,
+    type TimeZoneIdLike,
     type TimeZoneLike,
-    type TODO1Options,
 } from "./shared.js";
 
 /**
@@ -50,10 +54,8 @@ export function unix(
  *
  * 等同于 {@link unix}({@link TimestampUnit.Second}) 的简写。
  */
-export function s() {
-    return Math.floor(
-        Temporal.Now.instant().epochMilliseconds / 1e3,
-    ) as Timestamp;
+export function s(): Timestamp {
+    return Math.floor(Temporal.Now.instant().epochMilliseconds / 1e3);
 }
 
 /**
@@ -61,8 +63,8 @@ export function s() {
  *
  * 等同于 {@link unix}({@link TimestampUnit.Millisecond}) 的简写。
  */
-export function ms() {
-    return Temporal.Now.instant().epochMilliseconds as Timestamp;
+export function ms(): Timestamp {
+    return Temporal.Now.instant().epochMilliseconds;
 }
 
 /**
@@ -70,13 +72,10 @@ export function ms() {
  *
  * 等同于 {@link unix}({@link TimestampUnit.Microsecond}) 的简写。
  */
-export function us() {
+export function us(): BigIntTimestamp {
     if (HAS_BIGINT) {
         // 不能直接返回 ns / 1e3n，因为 BigInt 除法会截断而不是向下取整
-        return fdiv(
-            Temporal.Now.instant().epochNanoseconds,
-            BigInt(1e3),
-        ) as BigIntTimestamp;
+        return fdiv(Temporal.Now.instant().epochNanoseconds, BigInt(1e3));
     } else {
         throwUnsupported(TimestampUnit.Microsecond, false);
     }
@@ -87,9 +86,9 @@ export function us() {
  *
  * 等同于 {@link unix}({@link TimestampUnit.Nanosecond}) 的简写。
  */
-export function ns() {
+export function ns(): BigIntTimestamp {
     if (HAS_BIGINT) {
-        return Temporal.Now.instant().epochNanoseconds as BigIntTimestamp;
+        return Temporal.Now.instant().epochNanoseconds;
     } else {
         throwUnsupported(TimestampUnit.Nanosecond, true);
     }
@@ -103,43 +102,45 @@ export function instant(): Temporal.Instant {
 }
 
 /**
- * 获取当前系统时间的日期对象
+ * 获取当前系统挂钟时间的日期对象
  *
- * @param opts 指定返回时间的时区或者 {@link TODO1Options} 对象，默认为系统时区和 `iso8601` 日历
+ * @param addtl 指定要返回时间的时区，或者传入 {@link AdditionalInfoInput} 对象指定附加信息，默认为系统时区和 `iso8601` 日历
  */
-export function date(opts?: TimeZoneLike | TODO1Options): Temporal.PlainDate {
-    return _createDateLike(Temporal.Now.plainDateISO, opts);
+export function date(
+    addtl?: TimeZoneIdLike | AdditionalInfoInput,
+): Temporal.PlainDate {
+    return _createDateLike(Temporal.Now.plainDateISO, addtl);
 }
 
 /**
- * 获取当前系统时间的时间对象
+ * 获取当前系统挂钟时间的时间对象
  *
- * @param timeZone 指定返回时间的时区，默认为系统时区
+ * @param timeZone 指定要返回时间的时区，默认为系统时区
  */
-export function time(timeZone?: TimeZoneLike): Temporal.PlainTime {
+export function time(timeZone?: TimeZoneIdLike): Temporal.PlainTime {
     return Temporal.Now.plainTimeISO(toTimeZoneId(timeZone));
 }
 
 /**
- * 获取当前系统时间的日期时间对象
+ * 获取当前系统挂钟时间的日期时间对象
  *
- * @param opts 指定返回时间的时区或者 {@link TODO1Options} 对象，默认为系统时区和 `iso8601` 日历
+ * @param addtl 指定要返回时间的时区，或者传入 {@link AdditionalInfoInput} 对象指定附加信息，默认为系统时区和 `iso8601` 日历
  */
 export function dateTime(
-    opts?: TimeZoneLike | TODO1Options,
+    addtl?: TimeZoneIdLike | AdditionalInfoInput,
 ): Temporal.PlainDateTime {
-    return _createDateLike(Temporal.Now.plainDateTimeISO, opts);
+    return _createDateLike(Temporal.Now.plainDateTimeISO, addtl);
 }
 
 /**
- * 获取当前系统时间的时区感知的日期时间对象
+ * 获取当前系统时间的时区感知日期时间对象
  *
- * @param opts 指定返回时间的时区或者 {@link TODO1Options} 对象，默认为系统时区和 `iso8601` 日历
+ * @param addtl 指定要返回时间的时区，或者传入 {@link AdditionalInfoInput} 对象指定附加信息，默认为系统时区和 `iso8601` 日历
  */
 export function zonedDateTime(
-    opts?: TimeZoneLike | TODO1Options,
+    addtl?: TimeZoneIdLike | AdditionalInfoInput,
 ): Temporal.ZonedDateTime {
-    return _createDateLike(Temporal.Now.zonedDateTimeISO, opts);
+    return _createDateLike(Temporal.Now.zonedDateTimeISO, addtl);
 }
 
 function _createDateLike<
@@ -147,31 +148,29 @@ function _createDateLike<
         | typeof Temporal.Now.zonedDateTimeISO
         | typeof Temporal.Now.plainDateISO
         | typeof Temporal.Now.plainDateTimeISO,
->(fn: T, opts?: TimeZoneLike | TODO1Options): ReturnType<T> {
-    // TODO
-    // let timeZone: TimeZoneLike | undefined;
-    // let calendar: CalendarLike | undefined;
-    // if (opts != null) {
-    //     if (isTimeZoneLike(opts)) {
-    //         timeZone = opts;
-    //     } else {
-    //         timeZone = opts.timeZone;
-    //         calendar = opts.calendar;
-    //     }
-    // }
-    // let date = fn(timeZone);
-    // if (calendar != null) {
-    //     date = date.withCalendar(calendar);
-    // }
-    // return date as ReturnType<T>;
-    return undefined!;
+>(fn: T, addtl?: TimeZoneIdLike | AdditionalInfoInput): ReturnType<T> {
+    let timeZone: TimeZoneId | undefined;
+    let calendar: CalendarId | undefined;
+    if (addtl != null) {
+        if (isString(addtl) || <keyof TimeZoneLike>"timeZoneId" in addtl) {
+            timeZone = toTimeZoneId(addtl);
+        } else {
+            timeZone = toTimeZoneId(addtl.timeZone);
+            calendar = toCalendarId(addtl.calendar);
+        }
+    }
+    let date = fn(timeZone);
+    if (calendar != null) {
+        date = date.withCalendar(calendar);
+    }
+    return date as ReturnType<T>;
 }
 
 /**
  * 获取当前系统时区
  */
 export function timeZoneId() {
-    return Temporal.Now.timeZoneId() as TimeZoneId;
+    return Temporal.Now.timeZoneId();
 }
 
 // TODO 获取当前日历

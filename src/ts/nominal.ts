@@ -6,19 +6,19 @@
 
 declare const tag: unique symbol;
 
-type TagContainer<Token> = {
+interface TagContainer<Token> {
     readonly [tag]: Token;
-};
+}
 
-type Tag<
-    Token extends PropertyKey = PropertyKey,
-    Metadata = never,
-> = TagContainer<Record<Token, Metadata>>;
+interface OptionalTagContainer<Token> {
+    readonly [tag]?: Token;
+}
 
-type OptionalTag<
-    Token extends PropertyKey = PropertyKey,
-    Metadata = never,
-> = Partial<Tag<Token, Metadata>>;
+interface Tag<Token extends PropertyKey = PropertyKey, Metadata = never>
+    extends TagContainer<Record<Token, Metadata>> {}
+
+interface OptionalTag<Token extends PropertyKey = PropertyKey, Metadata = never>
+    extends OptionalTagContainer<Record<Token, Metadata>> {}
 
 type RemoveAllTags<T> = T extends Tag
     ? {
