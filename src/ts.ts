@@ -117,6 +117,32 @@ export type StructuredCloneable = tf.StructuredCloneable;
 export type IsLiteral<T> = tf.IsLiteral<T>;
 
 /**
+ * 创建一个不允许额外属性的类型
+ *
+ * @example
+ * ```ts
+ * type User = { name: string };
+ * function login(user: User) {}
+ *
+ * // 在提供对象字面量时，会阻止额外属性
+ * login({name: "name", id: 1});  // throw errors
+ *
+ * // 非字面量时却不会报错
+ * const user = { name: "name", id: 1 };
+ * login(user);  // no errors
+ * ```
+ * 使用 `Exact` 来阻止额外属性：
+ * ```ts
+ * type User = { name: string };
+ * function login<T extends Exact<User, T>>(user: T) {}
+ *
+ * const user = { name: "name", id: 1 };
+ * login(user); // throw errors
+ * ```
+ */
+export type Exact<T, Input> = tf.Exact<T, Input>;
+
+/**
  * 当 {@link T} 符合类型 {@link A} 时返回类型 {@link B}
  */
 export type MapOf<T, A, B = A> = T extends A ? B : never;

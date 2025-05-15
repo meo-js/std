@@ -3,6 +3,7 @@
  *
  * @module
  */
+import type { Temporal } from "temporal-polyfill";
 import type * as tf from "type-fest";
 import type { AbstractClass, Class } from "./class.js";
 import type {
@@ -17,6 +18,7 @@ import type { Jsonifiable } from "./json.js";
 import type { Numeric } from "./math.js";
 import type { PlainObject, RecordObject } from "./object.js";
 import type { Primitive } from "./primitive.js";
+import type { TemporalObject } from "./temporal/shared.js";
 import type { none } from "./ts.js";
 import type { TypedArray } from "./typed-array.js";
 
@@ -515,6 +517,30 @@ export function isWeakRef<T extends object = object>(
     value: unknown,
 ): value is WeakRef<T> {
     return value instanceof WeakRef;
+}
+
+/**
+ * 检测值是否为 {@link Temporal.Instant}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isInstant(value: unknown): value is Temporal.Instant {
+    return (
+        Object.prototype.toString.call(value) === "[object Temporal.Instant]"
+    );
+}
+
+/**
+ * 检测值是否为 {@link TemporalObject}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isTemporalObject(value: unknown): value is TemporalObject {
+    return Object.prototype.toString
+        .call(value)
+        .startsWith("[object Temporal.");
 }
 
 /**

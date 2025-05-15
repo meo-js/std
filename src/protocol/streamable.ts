@@ -27,21 +27,21 @@ export interface StreamableOptions {
     /**
      * 流的队列策略
      *
-     * 当传入的 {@link StreamType} 是 `transform` 时该选项被忽略，请使用 {@link readableStrategy} 和 {@link writableStrategy} 选项。
+     * 当传入的是 {@link StreamType.Transform} 类型流时请使用 {@link readableStrategy} 和 {@link writableStrategy} 选项。
      */
     strategy?: QueuingStrategy;
 
     /**
      * 转换流读方向的队列策略
      *
-     * 当传入的 {@link StreamType} 不是 `transform` 时该选项被忽略，请使用 {@link strategy} 选项。
+     * 当传入的不是 {@link StreamType.Transform} 类型流时请使用 {@link strategy} 选项。
      */
     readableStrategy?: QueuingStrategy;
 
     /**
      * 转换流写方向的队列策略
      *
-     * 当传入的 {@link StreamType} 不是 `transform` 时该选项被忽略，请使用 {@link strategy} 选项。
+     * 当传入的不是 {@link StreamType.Transform} 类型流时请使用 {@link strategy} 选项。
      */
     writableStrategy?: QueuingStrategy;
 }
