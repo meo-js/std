@@ -1,6 +1,6 @@
 import { Temporal, toTemporalInstant } from "temporal-polyfill";
 import { HAS_BIGINT } from "../env.js";
-import type { RequireLeastOneKey } from "../object.js";
+import type { OmitKey, RequireLeastOneKey } from "../object.js";
 import {
     isDate,
     isInstant,
@@ -12,7 +12,7 @@ import {
     isTemporalObject,
     isZonedDateTime,
 } from "../predicate.js";
-import type { checked } from "../ts.js";
+import type { checked, Mutable, Simplify } from "../ts.js";
 import {
     createRfc9557ParseResult,
     parseDateTime,
@@ -24,32 +24,34 @@ import {
     toTimeZoneId,
     type AssignmentOptions,
     type BigIntTimestamp,
+    type CalendarId,
     type CalendarIdLike,
-    type CalendarLike,
     type DateInput,
+    type DateLike,
     type DateTemporal,
+    type DateTimeInfo,
+    type DateTimeInfoInput,
     type DateTimeInput,
     type DateTimeLike,
     type DateTimeTemporal,
+    type DayLike,
     type DurationInput,
     type DurationLike,
     type DurationText,
     type EraYearLike,
     type InstantLike,
     type MonthCodeLike,
+    type MonthLike,
     type Rfc9557Text,
-    type TemporalInfo,
-    type TemporalInfoInput,
-    type TemporalInfoLike,
     type TemporalObject,
     type TemporalTextInput,
     type TimeInput,
+    type TimeLike,
     type Timestamp,
     type TimeTemporal,
+    type TimeZoneId,
     type TimeZoneIdLike,
-    type TimeZoneLike,
-    type ToTemporalInfo,
-    type UTCOffsetLike,
+    type YearLike,
     type ZonedAssignmentOptions,
     type ZonedDateTimeInput,
     type ZonedDateTimeTemporal,
@@ -93,7 +95,7 @@ export function toInstant(
 /**
  * 解析输入为 {@link Temporal.Duration}
  *
- * @param input RFC 9557 规范持续时间字符串；以毫秒 {@link Timestamp}、纳秒 {@link BigIntTimestamp} 为单位的 Unix 时间戳；{@link Temporal.Instant}、{@link Date} 对象；包含时间日期分量的对象，缺失的分量被视为 `0`
+ * @param input ISO 8601 规范持续时间字符串；以毫秒 {@link Timestamp}、纳秒 {@link BigIntTimestamp} 为单位的 Unix 时间戳；{@link Temporal.Instant}、{@link Date} 对象；包含时间日期分量的对象，缺失的分量被视为 `0`
  */
 export function toDuration(input: InstantLike | DurationText | DurationInput) {
     const type = typeof input;
@@ -287,27 +289,92 @@ export function toZonedDateTime(
 }
 
 /**
- * 解析输入为 {@link TemporalInfo}
+ * 解析输入为 {@link DateTimeInfo}
  *
  * 解析规则：
- * - {@link Rfc9557Text}: 将每个分量直接赋值到 {@link TemporalInfo} 对象上。
+ * - {@link Rfc9557Text}: 将每个分量直接赋值到 {@link DateTimeInfo} 对象上。
  * - {@link InstantLike}: 全部作为 "UTC" 时区与 "iso8601" 日历进行解析。
- * - {@link TemporalObject} & {@link TemporalInfoLike}: 将每个属性直接赋值到 {@link TemporalInfo} 对象上。
+ * - {@link TemporalObject} & {@link DateTimeInfoInput}: 将每个属性直接赋值到 {@link DateTimeInfo} 对象上。
  */
-export function toTemporalInfo<T extends TemporalInfoInput>(
+export function toDateTimeInfo<T extends _ToDateTimeInfoInput>(
     input: T,
-): { [K in keyof ToTemporalInfo<T>]: ToTemporalInfo<T>[K] } {
-    const info = _createTemporalInfo();
-    _toTemporalInfo(input, info);
+): { [K in keyof _ToDateTimeInfo<T>]: _ToDateTimeInfo<T>[K] } {
+    const info = _createDateTimeInfo();
+    _toDateTimeInfo(input, info);
     return info as checked;
 }
+
+/**
+ * @internal
+ */
+export type _DateTimeInfoInputMapping = [
+    [Rfc9557Text | TemporalTextInput<DateTimeInfoInput>, Partial<DateTimeInfo>],
+    [InstantLike | Temporal.ZonedDateTime, DateTimeInfo],
+    [
+        Temporal.PlainDate,
+        DateLike & EraYearLike & MonthCodeLike & { calendar: CalendarId },
+    ],
+    [Temporal.PlainTime, TimeLike],
+    [Temporal.PlainDateTime, OmitKey<DateTimeInfo, "timeZone">],
+    [
+        Temporal.PlainMonthDay,
+        MonthCodeLike & DayLike & { calendar: CalendarId },
+    ],
+    [
+        Temporal.PlainYearMonth,
+        EraYearLike
+            & YearLike
+            & MonthLike
+            & MonthCodeLike & { calendar: CalendarId },
+    ],
+];
+
+/**
+ * @internal
+ */
+export type _ToDateTimeInfoInput =
+    | Rfc9557Text
+    | TemporalTextInput<DateTimeInfoInput>
+    | InstantLike
+    | Exclude<TemporalObject, Temporal.Duration>
+    | DateTimeInfoInput;
+
+/**
+ * @internal
+ */
+export type _ToDateTimeInfo<
+    T extends _ToDateTimeInfoInput,
+    M = _DateTimeInfoInputMapping,
+> = Simplify<
+    Mutable<
+        M extends [infer U, ...infer R]
+            ? U extends [infer K, infer S]
+                ? T extends K
+                    ? S
+                    : _ToDateTimeInfo<T, R>
+                : "TemporalInfoInputMapping type is wrong: must be a tuple of tuples"
+            : T extends DateTimeInfoInput
+              ? OmitKey<T, "timeZone" | "calendar">
+                    & (keyof T extends "timeZone"
+                        ? {
+                              timeZone: TimeZoneId;
+                          }
+                        : {})
+                    & (keyof T extends "calendar"
+                        ? {
+                              calendar: CalendarId;
+                          }
+                        : {})
+              : never
+    >
+>;
 
 const _rfc9557ParseResult = createRfc9557ParseResult();
 
 /**
  * @internal
  */
-export function _createTemporalInfo(): Partial<TemporalInfo> {
+export function _createDateTimeInfo(): Partial<DateTimeInfo> {
     return {
         era: undefined,
         eraYear: undefined,
@@ -330,19 +397,19 @@ export function _createTemporalInfo(): Partial<TemporalInfo> {
 /**
  * @internal
  */
-export function _toTemporalInfo(
-    input: TemporalInfoInput,
-    out: Partial<TemporalInfo>,
-): Partial<TemporalInfo> {
+export function _toDateTimeInfo(
+    input: _ToDateTimeInfoInput,
+    out: Partial<DateTimeInfo>,
+): Partial<DateTimeInfo> {
     const type = typeof input;
 
     if (type === "string") {
         const result = parseDateTime(input as Rfc9557Text, _rfc9557ParseResult);
-        return _rfc9557ParseResultToInfo(result, out);
+        return _rfc9557ParseResultToDateTimeInfo(result, out);
     }
 
     if (isTemporalTextInput(input as object)) {
-        const { format, text } = input as TemporalTextInput<TemporalInfoLike>;
+        const { format, text } = input as TemporalTextInput<DateTimeInfoInput>;
 
         if (isString(format)) {
             // TODO
@@ -363,19 +430,19 @@ export function _toTemporalInfo(
             input as InstantLike | Temporal.ZonedDateTime,
             "UTC",
         );
-        return _temporalObjectToInfo(zdateTime, out);
+        return _temporalObjectToDateTimeInfo(zdateTime, out);
     }
 
     if (isTemporalObject(input)) {
-        return _temporalObjectToInfo(input, out);
+        return _temporalObjectToDateTimeInfo(input, out);
     } else {
         return _infoLikeToInfo(input as object, out);
     }
 }
 
-function _rfc9557ParseResultToInfo(
+function _rfc9557ParseResultToDateTimeInfo(
     data: RFC9557ParseResult,
-    info: Partial<TemporalInfo>,
+    info: Partial<DateTimeInfo>,
 ) {
     switch (data.dateType) {
         case "year-month":
@@ -430,9 +497,9 @@ function _rfc9557ParseResultToInfo(
     return info;
 }
 
-function _temporalObjectToInfo(
+function _temporalObjectToDateTimeInfo(
     data: Exclude<TemporalObject, Temporal.Instant | Temporal.Duration>,
-    info: Partial<TemporalInfo>,
+    info: Partial<DateTimeInfo>,
 ) {
     if (isPlainDate(data)) {
         info.era = data.era;
@@ -494,17 +561,7 @@ function _temporalObjectToInfo(
     return info;
 }
 
-function _infoLikeToInfo(
-    data: Partial<
-        DateTimeLike
-            & EraYearLike
-            & MonthCodeLike
-            & TimeZoneLike
-            & CalendarLike
-            & UTCOffsetLike
-    >,
-    info: Partial<TemporalInfo>,
-) {
+function _infoLikeToInfo(data: DateTimeInfoInput, info: Partial<DateTimeInfo>) {
     if ((data.era != null && data.eraYear != null) || data.year != null) {
         info.era = data.era;
         info.eraYear = data.eraYear;
@@ -557,4 +614,58 @@ function _infoLikeToInfo(
     }
 
     return info;
+}
+
+/**
+ * 解析输入为 {@link DurationLike}
+ *
+ * 解析规则：
+ * - {@link DurationText}: 将每个分量直接赋值到 {@link DurationLike} 对象上。
+ * - {@link InstantLike}: 全部转换为纳秒或毫秒。
+ * - {@link TemporalObject} & {@link DateTimeInfoInput}: 将每个属性直接赋值到 {@link DurationLike} 对象上。
+ */
+export function toDurationInfo(
+    input:
+        | DurationText
+        | TemporalTextInput<DurationInput>
+        | InstantLike
+        | TemporalObject
+        | DurationInput,
+): DurationLike {
+    const info = _createDurationInfo();
+    const type = typeof input;
+
+    if (
+        type === "string"
+        || type === "number"
+        || type === "bigint"
+        || isInstant(input)
+        || isDate(input)
+        || isZonedDateTime(input)
+    ) {
+        const duration = toDuration(input as DurationText | InstantLike);
+        // TODO
+    }
+
+    // TODO
+
+    return null!;
+}
+
+/**
+ * @internal
+ */
+export function _createDurationInfo(): DurationLike {
+    return {
+        years: 0,
+        months: 0,
+        weeks: 0,
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+        microseconds: 0,
+        nanoseconds: 0,
+    };
 }

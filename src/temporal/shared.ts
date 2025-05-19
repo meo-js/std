@@ -1,8 +1,8 @@
 import { Temporal } from "temporal-polyfill";
 import { fdiv } from "../math.js";
-import type { OmitKey, RequireLeastOneKey } from "../object.js";
+import type { RequireLeastOneKey } from "../object.js";
 import { isBigInt, isString } from "../predicate.js";
-import type { MapOf, Mutable, Simplify, WeakTagged } from "../ts.js";
+import type { MapOf, Mutable, WeakTagged } from "../ts.js";
 
 declare const timestampTag: unique symbol;
 declare const bigIntTimestampTag: unique symbol;
@@ -159,7 +159,7 @@ export type EraYearLike = {
  *
  * 必须提供 `era` + `eraYear` 或 `year`，如果提供了所有参数则它们必须是一致的。
  */
-export type YearInfoLike =
+export type AnyYearLike =
     // FIXME: 若直接引用 YearLike 和 EraYearLike，TypeScript 报错提示不正确
     //        就像下面的顺序会影响报错的提示。
     | {
@@ -194,7 +194,7 @@ export type MonthCodeLike = {
  *
  * 必须提供 `month` 或 `monthCode`，如果提供了所有参数则它们必须是一致的。
  */
-export type MonthInfoLike =
+export type AnyMonthLike =
     // FIXME: 若直接引用 MonthLike 和 MonthCodeLike，TypeScript 报错提示不正确
     //        就像下面的顺序会影响报错的提示。
     | {
@@ -378,7 +378,7 @@ export type DateLike = YearLike & MonthLike & DayLike;
 /**
  * 可用于构造日期的对象
  */
-export type DateInfoLike = YearInfoLike & MonthInfoLike & DayLike;
+export type AnyDateLike = AnyYearLike & AnyMonthLike & DayLike;
 
 /**
  * 可用于构造时间的对象
@@ -398,10 +398,10 @@ export type DateTimeLike = DateLike & TimeLike;
 /**
  * 输入构造日期的对象
  *
- * @see {@link DateInfoLike}
+ * @see {@link AnyDateLike}
  * @see {@link CalendarLike}
  */
-export type DateInput = DateInfoLike & Partial<CalendarLike>;
+export type DateInput = AnyDateLike & Partial<CalendarLike>;
 
 /**
  * 可用于构造日期的 {@link Temporal} 对象
@@ -522,9 +522,9 @@ export type ZonedAssignmentOptions = Partial<
 >;
 
 /**
- * 时态信息
+ * 日期时间信息
  */
-export type TemporalInfo = Mutable<
+export type DateTimeInfo = Mutable<
     DateTimeLike
         & EraYearLike
         & MonthCodeLike & { calendar: CalendarId } & {
@@ -533,91 +533,19 @@ export type TemporalInfo = Mutable<
 >;
 
 /**
- * 构造时态信息的对象
+ * 构造日期时间信息的对象
  */
-export type TemporalInfoLike = Partial<
-    DateTimeLike
-        & EraYearLike
-        & MonthCodeLike
-        & TimeZoneLike
-        & CalendarLike
-        & UTCOffsetLike
->;
+export type DateTimeInfoLike = DateTimeLike
+    & EraYearLike
+    & MonthCodeLike
+    & TimeZoneLike
+    & CalendarLike
+    & UTCOffsetLike;
 
 /**
- * 输入构造时态信息的对象
+ * 输入构造日期时间信息的对象
  */
-export type TemporalInfoInput =
-    | Rfc9557Text
-    | TemporalTextInput<TemporalInfoLike>
-    | InstantLike
-    | Exclude<TemporalObject, Temporal.Duration>
-    | TemporalInfoLike;
-
-/**
- * @internal
- */
-export type TemporalInfoInputMapping = [
-    [Rfc9557Text | TemporalTextInput<TemporalInfoLike>, Partial<TemporalInfo>],
-    [InstantLike | Temporal.ZonedDateTime, TemporalInfo],
-    [
-        Temporal.PlainDate,
-        DateLike & EraYearLike & MonthCodeLike & { calendar: CalendarId },
-    ],
-    [Temporal.PlainTime, TimeLike],
-    [Temporal.PlainDateTime, OmitKey<TemporalInfo, "timeZone">],
-    [
-        Temporal.PlainMonthDay,
-        MonthCodeLike & DayLike & { calendar: CalendarId },
-    ],
-    [
-        Temporal.PlainYearMonth,
-        EraYearLike
-            & YearLike
-            & MonthLike
-            & MonthCodeLike & { calendar: CalendarId },
-    ],
-];
-
-/**
- * @internal
- */
-export type ToTemporalInfo<
-    T extends TemporalInfoInput,
-    M = TemporalInfoInputMapping,
-> = Simplify<
-    Mutable<
-        M extends [infer U, ...infer R]
-            ? U extends [infer K, infer S]
-                ? T extends K
-                    ? S
-                    : ToTemporalInfo<T, R>
-                : "TemporalInfoInputMapping type is wrong: must be a tuple of tuples"
-            : T extends TemporalInfoLike
-              ? OmitKey<T, "timeZone" | "calendar">
-                    & (keyof T extends "timeZone"
-                        ? {
-                              timeZone: TimeZoneId;
-                          }
-                        : {})
-                    & (keyof T extends "calendar"
-                        ? {
-                              calendar: CalendarId;
-                          }
-                        : {})
-              : never
-    >
->;
-
-/**
- * @internal
- */
-export type MergeToTemporalInfo<T extends TemporalInfoInput[]> = T extends [
-    infer U extends TemporalInfoInput,
-    ...infer R extends TemporalInfoInput[],
-]
-    ? ToTemporalInfo<U> & MergeToTemporalInfo<R>
-    : {};
+export type DateTimeInfoInput = Partial<DateTimeInfoLike>;
 
 /**
  * 时态文本模板
@@ -625,7 +553,7 @@ export type MergeToTemporalInfo<T extends TemporalInfoInput[]> = T extends [
 export type TemporalTextTemplate = string;
 
 /**
- * 时态文本输入支持的格式类型
+ * 时态文本支持的格式
  */
 export type TemporalTextFormat<T = unknown> =
     | TemporalTextTemplate

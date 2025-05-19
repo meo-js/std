@@ -100,43 +100,43 @@ export function instant(): Temporal.Instant {
 /**
  * 获取当前系统挂钟时间的日期对象
  *
- * @param addtl 指定要返回时间的时区，或者传入 {@link AdditionalInfoInput} 对象指定附加信息，默认为系统时区和 `iso8601` 日历
+ * @param to 指定要返回时间的时区，或者传入 {@link AdditionalInfoInput} 对象指定附加信息，默认为系统时区和 `iso8601` 日历
  */
 export function date(
-    addtl?: TimeZoneIdLike | AdditionalInfoInput,
+    to?: TimeZoneIdLike | AdditionalInfoInput,
 ): Temporal.PlainDate {
-    return _createDateLike(Temporal.Now.plainDateISO, addtl);
+    return _createDateLike(Temporal.Now.plainDateISO, to);
 }
 
 /**
  * 获取当前系统挂钟时间的时间对象
  *
- * @param timeZone 指定要返回时间的时区，默认为系统时区
+ * @param to 指定要返回时间的时区，默认为系统时区
  */
-export function time(timeZone?: TimeZoneIdLike): Temporal.PlainTime {
-    return Temporal.Now.plainTimeISO(timeZone);
+export function time(to?: TimeZoneIdLike): Temporal.PlainTime {
+    return Temporal.Now.plainTimeISO(to);
 }
 
 /**
  * 获取当前系统挂钟时间的日期时间对象
  *
- * @param addtl 指定要返回时间的时区，或者传入 {@link AdditionalInfoInput} 对象指定附加信息，默认为系统时区和 `iso8601` 日历
+ * @param to 指定要返回时间的时区，或者传入 {@link AdditionalInfoInput} 对象指定附加信息，默认为系统时区和 `iso8601` 日历
  */
 export function dateTime(
-    addtl?: TimeZoneIdLike | AdditionalInfoInput,
+    to?: TimeZoneIdLike | AdditionalInfoInput,
 ): Temporal.PlainDateTime {
-    return _createDateLike(Temporal.Now.plainDateTimeISO, addtl);
+    return _createDateLike(Temporal.Now.plainDateTimeISO, to);
 }
 
 /**
  * 获取当前系统时间的时区感知日期时间对象
  *
- * @param addtl 指定要返回时间的时区，或者传入 {@link AdditionalInfoInput} 对象指定附加信息，默认为系统时区和 `iso8601` 日历
+ * @param to 指定要返回时间的时区，或者传入 {@link AdditionalInfoInput} 对象指定附加信息，默认为系统时区和 `iso8601` 日历
  */
 export function zonedDateTime(
-    addtl?: TimeZoneIdLike | AdditionalInfoInput,
+    to?: TimeZoneIdLike | AdditionalInfoInput,
 ): Temporal.ZonedDateTime {
-    return _createDateLike(Temporal.Now.zonedDateTimeISO, addtl);
+    return _createDateLike(Temporal.Now.zonedDateTimeISO, to);
 }
 
 function _createDateLike<
