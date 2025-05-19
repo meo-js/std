@@ -1,13 +1,15 @@
 import { Temporal } from "temporal-polyfill";
-import type { RequireLeastOneKey } from "../object.js";
-import { isBigInt, isString, isTemporalObject } from "../predicate.js";
-import type { MapOf, Mutable, WeakTagged } from "../ts.js";
+import { fdiv } from "../math.js";
+import type { OmitKey, RequireLeastOneKey } from "../object.js";
+import { isBigInt, isString } from "../predicate.js";
+import type { MapOf, Mutable, Simplify, WeakTagged } from "../ts.js";
 
 declare const timestampTag: unique symbol;
 declare const bigIntTimestampTag: unique symbol;
 declare const calendarIdTag: unique symbol;
 declare const timeZoneIdTag: unique symbol;
 declare const rfc9557TextTag: unique symbol;
+declare const durationTextTag: unique symbol;
 
 /**
  * Unix 时间戳
@@ -130,6 +132,14 @@ export enum OverflowPolicy {
 }
 
 /**
+ * 时态信息类型
+ */
+export enum TemporalInfoType {
+    Instant = "instant",
+    DateTime = "datetime",
+}
+
+/**
  * 可用于构造年份的对象
  */
 export type YearLike = {
@@ -248,9 +258,9 @@ export type NanosecondLike = {
 };
 
 /**
- * 可用于构造持续时间的对象
+ * 可用于构造瞬时的对象
  */
-export type InstantLike = Timestamp | BigIntTimestamp | Temporal.Instant;
+export type InstantLike = Timestamp | BigIntTimestamp | Temporal.Instant | Date;
 
 /**
  * 可用于构造持续时间的对象
@@ -267,14 +277,6 @@ export type DurationLike = {
     readonly microseconds: number;
     readonly nanoseconds: number;
 };
-
-/**
- * 可用于构造时区感知日期时间的对象
- */
-export type ZonedDateTimeLike = {
-    instant: InstantLike;
-} & TimeZoneInfoLike
-    & Partial<CalendarInfoLike>;
 
 /**
  * 可用于构造 UTC 偏移量的对象
@@ -301,23 +303,26 @@ export type UTCOffsetLike = {
 export type CalendarId = WeakTagged<string, typeof calendarIdTag>;
 
 /**
- * 可用于构造日历的对象
+ * 带有日历标识符的对象
  */
-export type CalendarLike = {
-    readonly calendarId: CalendarId;
-};
+export type CalendarSource =
+    | Temporal.ZonedDateTime
+    | Temporal.PlainDateTime
+    | Temporal.PlainDate
+    | Temporal.PlainYearMonth
+    | Temporal.PlainMonthDay;
 
 /**
- * 可作为时间戳日历信息的对象
+ * 可用于构造日历标识符的对象
  */
-export type CalendarInfoLike<T extends CalendarIdLike = CalendarIdLike> = {
-    readonly calendar: T;
+export type CalendarLike = {
+    readonly calendar: CalendarIdLike;
 };
 
 /**
  * 可作为日历标识符使用的类型
  */
-export type CalendarIdLike = CalendarId | CalendarLike;
+export type CalendarIdLike = CalendarId | CalendarSource;
 
 /**
  * RFC 9557 标准的时区标识符
@@ -342,30 +347,28 @@ export type CalendarIdLike = CalendarId | CalendarLike;
 export type TimeZoneId = WeakTagged<string, typeof timeZoneIdTag>;
 
 /**
- * 可用于构造时区的对象
+ * 带有时区标识符的对象
  */
-export type TimeZoneLike = {
-    readonly timeZoneId: TimeZoneId;
-};
+export type TimeZoneSource = Temporal.ZonedDateTime;
 
 /**
- * 可作为时间戳时区信息的对象
+ * 可用于构造时区标识符的对象
  */
-export type TimeZoneInfoLike<T extends TimeZoneIdLike = TimeZoneIdLike> = {
-    readonly timeZone: T;
+export type TimeZoneLike = {
+    readonly timeZone: TimeZoneIdLike;
 };
 
 /**
  * 可作为时区标识符使用的类型
  */
-export type TimeZoneIdLike = TimeZoneId | TimeZoneLike;
+export type TimeZoneIdLike = TimeZoneId | TimeZoneSource;
 
 /**
  * 可作为时间戳附加信息的对象
  *
  * @see [RFC 9557](https://datatracker.ietf.org/doc/html/rfc9557)
  */
-export type AdditionalInfoLike = CalendarInfoLike & TimeZoneInfoLike;
+export type AdditionalInfo = CalendarLike & TimeZoneLike;
 
 /**
  * 可用于构造日期的对象
@@ -393,42 +396,20 @@ export type TimeLike = HourLike
 export type DateTimeLike = DateLike & TimeLike;
 
 /**
- * 时态信息
- */
-export type TemporalInfo = DateTimeLike
-    & EraYearLike
-    & MonthCodeLike
-    & CalendarInfoLike<CalendarId>
-    & TimeZoneInfoLike<TimeZoneId>
-    & UTCOffsetLike;
-
-/**
- * 输入构造时态信息的对象
- */
-export type TemporalInfoInput =
-    | Rfc9557Text
-    | InstantLike
-    | TemporalObject
-    | RequireLeastOneKey<
-          Partial<
-              DateTimeLike
-                  & EraYearLike
-                  & MonthCodeLike
-                  & TimeZoneInfoLike
-                  & TimeZoneLike
-                  & CalendarInfoLike
-                  & CalendarLike
-                  & UTCOffsetLike
-          >
-      >;
-
-/**
  * 输入构造日期的对象
  *
  * @see {@link DateInfoLike}
- * @see {@link CalendarInfoLike}
+ * @see {@link CalendarLike}
  */
-export type DateInput = DateInfoLike & Partial<CalendarInfoLike | CalendarLike>;
+export type DateInput = DateInfoLike & Partial<CalendarLike>;
+
+/**
+ * 可用于构造日期的 {@link Temporal} 对象
+ */
+export type DateTemporal =
+    | Temporal.PlainDate
+    | Temporal.PlainDateTime
+    | Temporal.ZonedDateTime;
 
 /**
  * 输入构造时间的对象
@@ -436,6 +417,14 @@ export type DateInput = DateInfoLike & Partial<CalendarInfoLike | CalendarLike>;
  * @see {@link TimeLike}
  */
 export type TimeInput = RequireLeastOneKey<TimeLike>;
+
+/**
+ * 可用于构造时间的 {@link Temporal} 对象
+ */
+export type TimeTemporal =
+    | Temporal.PlainTime
+    | Temporal.PlainDateTime
+    | Temporal.ZonedDateTime;
 
 /**
  * 输入构造日期时间的对象
@@ -446,21 +435,41 @@ export type TimeInput = RequireLeastOneKey<TimeLike>;
 export type DateTimeInput = DateInput & Partial<TimeLike>;
 
 /**
+ * 可用于构造日期时间的 {@link Temporal} 对象
+ */
+export type DateTimeTemporal =
+    | Temporal.PlainDate
+    | Temporal.PlainDateTime
+    | Temporal.ZonedDateTime;
+
+/**
  * 输入构造时区感知的日期时间的对象
  *
  * @see {@link DateInput}
  * @see {@link TimeLike}
  */
 export type ZonedDateTimeInput = DateTimeInput
-    & (TimeZoneInfoLike | TimeZoneLike)
+    & TimeZoneLike
     & Partial<UTCOffsetLike>;
+
+/**
+ * 可用于构造时区感知的日期时间的 {@link Temporal} 对象
+ */
+export type ZonedDateTimeTemporal = Temporal.ZonedDateTime;
+
+/**
+ * 输入构造持续时间的对象
+ */
+export type DurationInput =
+    | RequireLeastOneKey<DurationLike>
+    | RequireLeastOneKey<DateTimeLike>;
 
 /**
  * 输入时间戳附加信息
  *
- * @see {@link AdditionalInfoLike}
+ * @see {@link AdditionalInfo}
  */
-export type AdditionalInfoInput = Partial<AdditionalInfoLike>;
+export type AdditionalInfoInput = Partial<AdditionalInfo>;
 
 /**
  * 本地时间转换到 UTC 的选项
@@ -512,6 +521,124 @@ export type ZonedAssignmentOptions = Partial<
     UTCOptions & TimeZoneOptions & AssignmentOptions
 >;
 
+/**
+ * 时态信息
+ */
+export type TemporalInfo = Mutable<
+    DateTimeLike
+        & EraYearLike
+        & MonthCodeLike & { calendar: CalendarId } & {
+            timeZone: TimeZoneId;
+        } & UTCOffsetLike
+>;
+
+/**
+ * 构造时态信息的对象
+ */
+export type TemporalInfoLike = Partial<
+    DateTimeLike
+        & EraYearLike
+        & MonthCodeLike
+        & TimeZoneLike
+        & CalendarLike
+        & UTCOffsetLike
+>;
+
+/**
+ * 输入构造时态信息的对象
+ */
+export type TemporalInfoInput =
+    | Rfc9557Text
+    | TemporalTextInput<TemporalInfoLike>
+    | InstantLike
+    | Exclude<TemporalObject, Temporal.Duration>
+    | TemporalInfoLike;
+
+/**
+ * @internal
+ */
+export type TemporalInfoInputMapping = [
+    [Rfc9557Text | TemporalTextInput<TemporalInfoLike>, Partial<TemporalInfo>],
+    [InstantLike | Temporal.ZonedDateTime, TemporalInfo],
+    [
+        Temporal.PlainDate,
+        DateLike & EraYearLike & MonthCodeLike & { calendar: CalendarId },
+    ],
+    [Temporal.PlainTime, TimeLike],
+    [Temporal.PlainDateTime, OmitKey<TemporalInfo, "timeZone">],
+    [
+        Temporal.PlainMonthDay,
+        MonthCodeLike & DayLike & { calendar: CalendarId },
+    ],
+    [
+        Temporal.PlainYearMonth,
+        EraYearLike
+            & YearLike
+            & MonthLike
+            & MonthCodeLike & { calendar: CalendarId },
+    ],
+];
+
+/**
+ * @internal
+ */
+export type ToTemporalInfo<
+    T extends TemporalInfoInput,
+    M = TemporalInfoInputMapping,
+> = Simplify<
+    Mutable<
+        M extends [infer U, ...infer R]
+            ? U extends [infer K, infer S]
+                ? T extends K
+                    ? S
+                    : ToTemporalInfo<T, R>
+                : "TemporalInfoInputMapping type is wrong: must be a tuple of tuples"
+            : T extends TemporalInfoLike
+              ? OmitKey<T, "timeZone" | "calendar">
+                    & (keyof T extends "timeZone"
+                        ? {
+                              timeZone: TimeZoneId;
+                          }
+                        : {})
+                    & (keyof T extends "calendar"
+                        ? {
+                              calendar: CalendarId;
+                          }
+                        : {})
+              : never
+    >
+>;
+
+/**
+ * @internal
+ */
+export type MergeToTemporalInfo<T extends TemporalInfoInput[]> = T extends [
+    infer U extends TemporalInfoInput,
+    ...infer R extends TemporalInfoInput[],
+]
+    ? ToTemporalInfo<U> & MergeToTemporalInfo<R>
+    : {};
+
+/**
+ * 时态文本模板
+ */
+export type TemporalTextTemplate = string;
+
+/**
+ * 时态文本输入支持的格式类型
+ */
+export type TemporalTextFormat<T = unknown> =
+    | TemporalTextTemplate
+    | ((text: string) => T);
+
+/**
+ * 时态文本输入
+ */
+export type TemporalTextInput<T = unknown> = {
+    text: string;
+    format: TemporalTextFormat<T>;
+};
+
 // TODO 需要一个比较时区标识符的函数
 // TODO 获取所有可用的时区、日历标识符
 
@@ -530,6 +657,22 @@ export type ZonedAssignmentOptions = Partial<
 export type Rfc9557Text = WeakTagged<string, typeof rfc9557TextTag>;
 
 /**
+ * ISO 8601 持续时间字符串
+ *
+ * @see [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration#iso_8601_duration_format)
+ * @example
+ * ```ts
+ * // "±P [n]Y [n]M [n]D T [n]H [n]M [n]S"
+ * // "P1Y1M1DT1H1M1.1S"
+ * // "P40D"
+ * // "P1Y1D"
+ * // "PT1M"
+ * // "PT0S"
+ * // "P0D"
+ */
+export type DurationText = WeakTagged<string, typeof durationTextTag>;
+
+/**
  * 类时间对象
  */
 export type TemporalObject =
@@ -541,6 +684,17 @@ export type TemporalObject =
     | Temporal.ZonedDateTime
     | Temporal.PlainMonthDay
     | Temporal.PlainYearMonth;
+
+/**
+ * @internal
+ */
+export function toTimestamp(timestamp: Timestamp | BigIntTimestamp): Timestamp {
+    if (isBigInt(timestamp)) {
+        return Number(fdiv(timestamp, BigInt(1e6)));
+    } else {
+        return timestamp;
+    }
+}
 
 /**
  * @internal
@@ -582,38 +736,14 @@ export function toCalendarId<T extends CalendarIdLike | undefined>(
 }
 
 /**
- * 封装库所支持的输入类型与 {@link Temporal} 本身支持的类型有一些不一致，需通过该函数转换。
- *
- * 例如 {@link Temporal.ZonedDateTime.from} 支持 {@link Temporal.ZonedDateTimeLike}，但可能传入的输入是 {@link ZonedDateTimeInput} 类型。
- *
  * @internal
  */
-export function toTemporalInput<
-    T extends Partial<
-        CalendarLike & CalendarInfoLike & TimeZoneLike & TimeZoneInfoLike
-    >,
->(input: T): Temporal.ZonedDateTimeLike {
-    // input 可能是 Temporal 对象，一般通过了类型检查就是支持传入的类型，所以只需要直接返回
-    if (isTemporalObject(input)) {
-        return input as Temporal.ZonedDateTimeLike;
-    }
-
-    const opts = Object.assign({}, input) as Mutable<T>;
-
-    if (<keyof CalendarLike>"calendarId" in input) {
-        opts.calendar = input.calendarId;
-    }
-    if (<keyof CalendarLike>"calendar" in input) {
-        opts.calendar = toCalendarId(input.calendar);
-    }
-    if (<keyof TimeZoneLike>"timeZoneId" in input) {
-        opts.timeZone = input.timeZoneId;
-    }
-    if (<keyof TimeZoneInfoLike>"timeZone" in input) {
-        opts.timeZone = toTimeZoneId(input.timeZone);
-    }
-
-    return opts as Temporal.ZonedDateTimeLike;
+export function isTemporalTextInput(
+    input: Partial<TemporalTextInput>,
+): input is TemporalTextInput {
+    return (
+        typeof input.text === "string"
+        && (typeof input.format === "string"
+            || typeof input.format === "function")
+    );
 }
-
-// TODO: is 放到 predicate.ts 中

@@ -31,8 +31,8 @@ npm i @meojs/std
 
 ## 贡献
 
-- 执行 `npm run build` 进行构建。
-- 执行 `npm version patch && npm publish` 推送新版本。
+- 执行 `npm run build` 构建项目。
+- 执行 `npm run publish:version` 构建并推送新版本。
 
 ## 许可证
 

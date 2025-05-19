@@ -1,17 +1,13 @@
 import { Temporal } from "temporal-polyfill";
 import { HAS_BIGINT } from "../env.js";
 import { fdiv } from "../math.js";
-import { isString } from "../predicate.js";
+import { isString, isZonedDateTime } from "../predicate.js";
 import { throwUnsupported } from "./error.js";
 import {
     TimestampUnit,
-    toCalendarId,
-    toTimeZoneId,
     type AdditionalInfoInput,
     type BigIntTimestamp,
-    type CalendarId,
     type Timestamp,
-    type TimeZoneId,
     type TimeZoneIdLike,
     type TimeZoneLike,
 } from "./shared.js";
@@ -118,7 +114,7 @@ export function date(
  * @param timeZone 指定要返回时间的时区，默认为系统时区
  */
 export function time(timeZone?: TimeZoneIdLike): Temporal.PlainTime {
-    return Temporal.Now.plainTimeISO(toTimeZoneId(timeZone));
+    return Temporal.Now.plainTimeISO(timeZone);
 }
 
 /**
@@ -149,14 +145,14 @@ function _createDateLike<
         | typeof Temporal.Now.plainDateISO
         | typeof Temporal.Now.plainDateTimeISO,
 >(fn: T, addtl?: TimeZoneIdLike | AdditionalInfoInput): ReturnType<T> {
-    let timeZone: TimeZoneId | undefined;
-    let calendar: CalendarId | undefined;
+    let timeZone: Temporal.TimeZoneLike | undefined;
+    let calendar: Temporal.CalendarLike | undefined;
     if (addtl != null) {
-        if (isString(addtl) || <keyof TimeZoneLike>"timeZoneId" in addtl) {
-            timeZone = toTimeZoneId(addtl);
+        if (isString(addtl) || isZonedDateTime(addtl)) {
+            timeZone = addtl;
         } else {
-            timeZone = toTimeZoneId(addtl.timeZone);
-            calendar = toCalendarId(addtl.calendar);
+            timeZone = addtl.timeZone;
+            calendar = addtl.calendar;
         }
     }
     let date = fn(timeZone);
@@ -167,7 +163,16 @@ function _createDateLike<
 }
 
 /**
- * 获取当前系统时区
+ * 获取当前系统时区标识符
+ */
+export function timeZone(): TimeZoneLike {
+    return {
+        timeZone: Temporal.Now.timeZoneId(),
+    };
+}
+
+/**
+ * 获取当前系统时区标识符
  */
 export function timeZoneId() {
     return Temporal.Now.timeZoneId();

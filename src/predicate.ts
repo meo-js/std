@@ -3,7 +3,7 @@
  *
  * @module
  */
-import type { Temporal } from "temporal-polyfill";
+import { Temporal } from "temporal-polyfill";
 import type * as tf from "type-fest";
 import type { AbstractClass, Class } from "./class.js";
 import type {
@@ -526,9 +526,85 @@ export function isWeakRef<T extends object = object>(
  * @returns `boolean`
  */
 export function isInstant(value: unknown): value is Temporal.Instant {
-    return (
-        Object.prototype.toString.call(value) === "[object Temporal.Instant]"
-    );
+    return value instanceof Temporal.Instant;
+}
+
+/**
+ * 检测值是否为 {@link Temporal.Duration}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isDuration(value: unknown): value is Temporal.Duration {
+    return value instanceof Temporal.Duration;
+}
+
+/**
+ * 检测值是否为 {@link Temporal.PlainDate}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isPlainDate(value: unknown): value is Temporal.PlainDate {
+    return value instanceof Temporal.PlainDate;
+}
+
+/**
+ * 检测值是否为 {@link Temporal.PlainTime}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isPlainTime(value: unknown): value is Temporal.PlainTime {
+    return value instanceof Temporal.PlainTime;
+}
+
+/**
+ * 检测值是否为 {@link Temporal.PlainDateTime}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isPlainDateTime(
+    value: unknown,
+): value is Temporal.PlainDateTime {
+    return value instanceof Temporal.PlainDateTime;
+}
+
+/**
+ * 检测值是否为 {@link Temporal.ZonedDateTime}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isZonedDateTime(
+    value: unknown,
+): value is Temporal.ZonedDateTime {
+    return value instanceof Temporal.ZonedDateTime;
+}
+
+/**
+ * 检测值是否为 {@link Temporal.PlainMonthDay}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isPlainMonthDay(
+    value: unknown,
+): value is Temporal.PlainMonthDay {
+    return value instanceof Temporal.PlainMonthDay;
+}
+
+/**
+ * 检测值是否为 {@link Temporal.PlainYearMonth}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isPlainYearMonth(
+    value: unknown,
+): value is Temporal.PlainYearMonth {
+    return value instanceof Temporal.PlainYearMonth;
 }
 
 /**

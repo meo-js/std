@@ -211,13 +211,16 @@
         "dev": "npx unbuild --watch",
         "clean": "rimraf ./dist",
         "lint": "eslint",
-        "prepare": "simple-git-hooks",
-        "gen-exports": "npx tsx ./scripts/exports-generator.ts"
+        "gen-exports": "npx tsx ./scripts/exports-generator.ts",
+        "prepack": "npm run build",
+        "publish:patch": "npm version patch && npm publish",
+        "publish:minor": "npm version minor && npm publish",
+        "publish:major": "npm version major && npm publish"
     },
     "devDependencies": {
         "@commitlint/cli": "^19.8.0",
         "@commitlint/config-conventional": "^19.8.0",
-        "@meojs/cfgs": "^2.0.13",
+        "@meojs/cfgs": "^2.0.21",
         "@meojs/types": "^1.0.1",
         "@types/node": "^20",
         "cross-env": "^7.0.3",
