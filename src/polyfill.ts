@@ -30,6 +30,11 @@ import "core-js/proposals/iterator-helpers-stage-3-2.js";
 import "core-js/proposals/promise-try.js";
 import "core-js/proposals/regexp-escaping.js";
 import "core-js/proposals/set-methods-v2.js";
+declare global {
+    interface RegExpConstructor {
+        escape(str: string): string;
+    }
+}
 // --- ECMAScript Next ---
 import "core-js/proposals/decorator-metadata-v2.js";
 import "core-js/proposals/explicit-resource-management.js";

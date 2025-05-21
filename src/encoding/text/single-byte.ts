@@ -29,7 +29,7 @@ export function _decode(
     }
 
     const data = asUint8Array(bytes);
-    const chars = new Array<string>(data.length);
+    let str = "";
 
     let i = 0;
     for (const code of data) {
@@ -37,15 +37,15 @@ export function _decode(
             if (fatal) {
                 throwInvalidChar(code, i);
             } else {
-                chars[i] = fallback(data, i, Endian.Little, encoding);
+                str += fallback(data, i, Endian.Little, encoding);
             }
         } else {
-            chars[i] = String.fromCharCode(code);
+            str += String.fromCharCode(code);
         }
         i++;
     }
 
-    return chars.join("");
+    return str;
 }
 
 export function _encode(

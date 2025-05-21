@@ -39,14 +39,14 @@ export function decode(
         offset = 3;
     }
 
-    const chars: string[] = [];
+    let str = "";
 
     while (offset < data.length) {
         const byte1 = data[offset];
 
         // Ascii 字符
         if ((byte1 & 0x80) === 0) {
-            chars.push(String.fromCharCode(byte1));
+            str += String.fromCharCode(byte1);
             offset += 1;
             continue;
         }
@@ -61,9 +61,7 @@ export function decode(
             if (fatal) {
                 throwInvalidSurrogate(byte1, offset);
             } else {
-                chars.push(
-                    fallback(data, offset, Endian.Little, Encoding.Utf8),
-                );
+                str += fallback(data, offset, Endian.Little, Encoding.Utf8);
                 offset += 1;
                 continue;
             }
@@ -74,9 +72,7 @@ export function decode(
             if (fatal) {
                 throwInvalidSurrogate(byte1, offset);
             } else {
-                chars.push(
-                    fallback(data, offset, Endian.Little, Encoding.Utf8),
-                );
+                str += fallback(data, offset, Endian.Little, Encoding.Utf8);
                 break;
             }
         }
@@ -99,13 +95,11 @@ export function decode(
             if (fatal) {
                 throwInvalidSurrogate(byte1, originalOffset);
             } else {
-                chars.push(
-                    fallback(
-                        data,
-                        originalOffset,
-                        Endian.Little,
-                        Encoding.Utf8,
-                    ),
+                str += fallback(
+                    data,
+                    originalOffset,
+                    Endian.Little,
+                    Encoding.Utf8,
                 );
                 offset = originalOffset + 1;
                 continue;
@@ -133,13 +127,11 @@ export function decode(
             if (fatal) {
                 throwInvalidChar(codePoint, originalOffset);
             } else {
-                chars.push(
-                    fallback(
-                        data,
-                        originalOffset,
-                        Endian.Little,
-                        Encoding.Utf8,
-                    ),
+                str += fallback(
+                    data,
+                    originalOffset,
+                    Endian.Little,
+                    Encoding.Utf8,
                 );
                 continue;
             }
@@ -147,16 +139,16 @@ export function decode(
 
         // 将码点转换为字符串
         if (codePoint <= 0xffff) {
-            chars.push(String.fromCharCode(codePoint));
+            str += String.fromCharCode(codePoint);
         } else {
             const highSurrogate =
                 Math.floor((codePoint - 0x10000) / 0x400) + 0xd800;
             const lowSurrogate = ((codePoint - 0x10000) % 0x400) + 0xdc00;
-            chars.push(String.fromCharCode(highSurrogate, lowSurrogate));
+            str += String.fromCharCode(highSurrogate, lowSurrogate);
         }
     }
 
-    return chars.join("");
+    return str;
 }
 
 /**

@@ -305,18 +305,23 @@ export function encode(
         const data = asUint8Array(bytes);
 
         const len = data.length;
-        const strs = new Array<string>(len);
+        let str = "";
 
-        for (let i = 0; i < len; i++) {
-            strs[i] = encodeTable[data[i]];
+        if (opts?.pretty) {
+            for (let i = 0; i < len; i++) {
+                str += encodeTable[data[i]].toUpperCase();
+                if ((i + 1) % 2 === 0 && i + 1 < len) {
+                    str += " ";
+                }
+            }
+        } else {
+            for (let i = 0; i < len; i++) {
+                str += encodeTable[data[i]];
+            }
         }
 
-        return opts?.pretty ? format(strs) : strs.join("");
+        return str;
     }
-}
-
-function format(strs: string[]): string {
-    return strs.join(" ").toUpperCase();
 }
 
 /**

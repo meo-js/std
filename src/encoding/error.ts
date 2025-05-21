@@ -24,7 +24,7 @@ export function throwInvalidChar(char: number | string, offset: number): never {
 
 export function throwInvalidSurrogate(code: number, offset: number): never {
     throw new RangeError(
-        `invalid surrogate pair at position ${offset}: 0x${code.toString(16)}`,
+        `invalid surrogate pair at position ${offset}: 0x${code.toString(16)}.`,
     );
 }
 

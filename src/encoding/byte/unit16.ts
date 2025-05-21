@@ -61,14 +61,14 @@ export function encode(
             const data = asDataView(bytes);
             const big = endian === Endian.Big;
             const len = Math.floor(bytes.byteLength / 2);
-            const strs = new Array<string>(len);
+            let str = "";
 
             for (let index = 0; index < len; index++) {
                 const element = data.getUint16(index * 2, !big);
-                strs[index] = String.fromCharCode(element);
+                str += String.fromCharCode(element);
             }
 
-            return strs.join("");
+            return str;
         }
     }
 }

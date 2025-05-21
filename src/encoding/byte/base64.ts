@@ -99,17 +99,16 @@ export function _encode(
             }
         }
 
-        const result = new Array<string>(resultLength);
-        let resultIndex = 0;
+        let result = "";
         let i = 0;
 
         // 处理完整的 3 字节块
         for (; i + 2 < len; i += 3) {
             const n = (data[i] << 16) | (data[i + 1] << 8) | data[i + 2];
-            result[resultIndex++] = table[(n >> 18) & 63];
-            result[resultIndex++] = table[(n >> 12) & 63];
-            result[resultIndex++] = table[(n >> 6) & 63];
-            result[resultIndex++] = table[n & 63];
+            result += table[(n >> 18) & 63];
+            result += table[(n >> 12) & 63];
+            result += table[(n >> 6) & 63];
+            result += table[n & 63];
         }
 
         // 处理余下的字节
@@ -119,23 +118,23 @@ export function _encode(
                 n |= data[i + 1] << 8;
             }
 
-            result[resultIndex++] = table[(n >> 18) & 63];
-            result[resultIndex++] = table[(n >> 12) & 63];
+            result += table[(n >> 18) & 63];
+            result += table[(n >> 12) & 63];
 
             if (i + 1 < len) {
-                result[resultIndex++] = table[(n >> 6) & 63];
+                result += table[(n >> 6) & 63];
                 if (padding) {
-                    result[resultIndex++] = "=";
+                    result += "=";
                 }
             } else {
                 if (padding) {
-                    result[resultIndex++] = "=";
-                    result[resultIndex++] = "=";
+                    result += "=";
+                    result += "=";
                 }
             }
         }
 
-        return result.join("");
+        return result;
     }
 }
 

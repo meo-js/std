@@ -60,10 +60,8 @@ export function decode(bytes: BufferSource, opts?: DecodeOptions): string {
     const estimatedSize = hasInvalidData ? unitLength + 1 : unitLength;
 
     if (estimatedSize > 0) {
-        const chars = new Array<string>(estimatedSize);
+        let str = "";
         const big = endian === Endian.Big;
-
-        let j = 0;
 
         for (let i = 0; i < unitLength; i++) {
             const pos = offset + i * 2;
@@ -80,7 +78,7 @@ export function decode(bytes: BufferSource, opts?: DecodeOptions): string {
                         const lowPos = pos + 2;
                         const lowCode = data.getUint16(lowPos, !big);
                         if (lowCode >= 0xdc00 && lowCode <= 0xdfff) {
-                            chars[j++] = String.fromCharCode(code, lowCode);
+                            str += String.fromCharCode(code, lowCode);
                             // 跳过低代理项
                             i++;
                             continue;
@@ -90,29 +88,19 @@ export function decode(bytes: BufferSource, opts?: DecodeOptions): string {
                     if (fatal) {
                         throwInvalidSurrogate(code, pos);
                     } else {
-                        chars[j++] = fallback(
-                            data,
-                            pos,
-                            endian,
-                            Encoding.Utf16,
-                        );
+                        str += fallback(data, pos, endian, Encoding.Utf16);
                     }
                 } else {
                     // 孤立的低代理项
                     if (fatal) {
                         throwInvalidSurrogate(code, pos);
                     } else {
-                        chars[j++] = fallback(
-                            data,
-                            pos,
-                            endian,
-                            Encoding.Utf16,
-                        );
+                        str += fallback(data, pos, endian, Encoding.Utf16);
                     }
                 }
             } else {
                 // 正常字符
-                chars[j++] = String.fromCharCode(code);
+                str += String.fromCharCode(code);
             }
         }
 
@@ -121,7 +109,7 @@ export function decode(bytes: BufferSource, opts?: DecodeOptions): string {
             if (fatal) {
                 throwUnexpectedEnd();
             } else {
-                chars[j++] = fallback(
+                str += fallback(
                     data,
                     data.byteLength - 1,
                     endian,
@@ -130,9 +118,7 @@ export function decode(bytes: BufferSource, opts?: DecodeOptions): string {
             }
         }
 
-        chars.length = j;
-
-        return chars.join("");
+        return str;
     } else {
         return "";
     }

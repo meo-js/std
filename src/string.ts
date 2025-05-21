@@ -187,26 +187,24 @@ export function fromCharCodes(arr: TypedArray | number[]) {
     if (isArray(arr)) {
         if (arr.length > MAX_CALLSTACK) {
             // 只能单个进行转换，否则分块必须 slice 数组，这可能很昂贵
-            const result = [];
+            let result = "";
             for (let i = 0; i < arr.length; i++) {
-                result.push(String.fromCharCode(arr[i]));
+                result += String.fromCharCode(arr[i]);
             }
-            return result.join("");
+            return result;
         } else {
             return String.fromCharCode.apply(undefined, arr);
         }
     } else {
         if (arr.length > MAX_CALLSTACK) {
             // 分块进行转换
-            const result = [];
+            let result = "";
             for (let i = 0; i < arr.length; i += MAX_CALLSTACK) {
                 const chunk = arr.subarray(i, i + MAX_CALLSTACK);
-                result.push(
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- checked.
-                    String.fromCharCode.apply(undefined, chunk as any),
-                );
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- checked.
+                result += String.fromCharCode.apply(undefined, chunk as any);
             }
-            return result.join("");
+            return result;
         } else {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- checked.
             return String.fromCharCode.apply(undefined, arr as any);
@@ -221,26 +219,24 @@ export function fromCodePoints(arr: TypedArray | number[]) {
     if (isArray(arr)) {
         if (arr.length > MAX_CALLSTACK) {
             // 只能单个进行转换，否则分块必须 slice 数组，这可能很昂贵
-            const result = [];
+            let result = "";
             for (let i = 0; i < arr.length; i++) {
-                result.push(String.fromCodePoint(arr[i]));
+                result += String.fromCodePoint(arr[i]);
             }
-            return result.join("");
+            return result;
         } else {
             return String.fromCodePoint.apply(undefined, arr);
         }
     } else {
         if (arr.length > MAX_CALLSTACK) {
             // 分块进行转换
-            const result = [];
+            let result = "";
             for (let i = 0; i < arr.length; i += MAX_CALLSTACK) {
                 const chunk = arr.subarray(i, i + MAX_CALLSTACK);
-                result.push(
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- checked.
-                    String.fromCodePoint.apply(undefined, chunk as any),
-                );
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- checked.
+                result += String.fromCodePoint.apply(undefined, chunk as any);
             }
-            return result.join("");
+            return result;
         } else {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- checked.
             return String.fromCodePoint.apply(undefined, arr as any);
