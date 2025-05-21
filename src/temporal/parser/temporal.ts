@@ -85,23 +85,35 @@ const duration = new RegExp(
 const standardDaysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const leapYearDaysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-export type RFC9557ParseResult = {
-    year: number;
-    month: number;
-    day: number;
-    hour: number;
-    minute: number;
-    second: number;
-    millisecond: number;
-    microsecond: number;
-    nanosecond: number;
-    dateType: "none" | "year-month" | "month-day" | "full";
-    hasTime: boolean;
-    offset: string | undefined;
-    z: boolean;
-    timeZone: string | undefined;
-    calendar: string | undefined;
-};
+export type RFC9557ParseResult = (
+    | { year: undefined; month: undefined; day: undefined }
+    | { year: number; month: number; day: undefined }
+    | { year: undefined; month: number; day: number }
+    | { year: number; month: number; day: number }
+)
+    & (
+        | {
+              hour: number;
+              minute: number;
+              second: number;
+              millisecond: number;
+              microsecond: number;
+              nanosecond: number;
+          }
+        | {
+              hour: undefined;
+              minute: undefined;
+              second: undefined;
+              millisecond: undefined;
+              microsecond: undefined;
+              nanosecond: undefined;
+          }
+    ) & {
+        offset: string | undefined;
+        z: boolean;
+        timeZone: string | undefined;
+        calendar: string | undefined;
+    };
 
 export type ISO8601ParseResult = {
     years: number;
@@ -130,11 +142,11 @@ function processAnnotations(annotations: string) {
                 calendarWasCritical = critical === "!";
             } else if (critical === "!" || calendarWasCritical) {
                 throw new RangeError(
-                    `invalid annotations in ${annotations}: more than one u-ca present with critical flag`,
+                    `invalid annotations in ${annotations}: more than one u-ca present with critical flag.`,
                 );
             }
         } else if (critical === "!") {
-            throw new RangeError(`unrecognized annotation: !${key}=${value}`);
+            throw new RangeError(`unrecognized annotation: !${key}=${value}.`);
         }
     }
     return calendar;
@@ -159,7 +171,7 @@ function getISODaysInMonth(year: number, month: number) {
 function rejectRange(value: number, min: number, max: number) {
     if (value < min || value > max) {
         throw new RangeError(
-            `value out of range: ${min} <= ${value} <= ${max}`,
+            `value out of range: ${min} <= ${value} <= ${max}.`,
         );
     }
 }
@@ -198,12 +210,12 @@ function rejectDateTime(
 
 function rejectDifferentSign(prop: number, sign: -1 | 0 | 1): -1 | 0 | 1 {
     if (prop === Infinity || prop === -Infinity)
-        throw new RangeError("infinite values not allowed as duration fields");
+        throw new RangeError("infinite values not allowed as duration fields.");
     if (prop !== 0) {
         const _prop = prop < 0 ? -1 : 1;
         if (sign !== 0 && _prop !== sign)
             throw new RangeError(
-                "mixed-sign values not allowed as duration fields",
+                "mixed-sign values not allowed as duration fields.",
             );
         return _prop;
     }
@@ -240,7 +252,7 @@ function rejectDuration(
         || Math.abs(mon) >= 2 ** 32
         || Math.abs(w) >= 2 ** 32
     ) {
-        throw new RangeError("years, months, and weeks must be < 2³²");
+        throw new RangeError("years, months, and weeks must be < 2³².");
     }
 
     const msResult = truncatingDivModByPowerOf10(ms, 3);
@@ -261,24 +273,24 @@ function rejectDuration(
         + remainderSec;
     if (!Number.isSafeInteger(totalSec)) {
         throw new RangeError(
-            "total of duration time units cannot exceed 9007199254740991.999999999 s",
+            "total of duration time units cannot exceed 9007199254740991.999999999 s.",
         );
     }
 }
 
 function throwDateTimeError(text: string): never {
-    throw new RangeError(`invalid RFC 9557 string: ${text}`);
+    throw new RangeError(`invalid RFC 9557 string: ${text}.`);
 }
 
 function throwDurationError(text: string): never {
-    throw new RangeError(`invalid duration: ${text}`);
+    throw new RangeError(`invalid duration: ${text}.`);
 }
 
 function throwFractionalError(): never {
-    throw new RangeError("only the smallest unit can be fractional");
+    throw new RangeError("only the smallest unit can be fractional.");
 }
 
-function parseTime(text: string): RFC9557ParseResult {
+function parseTime(text: string, out: RFC9557ParseResult): RFC9557ParseResult {
     const match = time.exec(text);
     if (!match) {
         throwDateTimeError(text);
@@ -311,29 +323,30 @@ function parseTime(text: string): RFC9557ParseResult {
 
     rejectTime(hour, minute, second, millisecond, microsecond, nanosecond);
 
-    return {
-        year: 1972,
-        month: 1,
-        day: 1,
-        hour,
-        minute,
-        second,
-        millisecond,
-        microsecond,
-        nanosecond,
-        dateType: "none",
-        hasTime: true,
-        offset,
-        z,
-        timeZone,
-        calendar,
-    };
+    out.year = undefined;
+    out.month = undefined;
+    out.day = undefined;
+    out.hour = hour;
+    out.minute = minute;
+    out.second = second;
+    out.millisecond = millisecond;
+    out.microsecond = microsecond;
+    out.nanosecond = nanosecond;
+    out.offset = offset;
+    out.z = z;
+    out.timeZone = timeZone;
+    out.calendar = calendar;
+
+    return out;
 }
 
-function parseYearMonth(text: string): RFC9557ParseResult {
+function parseYearMonth(
+    text: string,
+    out: RFC9557ParseResult,
+): RFC9557ParseResult {
     const match = yearmonth.exec(text);
     if (!match) {
-        return parseMonthDay(text);
+        return parseMonthDay(text, out);
     }
 
     const calendar = processAnnotations(match[3]);
@@ -344,52 +357,51 @@ function parseYearMonth(text: string): RFC9557ParseResult {
     const year = +yearString;
     const month = +match[2];
 
-    return {
-        year,
-        month,
-        day: 1,
-        hour: 0,
-        minute: 0,
-        second: 0,
-        millisecond: 0,
-        microsecond: 0,
-        nanosecond: 0,
-        dateType: "year-month",
-        hasTime: false,
-        offset: undefined,
-        z: false,
-        timeZone: undefined,
-        calendar,
-    };
+    out.year = year;
+    out.month = month;
+    out.day = undefined;
+    out.hour = undefined;
+    out.minute = undefined;
+    out.second = undefined;
+    out.millisecond = undefined;
+    out.microsecond = undefined;
+    out.nanosecond = undefined;
+    out.offset = undefined;
+    out.z = false;
+    out.timeZone = undefined;
+    out.calendar = calendar;
+
+    return out;
 }
 
-function parseMonthDay(text: string): RFC9557ParseResult {
+function parseMonthDay(
+    text: string,
+    out: RFC9557ParseResult,
+): RFC9557ParseResult {
     const match = monthday.exec(text);
     if (!match) {
-        return parseTime(text);
+        return parseTime(text, out);
     }
 
     const calendar = processAnnotations(match[3]);
     const month = +match[1];
     const day = +match[2];
 
-    return {
-        year: 1972,
-        month,
-        day,
-        hour: 0,
-        minute: 0,
-        second: 0,
-        millisecond: 0,
-        microsecond: 0,
-        nanosecond: 0,
-        dateType: "month-day",
-        hasTime: false,
-        offset: undefined,
-        z: false,
-        timeZone: undefined,
-        calendar,
-    };
+    out.year = undefined;
+    out.month = month;
+    out.day = day;
+    out.hour = undefined;
+    out.minute = undefined;
+    out.second = undefined;
+    out.millisecond = undefined;
+    out.microsecond = undefined;
+    out.nanosecond = undefined;
+    out.offset = undefined;
+    out.z = false;
+    out.timeZone = undefined;
+    out.calendar = calendar;
+
+    return out;
 }
 
 function truncatingDivModByPowerOf10(xParam: number, p: number) {
@@ -415,7 +427,7 @@ function toIntegerWithTruncation(value: unknown): number {
     const number = Number(value);
     if (number === 0) return 0;
     if (Number.isNaN(number) || number === Infinity || number === -Infinity) {
-        throw new RangeError("invalid number value");
+        throw new RangeError("invalid number value.");
     }
     const integer = Math.trunc(number);
     if (integer === 0) return 0; // ℝ(value) in spec text; converts -0 to 0
@@ -433,8 +445,6 @@ export function createRfc9557ParseResult(): RFC9557ParseResult {
         millisecond: 0,
         microsecond: 0,
         nanosecond: 0,
-        dateType: "none",
-        hasTime: false,
         offset: undefined,
         z: false,
         timeZone: undefined,
@@ -463,7 +473,7 @@ export function parseDateTime(
 ): RFC9557ParseResult {
     const match = zoneddatetime.exec(text);
     if (!match) {
-        return parseYearMonth(text);
+        return parseYearMonth(text, out);
     }
 
     const yearString = match[1];
@@ -518,14 +528,21 @@ export function parseDateTime(
     out.year = year;
     out.month = month;
     out.day = day;
-    out.hour = hour;
-    out.minute = minute;
-    out.second = second;
-    out.millisecond = millisecond;
-    out.microsecond = microsecond;
-    out.nanosecond = nanosecond;
-    out.dateType = "full";
-    out.hasTime = hasTime;
+    if (hasTime) {
+        out.hour = hour;
+        out.minute = minute;
+        out.second = second;
+        out.millisecond = millisecond;
+        out.microsecond = microsecond;
+        out.nanosecond = nanosecond;
+    } else {
+        out.hour = undefined;
+        out.minute = undefined;
+        out.second = undefined;
+        out.millisecond = undefined;
+        out.microsecond = undefined;
+        out.nanosecond = undefined;
+    }
     out.offset = offset;
     out.z = z;
     out.timeZone = timeZone;

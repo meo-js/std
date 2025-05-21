@@ -1,23 +1,9 @@
 import { Temporal, toTemporalInstant } from "temporal-polyfill";
 import { HAS_BIGINT } from "../env.js";
 import type { OmitKey, RequireLeastOneKey } from "../object.js";
-import {
-    isDate,
-    isInstant,
-    isPlainDate,
-    isPlainDateTime,
-    isPlainMonthDay,
-    isPlainTime,
-    isString,
-    isTemporalObject,
-    isZonedDateTime,
-} from "../predicate.js";
+import { isDate, isInstant, isString } from "../predicate.js";
 import type { checked, Mutable, Simplify } from "../ts.js";
-import {
-    createRfc9557ParseResult,
-    parseDateTime,
-    type RFC9557ParseResult,
-} from "./parser/temporal.js";
+import { createRfc9557ParseResult, parseDateTime } from "./parser/temporal.js";
 import {
     isTemporalTextInput,
     toCalendarId,
@@ -35,6 +21,7 @@ import {
     type DateTimeLike,
     type DateTimeTemporal,
     type DayLike,
+    type DurationInfo,
     type DurationInput,
     type DurationLike,
     type DurationText,
@@ -127,32 +114,12 @@ export function toDuration(input: InstantLike | DurationText | DurationInput) {
             } else if (isDate(input)) {
                 return toDuration(input.getTime());
             } else {
-                const obj = input as RequireLeastOneKey<DateTimeLike>;
-                const {
-                    years = obj.year,
-                    months = obj.month,
-                    weeks,
-                    days = obj.day,
-                    hours = obj.hour,
-                    minutes = obj.minute,
-                    seconds = obj.second,
-                    milliseconds = obj.millisecond,
-                    microseconds = obj.microsecond,
-                    nanoseconds = obj.nanosecond,
-                } = input as RequireLeastOneKey<DurationLike>;
-
-                return Temporal.Duration.from({
-                    years,
-                    months,
-                    weeks,
-                    days,
-                    hours,
-                    minutes,
-                    seconds,
-                    milliseconds,
-                    microseconds,
-                    nanoseconds,
-                });
+                return Temporal.Duration.from(
+                    _infoLikeToDurationInfo(
+                        input as DurationInput,
+                        _durationinfo,
+                    ),
+                );
             }
         }
     }
@@ -336,7 +303,7 @@ export type _ToDateTimeInfoInput =
     | Rfc9557Text
     | TemporalTextInput<DateTimeInfoInput>
     | InstantLike
-    | Exclude<TemporalObject, Temporal.Duration>
+    | Exclude<TemporalObject, Temporal.Instant | Temporal.Duration>
     | DateTimeInfoInput;
 
 /**
@@ -370,6 +337,7 @@ export type _ToDateTimeInfo<
 >;
 
 const _rfc9557ParseResult = createRfc9557ParseResult();
+const _durationinfo = _createDurationInfo();
 
 /**
  * @internal
@@ -405,17 +373,18 @@ export function _toDateTimeInfo(
 
     if (type === "string") {
         const result = parseDateTime(input as Rfc9557Text, _rfc9557ParseResult);
-        return _rfc9557ParseResultToDateTimeInfo(result, out);
+        return _infoLikeToDateTimeInfo(result, out);
     }
 
     if (isTemporalTextInput(input as object)) {
-        const { format, text } = input as TemporalTextInput<DateTimeInfoInput>;
+        const { formatter, text } =
+            input as TemporalTextInput<DateTimeInfoInput>;
 
-        if (isString(format)) {
+        if (isString(formatter)) {
             // TODO
             return null!;
         } else {
-            return _infoLikeToInfo(format(text), out);
+            return _infoLikeToDateTimeInfo(formatter.parse(text), out);
         }
     }
 
@@ -424,205 +393,76 @@ export function _toDateTimeInfo(
         || type === "bigint"
         || isInstant(input)
         || isDate(input)
-        || isZonedDateTime(input)
     ) {
         const zdateTime = toZonedDateTime(
             input as InstantLike | Temporal.ZonedDateTime,
             "UTC",
         );
-        return _temporalObjectToDateTimeInfo(zdateTime, out);
+        return _infoLikeToDateTimeInfo(zdateTime, out);
     }
 
-    if (isTemporalObject(input)) {
-        return _temporalObjectToDateTimeInfo(input, out);
-    } else {
-        return _infoLikeToInfo(input as object, out);
-    }
+    return _infoLikeToDateTimeInfo(
+        input as
+            | Exclude<TemporalObject, Temporal.Instant | Temporal.Duration>
+            | DateTimeInfoInput,
+        out,
+    );
 }
 
-function _rfc9557ParseResultToDateTimeInfo(
-    data: RFC9557ParseResult,
+function _infoLikeToDateTimeInfo(
+    data: DateTimeInfoInput,
     info: Partial<DateTimeInfo>,
 ) {
-    switch (data.dateType) {
-        case "year-month":
-            info.era = undefined;
-            info.eraYear = undefined;
-            info.year = data.year;
-            info.month = data.month;
-            info.monthCode = undefined;
-            break;
+    const {
+        era,
+        eraYear,
+        year,
+        month,
+        monthCode,
+        day = info.day,
+        hour = info.hour,
+        minute = info.minute,
+        second = info.second,
+        millisecond = info.millisecond,
+        microsecond = info.microsecond,
+        nanosecond = info.nanosecond,
+        offset = info.offset,
+        timeZone = info.timeZone,
+        calendar = info.calendar,
+    } = data;
 
-        case "month-day":
-            info.month = data.month;
-            info.monthCode = undefined;
-            info.day = data.day;
-            break;
-
-        case "full":
-            info.era = undefined;
-            info.eraYear = undefined;
-            info.year = data.year;
-            info.month = data.month;
-            info.monthCode = undefined;
-            info.day = data.day;
-            break;
-
-        default:
-            // do nothings.
-            break;
+    if ((era != null && eraYear != null) || year != null) {
+        info.era = era;
+        info.eraYear = eraYear;
+        info.year = year;
     }
 
-    if (data.hasTime) {
-        info.hour = data.hour;
-        info.minute = data.minute;
-        info.second = data.second;
-        info.millisecond = data.millisecond;
-        info.microsecond = data.microsecond;
-        info.nanosecond = data.nanosecond;
+    if (monthCode != null || month != null) {
+        info.month = month;
+        info.monthCode = monthCode;
     }
 
-    if (data.offset != null) {
-        info.offset = data.offset;
-    }
-
-    if (data.timeZone != null) {
-        info.timeZone = data.timeZone;
-    }
-
-    if (data.calendar != null) {
-        info.calendar = data.calendar;
-    }
-
-    return info;
-}
-
-function _temporalObjectToDateTimeInfo(
-    data: Exclude<TemporalObject, Temporal.Instant | Temporal.Duration>,
-    info: Partial<DateTimeInfo>,
-) {
-    if (isPlainDate(data)) {
-        info.era = data.era;
-        info.eraYear = data.eraYear;
-        info.year = data.year;
-        info.month = data.month;
-        info.monthCode = data.monthCode;
-        info.day = data.day;
-        info.calendar = data.calendarId;
-    } else if (isPlainTime(data)) {
-        info.hour = data.hour;
-        info.minute = data.minute;
-        info.second = data.second;
-        info.millisecond = data.millisecond;
-        info.microsecond = data.microsecond;
-        info.nanosecond = data.nanosecond;
-    } else if (isPlainDateTime(data)) {
-        info.era = data.era;
-        info.eraYear = data.eraYear;
-        info.year = data.year;
-        info.month = data.month;
-        info.monthCode = data.monthCode;
-        info.day = data.day;
-        info.hour = data.hour;
-        info.minute = data.minute;
-        info.second = data.second;
-        info.millisecond = data.millisecond;
-        info.microsecond = data.microsecond;
-        info.nanosecond = data.nanosecond;
-        info.calendar = data.calendarId;
-    } else if (isZonedDateTime(data)) {
-        info.era = data.era;
-        info.eraYear = data.eraYear;
-        info.year = data.year;
-        info.month = data.month;
-        info.monthCode = data.monthCode;
-        info.day = data.day;
-        info.hour = data.hour;
-        info.minute = data.minute;
-        info.second = data.second;
-        info.millisecond = data.millisecond;
-        info.microsecond = data.microsecond;
-        info.nanosecond = data.nanosecond;
-        info.offset = data.offset;
-        info.timeZone = data.timeZoneId;
-        info.calendar = data.calendarId;
-    } else if (isPlainMonthDay(data)) {
-        info.monthCode = data.monthCode;
-        info.day = data.day;
-        info.calendar = data.calendarId;
-    } else {
-        info.era = data.era;
-        info.eraYear = data.eraYear;
-        info.year = data.year;
-        info.month = data.month;
-        info.monthCode = data.monthCode;
-        info.calendar = data.calendarId;
-    }
-    return info;
-}
-
-function _infoLikeToInfo(data: DateTimeInfoInput, info: Partial<DateTimeInfo>) {
-    if ((data.era != null && data.eraYear != null) || data.year != null) {
-        info.era = data.era;
-        info.eraYear = data.eraYear;
-        info.year = data.year;
-    }
-
-    if (data.monthCode != null || data.month != null) {
-        info.month = data.month;
-        info.monthCode = data.monthCode;
-    }
-
-    if (data.day != null) {
-        info.day = data.day;
-    }
-
-    if (data.hour != null) {
-        info.hour = data.hour;
-    }
-
-    if (data.minute != null) {
-        info.minute = data.minute;
-    }
-
-    if (data.second != null) {
-        info.second = data.second;
-    }
-
-    if (data.millisecond != null) {
-        info.millisecond = data.millisecond;
-    }
-
-    if (data.microsecond != null) {
-        info.microsecond = data.microsecond;
-    }
-
-    if (data.nanosecond != null) {
-        info.nanosecond = data.nanosecond;
-    }
-
-    if (data.offset != null) {
-        info.offset = data.offset;
-    }
-
-    if (data.timeZone != null) {
-        info.timeZone = toTimeZoneId(data.timeZone);
-    }
-
-    if (data.calendar != null) {
-        info.calendar = toCalendarId(data.calendar);
-    }
+    info.day = day;
+    info.hour = hour;
+    info.minute = minute;
+    info.second = second;
+    info.millisecond = millisecond;
+    info.microsecond = microsecond;
+    info.nanosecond = nanosecond;
+    info.offset = offset;
+    info.timeZone = toTimeZoneId(timeZone);
+    info.calendar = toCalendarId(calendar);
 
     return info;
 }
 
 /**
- * 解析输入为 {@link DurationLike}
+ * 解析输入为 {@link DurationInfo}
  *
  * 解析规则：
- * - {@link DurationText}: 将每个分量直接赋值到 {@link DurationLike} 对象上。
- * - {@link InstantLike}: 全部转换为纳秒或毫秒。
- * - {@link TemporalObject} & {@link DateTimeInfoInput}: 将每个属性直接赋值到 {@link DurationLike} 对象上。
+ * - {@link DurationText}: 将每个分量直接赋值到 {@link DurationInfo} 对象上。
+ * - {@link InstantLike}: 除了 {@link Temporal.ZonedDateTime} 外全部转换为纳秒或毫秒。
+ * - {@link TemporalObject} & {@link DateTimeInfoInput}: 将每个属性直接赋值到 {@link DurationInfo} 对象上。
  */
 export function toDurationInfo(
     input:
@@ -631,7 +471,7 @@ export function toDurationInfo(
         | InstantLike
         | TemporalObject
         | DurationInput,
-): DurationLike {
+): DurationInfo {
     const info = _createDurationInfo();
     const type = typeof input;
 
@@ -641,21 +481,21 @@ export function toDurationInfo(
         || type === "bigint"
         || isInstant(input)
         || isDate(input)
-        || isZonedDateTime(input)
     ) {
         const duration = toDuration(input as DurationText | InstantLike);
-        // TODO
+        return _infoLikeToDurationInfo(duration, info);
     }
 
-    // TODO
-
-    return null!;
+    return _infoLikeToDurationInfo(
+        input as Exclude<TemporalObject, Temporal.Instant> | DurationInput,
+        info,
+    );
 }
 
 /**
  * @internal
  */
-export function _createDurationInfo(): DurationLike {
+export function _createDurationInfo(): DurationInfo {
     return {
         years: 0,
         months: 0,
@@ -668,4 +508,33 @@ export function _createDurationInfo(): DurationLike {
         microseconds: 0,
         nanoseconds: 0,
     };
+}
+
+function _infoLikeToDurationInfo(data: DurationInput, info: DurationInfo) {
+    const obj = data as RequireLeastOneKey<DateTimeLike>;
+    const {
+        years = obj.year ?? info.years,
+        months = obj.month ?? info.months,
+        weeks = info.weeks,
+        days = obj.day ?? info.days,
+        hours = obj.hour ?? info.hours,
+        minutes = obj.minute ?? info.minutes,
+        seconds = obj.second ?? info.seconds,
+        milliseconds = obj.millisecond ?? info.milliseconds,
+        microseconds = obj.microsecond ?? info.microseconds,
+        nanoseconds = obj.nanosecond ?? info.nanoseconds,
+    } = data as RequireLeastOneKey<DurationLike>;
+
+    info.years = years;
+    info.months = months;
+    info.weeks = weeks;
+    info.days = days;
+    info.hours = hours;
+    info.minutes = minutes;
+    info.seconds = seconds;
+    info.milliseconds = milliseconds;
+    info.microseconds = microseconds;
+    info.nanoseconds = nanoseconds;
+
+    return info;
 }

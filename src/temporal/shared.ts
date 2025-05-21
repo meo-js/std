@@ -548,23 +548,33 @@ export type DateTimeInfoLike = DateTimeLike
 export type DateTimeInfoInput = Partial<DateTimeInfoLike>;
 
 /**
- * 时态文本模板
+ * 持续时间信息
  */
-export type TemporalTextTemplate = string;
+export type DurationInfo = Mutable<DurationLike>;
+
+/**
+ * 日期时间文本模板
+ *
+ * 基于 Unicode Technical Standard #35 定义的模板格式。
+ *
+ * @see [Unicode Technical Standard #35 - Date Format Patterns](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Format_Patterns)
+ */
+export type UTSDateTemplate = string;
 
 /**
  * 时态文本支持的格式
  */
-export type TemporalTextFormat<T = unknown> =
-    | TemporalTextTemplate
-    | ((text: string) => T);
+export type TemporalTextFormatter<T = unknown> = {
+    format(input: T): string;
+    parse(text: string): T;
+};
 
 /**
  * 时态文本输入
  */
 export type TemporalTextInput<T = unknown> = {
     text: string;
-    format: TemporalTextFormat<T>;
+    formatter: TemporalTextFormatter<T> | UTSDateTemplate;
 };
 
 // TODO 需要一个比较时区标识符的函数
@@ -671,7 +681,7 @@ export function isTemporalTextInput(
 ): input is TemporalTextInput {
     return (
         typeof input.text === "string"
-        && (typeof input.format === "string"
-            || typeof input.format === "function")
+        && (typeof input.formatter === "string"
+            || typeof input.formatter === "function")
     );
 }
