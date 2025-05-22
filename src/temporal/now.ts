@@ -2,7 +2,6 @@ import { Temporal } from "temporal-polyfill";
 import { HAS_BIGINT } from "../env.js";
 import { fdiv } from "../math.js";
 import { isString, isZonedDateTime } from "../predicate.js";
-import { throwUnsupported } from "./error.js";
 import {
     TimestampUnit,
     type AdditionalInfoInput,
@@ -179,3 +178,9 @@ export function timeZoneId() {
 }
 
 // TODO 获取当前日历
+
+function throwUnsupported(thing: string, bigint: boolean): never {
+    throw new TypeError(
+        `${thing} is not supported${bigint ? `, because environment does not support BigInt.` : "."}`,
+    );
+}

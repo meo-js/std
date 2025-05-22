@@ -2,7 +2,7 @@ import { Temporal } from "temporal-polyfill";
 import { fdiv } from "../math.js";
 import type { RequireLeastOneKey } from "../object.js";
 import { isBigInt, isString } from "../predicate.js";
-import type { MapOf, Mutable, WeakTagged } from "../ts.js";
+import type { MapOf, Mutable, uncertain, WeakTagged } from "../ts.js";
 
 declare const timestampTag: unique symbol;
 declare const bigIntTimestampTag: unique symbol;
@@ -443,6 +443,13 @@ export type DateTimeTemporal =
     | Temporal.ZonedDateTime;
 
 /**
+ * 可用于构造瞬时及时区感知的日期时间的对象
+ */
+export type InstantLikeWithTimeZone = {
+    instant: InstantLike;
+} & TimeZoneLike;
+
+/**
  * 输入构造时区感知的日期时间的对象
  *
  * @see {@link DateInput}
@@ -456,13 +463,6 @@ export type ZonedDateTimeInput = DateTimeInput
  * 可用于构造时区感知的日期时间的 {@link Temporal} 对象
  */
 export type ZonedDateTimeTemporal = Temporal.ZonedDateTime;
-
-/**
- * 输入构造持续时间的对象
- */
-export type DurationInput =
-    | RequireLeastOneKey<DurationLike>
-    | RequireLeastOneKey<DateTimeLike>;
 
 /**
  * 输入时间戳附加信息
@@ -551,6 +551,23 @@ export type DateTimeInfoInput = Partial<DateTimeInfoLike>;
  * 持续时间信息
  */
 export type DurationInfo = Mutable<DurationLike>;
+
+/**
+ * 输入构造持续时间的对象
+ */
+export type DurationInput =
+    | RequireLeastOneKey<DurationLike>
+    | RequireLeastOneKey<DateTimeLike>;
+
+/**
+ * TODO
+ */
+export interface TemporalFormatter {
+    formatDateTime(input: uncertain, ...args: uncertain): string;
+    parseDateTime(input: string, ...args: uncertain): unknown;
+    formatDuration(input: uncertain, ...args: uncertain): string;
+    parseDuration(input: string, ...args: uncertain): unknown;
+}
 
 /**
  * 日期时间文本模板
