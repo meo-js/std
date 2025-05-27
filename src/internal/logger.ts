@@ -1,4 +1,10 @@
 /**
+ * @module
+ *
+ * @internal
+ */
+
+/**
  * 内部日志记录器接口
  *
  * 默认为 {@link console}
