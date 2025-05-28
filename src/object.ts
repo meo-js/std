@@ -418,6 +418,6 @@ function _FastObject(this: void, o: object) {
 
     fastProto = _FastObject.prototype = o;
 
-    // @ts-expect-error -- checked.
+    // @ts-expect-error -- ts7009 checked.
     return new _FastObject() as unknown;
 }

@@ -79,8 +79,6 @@ export function javahash(input: string | BufferSource) {
 /**
  * DJB2-a 非加密哈希函数
  *
- * 计算速度极快，分布还算均匀。
- *
  * @returns 返回 32 位整数
  */
 // copy from djb2a: https://github.com/sindresorhus/djb2a
@@ -107,8 +105,6 @@ export function djb2a(input: string | BufferSource) {
 /**
  * SDBM 非加密哈希函数
  *
- * 计算速度很快，分布相对均匀。
- *
  * @returns 返回 32 位整数
  */
 // copy from sdbm: https://github.com/sindresorhus/sdbm
@@ -132,8 +128,6 @@ export function sdbm(input: string | BufferSource) {
 
 /**
  * FNV-1a 非加密哈希函数
- *
- * 计算速度快，分布均匀。
  *
  * @param input 字符串或字节数据
  * @param size 指定哈希大小，默认为 `32`
@@ -221,4 +215,524 @@ export function cyrb53(input: string | BufferSource, seed = 0) {
     h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
 
     return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+}
+
+/**
+ * MurmurHash1 32 位非加密哈希函数
+ *
+ * @param input 字符串或字节数据
+ * @param seed 指定种子值，默认为 `0`
+ * @returns 返回 32 位整数
+ */
+// copy from github user: @bryc
+export function murmurhash1(input: string | BufferSource, seed = 0) {
+    const m = 3332679571;
+    let h = 0;
+    let i = 0;
+
+    if (isString(input)) {
+        h = Math.imul(input.length, m) ^ seed;
+
+        for (let b = input.length & -4; i < b; i += 4) {
+            h +=
+                (input.charCodeAt(i + 3) << 24)
+                | (input.charCodeAt(i + 2) << 16)
+                | (input.charCodeAt(i + 1) << 8)
+                | input.charCodeAt(i);
+            h = Math.imul(h, m);
+            h ^= h >>> 16;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- checked.
+        switch (input.length & 3) {
+            // @ts-expect-error -- ts7029 checked.
+            case 3:
+                h += input.charCodeAt(i + 2) << 16;
+            // @ts-expect-error -- ts7029 checked.
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 2:
+                h += input.charCodeAt(i + 1) << 8;
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 1:
+                h += input.charCodeAt(i);
+                h = Math.imul(h, m);
+                h ^= h >>> 16;
+        }
+    } else {
+        const buf = asUint8Array(input);
+
+        h = Math.imul(buf.length, m) ^ seed;
+
+        for (let b = buf.length & -4; i < b; i += 4) {
+            h +=
+                (buf[i + 3] << 24)
+                | (buf[i + 2] << 16)
+                | (buf[i + 1] << 8)
+                | buf[i];
+            h = Math.imul(h, m);
+            h ^= h >>> 16;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- checked.
+        switch (buf.length & 3) {
+            // @ts-expect-error -- ts7029 checked.
+            case 3:
+                h += buf[i + 2] << 16;
+            // @ts-expect-error -- ts7029 checked.
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 2:
+                h += buf[i + 1] << 8;
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 1:
+                h += buf[i];
+                h = Math.imul(h, m);
+                h ^= h >>> 16;
+        }
+    }
+
+    h = Math.imul(h, m);
+    h ^= h >>> 10;
+    h = Math.imul(h, m);
+    h ^= h >>> 17;
+
+    return h >>> 0;
+}
+
+/**
+ * MurmurHash2 32 位非加密哈希函数
+ *
+ * 又名 `MurmurHash2_x86_32`。
+ *
+ * @param input 字符串或字节数据
+ * @param seed 指定种子值，默认为 `0`
+ * @returns 返回 32 位整数
+ */
+// copy from github user: @bryc
+export function murmurhash2(input: string | BufferSource, seed = 0) {
+    const m = 1540483477;
+    let h = 0;
+    let i = 0;
+    let k = 0;
+
+    if (isString(input)) {
+        h = input.length ^ seed;
+
+        for (let b = input.length & -4; i < b; i += 4) {
+            k =
+                (input.charCodeAt(i + 3) << 24)
+                | (input.charCodeAt(i + 2) << 16)
+                | (input.charCodeAt(i + 1) << 8)
+                | input.charCodeAt(i);
+            k = Math.imul(k, m);
+            k ^= k >>> 24;
+            h = Math.imul(h, m) ^ Math.imul(k, m);
+        }
+
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- checked.
+        switch (input.length & 3) {
+            // @ts-expect-error -- ts7029 checked.
+            case 3:
+                h ^= input.charCodeAt(i + 2) << 16;
+            // @ts-expect-error -- ts7029 checked.
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 2:
+                h ^= input.charCodeAt(i + 1) << 8;
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 1:
+                h ^= input.charCodeAt(i);
+                h = Math.imul(h, m);
+        }
+    } else {
+        const buf = asUint8Array(input);
+
+        h = buf.length ^ seed;
+
+        for (let b = buf.length & -4; i < b; i += 4) {
+            k =
+                (buf[i + 3] << 24)
+                | (buf[i + 2] << 16)
+                | (buf[i + 1] << 8)
+                | buf[i];
+            k = Math.imul(k, m);
+            k ^= k >>> 24;
+            h = Math.imul(h, m) ^ Math.imul(k, m);
+        }
+
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- checked.
+        switch (buf.length & 3) {
+            // @ts-expect-error -- ts7029 checked.
+            case 3:
+                h ^= buf[i + 2] << 16;
+            // @ts-expect-error -- ts7029 checked.
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 2:
+                h ^= buf[i + 1] << 8;
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 1:
+                h ^= buf[i];
+                h = Math.imul(h, m);
+        }
+    }
+
+    h ^= h >>> 13;
+    h = Math.imul(h, m);
+    h ^= h >>> 15;
+
+    return h >>> 0;
+}
+
+/**
+ * MurmurHash2A 32 位非加密哈希函数
+ *
+ * MurmurHash2 的改进版本。
+ *
+ * @param input 字符串或字节数据
+ * @param seed 指定种子值，默认为 `0`
+ * @returns 返回 32 位整数
+ */
+// copy from github user: @bryc
+export function murmurhash2a(input: string | BufferSource, seed = 0) {
+    const m = 1540483477;
+    let h = seed | 0;
+    let i = 0;
+    let k = 0;
+    let l = 0;
+
+    if (isString(input)) {
+        for (let b = input.length & -4; i < b; i += 4) {
+            k =
+                (input.charCodeAt(i + 3) << 24)
+                | (input.charCodeAt(i + 2) << 16)
+                | (input.charCodeAt(i + 1) << 8)
+                | input.charCodeAt(i);
+            k = Math.imul(k, m);
+            k ^= k >>> 24;
+            h = Math.imul(h, m) ^ Math.imul(k, m);
+        }
+
+        k = 0;
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- checked.
+        switch (input.length & 3) {
+            // @ts-expect-error -- ts7029 checked.
+            case 3:
+                k ^= input.charCodeAt(i + 2) << 16;
+            // @ts-expect-error -- ts7029 checked.
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 2:
+                k ^= input.charCodeAt(i + 1) << 8;
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 1:
+                k ^= input.charCodeAt(i);
+        }
+
+        k = Math.imul(k, m);
+        k ^= k >>> 24;
+        h = Math.imul(h, m) ^ Math.imul(k, m);
+        l = Math.imul(input.length, m);
+        l ^= l >>> 24;
+        h = Math.imul(h, m) ^ Math.imul(l, m);
+    } else {
+        const buf = asUint8Array(input);
+
+        for (let b = buf.length & -4; i < b; i += 4) {
+            k =
+                (buf[i + 3] << 24)
+                | (buf[i + 2] << 16)
+                | (buf[i + 1] << 8)
+                | buf[i];
+            k = Math.imul(k, m);
+            k ^= k >>> 24;
+            h = Math.imul(h, m) ^ Math.imul(k, m);
+        }
+
+        k = 0;
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- checked.
+        switch (buf.length & 3) {
+            // @ts-expect-error -- ts7029 checked.
+            case 3:
+                k ^= buf[i + 2] << 16;
+            // @ts-expect-error -- ts7029 checked.
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 2:
+                k ^= buf[i + 1] << 8;
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 1:
+                k ^= buf[i];
+        }
+
+        k = Math.imul(k, m);
+        k ^= k >>> 24;
+        h = Math.imul(h, m) ^ Math.imul(k, m);
+        l = Math.imul(buf.length, m);
+        l ^= l >>> 24;
+        h = Math.imul(h, m) ^ Math.imul(l, m);
+    }
+
+    h ^= h >>> 13;
+    h = Math.imul(h, m);
+    h ^= h >>> 15;
+
+    return h >>> 0;
+}
+
+/**
+ * MurmurHash3 32 位非加密哈希函数
+ *
+ * 又名 `MurmurHash3_x86_32`。
+ *
+ * @param input 字符串或字节数据
+ * @param seed 指定种子值，默认为 `0`
+ * @returns 返回 32 位整数
+ */
+// copy from github user: @bryc
+export function murmurhash3(input: string | BufferSource, seed = 0) {
+    const p1 = 3432918353;
+    const p2 = 461845907;
+    let h = seed | 0;
+    let i = 0;
+    let k = 0;
+
+    if (isString(input)) {
+        for (let b = input.length & -4; i < b; i += 4) {
+            k =
+                (input.charCodeAt(i + 3) << 24)
+                | (input.charCodeAt(i + 2) << 16)
+                | (input.charCodeAt(i + 1) << 8)
+                | input.charCodeAt(i);
+            k = Math.imul(k, p1);
+            k = (k << 15) | (k >>> 17);
+            h ^= Math.imul(k, p2);
+            h = (h << 13) | (h >>> 19);
+            h = (Math.imul(h, 5) + 3864292196) | 0; // |0 = prevent float
+        }
+
+        k = 0;
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- checked.
+        switch (input.length & 3) {
+            // @ts-expect-error -- ts7029 checked.
+            case 3:
+                k ^= input.charCodeAt(i + 2) << 16;
+            // @ts-expect-error -- ts7029 checked.
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 2:
+                k ^= input.charCodeAt(i + 1) << 8;
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 1:
+                k ^= input.charCodeAt(i);
+                k = Math.imul(k, p1);
+                k = (k << 15) | (k >>> 17);
+                h ^= Math.imul(k, p2);
+        }
+
+        h ^= input.length;
+    } else {
+        const buf = asUint8Array(input);
+
+        for (let b = buf.length & -4; i < b; i += 4) {
+            k =
+                (buf[i + 3] << 24)
+                | (buf[i + 2] << 16)
+                | (buf[i + 1] << 8)
+                | buf[i];
+            k = Math.imul(k, p1);
+            k = (k << 15) | (k >>> 17);
+            h ^= Math.imul(k, p2);
+            h = (h << 13) | (h >>> 19);
+            h = (Math.imul(h, 5) + 3864292196) | 0; // |0 = prevent float
+        }
+
+        k = 0;
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- checked.
+        switch (buf.length & 3) {
+            // @ts-expect-error -- ts7029 checked.
+            case 3:
+                k ^= buf[i + 2] << 16;
+            // @ts-expect-error -- ts7029 checked.
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 2:
+                k ^= buf[i + 1] << 8;
+            // eslint-disable-next-line no-fallthrough -- checked.
+            case 1:
+                k ^= buf[i];
+                k = Math.imul(k, p1);
+                k = (k << 15) | (k >>> 17);
+                h ^= Math.imul(k, p2);
+        }
+
+        h ^= buf.length;
+    }
+
+    h ^= h >>> 16;
+    h = Math.imul(h, 2246822507);
+    h ^= h >>> 13;
+    h = Math.imul(h, 3266489909);
+    h ^= h >>> 16;
+
+    return h >>> 0;
+}
+
+/**
+ * xxHash 32 位非加密哈希函数
+ *
+ * @param input 字符串或字节数据
+ * @param seed 指定种子值，默认为 `0`
+ * @returns 返回 32 位整数
+ */
+// copy from github user: @bryc
+export function xxhash(input: string | BufferSource, seed = 0) {
+    const p1 = 2654435761;
+    const p2 = 2246822519;
+    const p3 = 3266489917;
+    const p4 = 668265263;
+    const p5 = 374761393;
+    let v0 = (seed + p5) | 0;
+    let v1 = (seed + p1 + p2) | 0;
+    let v2 = (seed + p2) | 0;
+    let v3 = seed | 0;
+    let v4 = (seed - p1) | 0;
+    let i = 0;
+
+    if (isString(input)) {
+        if (input.length >= 16) {
+            while (i <= input.length - 16) {
+                v1 += Math.imul(
+                    (input.charCodeAt(i + 3) << 24)
+                        | (input.charCodeAt(i + 2) << 16)
+                        | (input.charCodeAt(i + 1) << 8)
+                        | input.charCodeAt(i),
+                    p2,
+                );
+                i += 4;
+                v1 = Math.imul((v1 << 13) | (v1 >>> 19), p1);
+
+                v2 += Math.imul(
+                    (input.charCodeAt(i + 3) << 24)
+                        | (input.charCodeAt(i + 2) << 16)
+                        | (input.charCodeAt(i + 1) << 8)
+                        | input.charCodeAt(i),
+                    p2,
+                );
+                i += 4;
+                v2 = Math.imul((v2 << 13) | (v2 >>> 19), p1);
+
+                v3 += Math.imul(
+                    (input.charCodeAt(i + 3) << 24)
+                        | (input.charCodeAt(i + 2) << 16)
+                        | (input.charCodeAt(i + 1) << 8)
+                        | input.charCodeAt(i),
+                    p2,
+                );
+                i += 4;
+                v3 = Math.imul((v3 << 13) | (v3 >>> 19), p1);
+
+                v4 += Math.imul(
+                    (input.charCodeAt(i + 3) << 24)
+                        | (input.charCodeAt(i + 2) << 16)
+                        | (input.charCodeAt(i + 1) << 8)
+                        | input.charCodeAt(i),
+                    p2,
+                );
+                i += 4;
+                v4 = Math.imul((v4 << 13) | (v4 >>> 19), p1);
+            }
+            v0 =
+                ((v1 << 1) | (v1 >>> 31))
+                + ((v2 << 7) | (v2 >>> 25))
+                + ((v3 << 12) | (v3 >>> 20))
+                + ((v4 << 18) | (v4 >>> 14));
+        }
+
+        v0 += input.length;
+        while (i <= input.length - 4) {
+            v0 += Math.imul(
+                (input.charCodeAt(i + 3) << 24)
+                    | (input.charCodeAt(i + 2) << 16)
+                    | (input.charCodeAt(i + 1) << 8)
+                    | input.charCodeAt(i),
+                p3,
+            );
+            i += 4;
+            v0 = Math.imul((v0 << 17) | (v0 >>> 15), p4);
+        }
+
+        while (i < input.length) {
+            v0 += Math.imul(input.charCodeAt(i++), p5);
+            v0 = Math.imul((v0 << 11) | (v0 >>> 21), p1);
+        }
+    } else {
+        const buf = asUint8Array(input);
+
+        if (buf.length >= 16) {
+            while (i <= buf.length - 16) {
+                v1 += Math.imul(
+                    (buf[i + 3] << 24)
+                        | (buf[i + 2] << 16)
+                        | (buf[i + 1] << 8)
+                        | buf[i],
+                    p2,
+                );
+                i += 4;
+                v1 = Math.imul((v1 << 13) | (v1 >>> 19), p1);
+
+                v2 += Math.imul(
+                    (buf[i + 3] << 24)
+                        | (buf[i + 2] << 16)
+                        | (buf[i + 1] << 8)
+                        | buf[i],
+                    p2,
+                );
+                i += 4;
+                v2 = Math.imul((v2 << 13) | (v2 >>> 19), p1);
+
+                v3 += Math.imul(
+                    (buf[i + 3] << 24)
+                        | (buf[i + 2] << 16)
+                        | (buf[i + 1] << 8)
+                        | buf[i],
+                    p2,
+                );
+                i += 4;
+                v3 = Math.imul((v3 << 13) | (v3 >>> 19), p1);
+
+                v4 += Math.imul(
+                    (buf[i + 3] << 24)
+                        | (buf[i + 2] << 16)
+                        | (buf[i + 1] << 8)
+                        | buf[i],
+                    p2,
+                );
+                i += 4;
+                v4 = Math.imul((v4 << 13) | (v4 >>> 19), p1);
+            }
+            v0 =
+                ((v1 << 1) | (v1 >>> 31))
+                + ((v2 << 7) | (v2 >>> 25))
+                + ((v3 << 12) | (v3 >>> 20))
+                + ((v4 << 18) | (v4 >>> 14));
+        }
+
+        v0 += buf.length;
+        while (i <= buf.length - 4) {
+            v0 += Math.imul(
+                (buf[i + 3] << 24)
+                    | (buf[i + 2] << 16)
+                    | (buf[i + 1] << 8)
+                    | buf[i],
+                p3,
+            );
+            i += 4;
+            v0 = Math.imul((v0 << 17) | (v0 >>> 15), p4);
+        }
+
+        while (i < buf.length) {
+            v0 += Math.imul(buf[i++], p5);
+            v0 = Math.imul((v0 << 11) | (v0 >>> 21), p1);
+        }
+    }
+
+    v0 = Math.imul(v0 ^ (v0 >>> 15), p2);
+    v0 = Math.imul(v0 ^ (v0 >>> 13), p3);
+    v0 ^= v0 >>> 16;
+
+    return v0 >>> 0;
 }
