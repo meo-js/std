@@ -17,7 +17,7 @@ function bufAt(input: Uint8Array, index: number) {
 }
 
 /**
- * 用于解决某些接受多种类型输入时的代码复用问题，这依赖于引擎的内联机制来消除调用开销。
+ * 用于解决某些接受多种类型输入时的代码复用问题，这依赖于引擎的内联与逃逸分析机制来消除一切开销。
  */
 export function toBufferLike(input: string | BufferSource): {
     data: unknown;

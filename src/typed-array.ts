@@ -77,8 +77,6 @@ export class BufferInfo {
     }
 }
 
-let _platformEndian: Endian | undefined;
-
 /**
  * 将 {@link BufferSource} 转换为 {@link Uint8Array}
  */
