@@ -493,3 +493,13 @@ export function toSnakeCase(str: string): string {
 export function toTitleCase(str: string): string {
     return sts.titleCase(str);
 }
+
+export function toCodePoint(high: number, low: number): number {
+    if (high < 0xd800 || high > 0xdbff) {
+        return high;
+    }
+    if (low < 0xdc00 || low > 0xdfff) {
+        throw new RangeError("Invalid low surrogate");
+    }
+    return (high - 0xd800) * 0x400 + (low - 0xdc00) + 0x10000;
+}
