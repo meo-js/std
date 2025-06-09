@@ -20,7 +20,11 @@ import type { PlainObject, RecordObject } from "./object.js";
 import type { Primitive } from "./primitive.js";
 import type { TemporalObject } from "./temporal/shared.js";
 import type { none } from "./ts.js";
-import type { TypedArray } from "./typed-array.js";
+import type {
+    BigIntTypedArray,
+    NumberTypedArray,
+    TypedArray,
+} from "./typed-array.js";
 
 const GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
@@ -807,6 +811,30 @@ export function isArrayBuffer(value: unknown): value is ArrayBuffer {
 }
 
 /**
+ * 检测值是否为 {@link SharedArrayBuffer}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isSharedArrayBuffer(
+    value: unknown,
+): value is SharedArrayBuffer {
+    return value instanceof SharedArrayBuffer;
+}
+
+/**
+ * 检测值是否为 {@link ArrayBuffer} 或 {@link SharedArrayBuffer}
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isAnyArrayBuffer(
+    value: unknown,
+): value is ArrayBuffer | SharedArrayBuffer {
+    return isArrayBuffer(value) || isSharedArrayBuffer(value);
+}
+
+/**
  * 检测值是否为 {@link ArrayBufferView} 类型
  *
  * @param value 任意值
@@ -824,6 +852,29 @@ export function isArrayBufferView(value: unknown): value is ArrayBufferView {
  */
 export function isTypedArray(value: unknown): value is TypedArray {
     return ArrayBuffer.isView(value) && !(value instanceof DataView);
+}
+
+/**
+ * 检测值是否为 {@link NumberTypedArray} 类型之一
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isNumberTypedArray(value: unknown): value is NumberTypedArray {
+    return isTypedArray(value) && !isBigIntTypedArray(value);
+}
+
+/**
+ * 检测值是否为 {@link BigIntTypedArray} 类型之一
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isBigIntTypedArray(value: unknown): value is BigIntTypedArray {
+    return (
+        isTypedArray(value)
+        && (isBigInt64Array(value) || isBigUint64Array(value))
+    );
 }
 
 /**

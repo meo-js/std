@@ -19,7 +19,6 @@ export * as ascii from "./text/ascii.js";
 export { type DecodeFallback } from "./text/decode-fallback.js";
 export * from "./text/detect-type.js";
 export * from "./text/detect.js";
-export { type EncodeFallback } from "./text/encode-fallback.js";
 export * from "./text/enum.js";
 export * from "./text/general.js";
 export * as latin1 from "./text/latin1.js";

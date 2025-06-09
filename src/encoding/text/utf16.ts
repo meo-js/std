@@ -1,18 +1,16 @@
-import { Endian, asDataView, asUint8Array } from "../../typed-array.js";
+import { PLATFORM_ENDIAN } from "../../env.js";
 import {
-    throwInvalidLength,
-    throwInvalidSurrogate,
-    throwUnexpectedEnd,
-} from "../error.js";
-import type { CodecableEndian } from "../shared.js";
+    hasReplacementChar,
+    isHighSurrogate,
+    isLowSurrogate,
+    needsSurrogatePair,
+} from "../../string.js";
+import { Endian, asDataView, asUint8Array } from "../../typed-array.js";
+import { throwInvalidLength } from "../error.js";
 import * as decodeFallback from "./decode-fallback.js";
-import * as encodeFallback from "./encode-fallback.js";
-import { Encoding } from "./enum.js";
 import type { DecodeOptions, EncodeOptions } from "./options.js";
-import { replacementCharRegex } from "./replacement-char.js";
-
-const bomCode = 0xfeff;
-const reverseBomCode = 0xfffe;
+import * as subtle from "./subtle/utf16.js";
+import { BOM, BOM_REVERSE } from "./subtle/utf16.js";
 
 /**
  * 以 UTF-16 解码字节数据为字符串
@@ -24,104 +22,53 @@ const reverseBomCode = 0xfffe;
 export function decode(bytes: BufferSource, opts?: DecodeOptions): string {
     const fatal = opts?.fatal ?? false;
     const fallback = opts?.fallback ?? decodeFallback.replace;
-    let endian = opts?.endian ?? Endian.Little;
-
-    if (bytes.byteLength === 0) {
-        return "";
-    }
-
-    // 平台字节序会变，不能直接使用 Uint16Array
     const data = asDataView(bytes);
-    const hasInvalidData = data.byteLength % 2 !== 0;
+    const byteLength = data.byteLength;
+    const hasRedundantByte = byteLength % 2 !== 0;
 
-    if (hasInvalidData && fatal) {
-        throwInvalidLength(data.byteLength, "even");
-    }
-
-    if (data.byteLength === 1) {
-        return fallback(data, 0, endian, Encoding.Utf16);
-    }
-
-    let offset = 0;
-
-    // 检测 BOM
-    const bom = data.getUint16(0, true);
-    if (bom === bomCode) {
-        endian = Endian.Little;
-        offset = 2;
-    } else if (bom === reverseBomCode) {
-        endian = Endian.Big;
-        offset = 2;
-    }
-
-    // 计算剩余代码单元长度
-    const byteLength = data.byteLength - offset;
-    const unitLength = Math.floor(byteLength / 2);
-    const estimatedSize = hasInvalidData ? unitLength + 1 : unitLength;
-
-    if (estimatedSize > 0) {
-        let str = "";
-        const big = endian === Endian.Big;
-
-        for (let i = 0; i < unitLength; i++) {
-            const pos = offset + i * 2;
-            const code = data.getUint16(pos, !big);
-
-            // 是否代理对
-            if (
-                (code >= 0xd800 && code <= 0xdbff)
-                || (code >= 0xdc00 && code <= 0xdfff)
-            ) {
-                if (code >= 0xd800 && code <= 0xdbff) {
-                    // 检查匹配的低代理项
-                    if (i + 1 < unitLength) {
-                        const lowPos = pos + 2;
-                        const lowCode = data.getUint16(lowPos, !big);
-                        if (lowCode >= 0xdc00 && lowCode <= 0xdfff) {
-                            str += String.fromCharCode(code, lowCode);
-                            // 跳过低代理项
-                            i++;
-                            continue;
-                        }
-                    }
-
-                    if (fatal) {
-                        throwInvalidSurrogate(code, pos);
-                    } else {
-                        str += fallback(data, pos, endian, Encoding.Utf16);
-                    }
-                } else {
-                    // 孤立的低代理项
-                    if (fatal) {
-                        throwInvalidSurrogate(code, pos);
-                    } else {
-                        str += fallback(data, pos, endian, Encoding.Utf16);
-                    }
-                }
-            } else {
-                // 正常字符
-                str += String.fromCharCode(code);
-            }
-        }
-
-        // 无效的单字节数据
-        if (hasInvalidData) {
-            if (fatal) {
-                throwUnexpectedEnd();
-            } else {
-                str += fallback(
-                    data,
-                    data.byteLength - 1,
-                    endian,
-                    Encoding.Utf16,
-                );
-            }
-        }
-
-        return str;
-    } else {
+    if (byteLength === 0) {
         return "";
     }
+
+    if (hasRedundantByte) {
+        if (fatal) {
+            throwInvalidLength(byteLength, "even");
+        } else if (byteLength === 1) {
+            return fallback(data, 0, true);
+        }
+    }
+
+    const endian = sniff(bytes);
+    const hasBom = endian != null;
+    const little = (endian ?? opts?.endian ?? PLATFORM_ENDIAN) !== Endian.Big;
+
+    const temp = {
+        codePoint: 0,
+        offset: hasBom ? 2 : 0,
+        fallbackText: undefined as string | undefined,
+    };
+
+    let str = "";
+
+    while (temp.offset + 2 <= byteLength) {
+        const offset = temp.offset;
+        const byte = data.getUint16(offset, little);
+        const _len = subtle.measureLength(byte, fatal, offset);
+        subtle.decode(data, byte, _len, little, fatal, fallback, temp);
+
+        if (temp.fallbackText == null) {
+            str += String.fromCodePoint(temp.codePoint);
+        } else {
+            str += temp.fallbackText;
+        }
+    }
+
+    // 剩余的无效的单字节数据
+    if (temp.offset < byteLength) {
+        str += fallback(data, temp.offset, true);
+    }
+
+    return str;
 }
 
 /**
@@ -132,71 +79,31 @@ export function decode(bytes: BufferSource, opts?: DecodeOptions): string {
  * @returns UTF-16 字节数据
  */
 export function encode(text: string, opts?: EncodeOptions): Uint8Array {
-    const endian = opts?.endian ?? Endian.Little;
+    const endian = opts?.endian ?? PLATFORM_ENDIAN;
     const addBom = opts?.bom ?? true;
-    const big = endian === Endian.Big;
+    const little = endian !== Endian.Big;
     const fatal = opts?.fatal ?? false;
-    const fallback = opts?.fallback ?? encodeFallback.replace;
 
-    const bomLength = addBom ? 2 : 0;
-    const unitLength = text.length;
-    const bufferLength = unitLength * 2 + bomLength;
-
-    // 平台字节序会变，不能直接使用 Uint16Array
-    const data = new DataView(new ArrayBuffer(bufferLength));
-    let offset = 0;
+    const len = text.length;
+    const data = new DataView(new ArrayBuffer(measureSize(text, addBom)));
 
     if (addBom) {
-        data.setUint16(0, bomCode, !big);
-        offset = 2;
+        data.setUint16(0, BOM, little);
     }
 
-    for (let i = 0; i < unitLength; i++) {
-        const pos = offset + i * 2;
-        const code = text.charCodeAt(i);
+    const temp = {
+        buffer: data,
+        offset: addBom ? 2 : 0,
+    };
 
-        // 是否代理对
-        if (
-            (code >= 0xd800 && code <= 0xdbff)
-            || (code >= 0xdc00 && code <= 0xdfff)
-        ) {
-            if (code >= 0xd800 && code <= 0xdbff) {
-                // 检查匹配的低代理项
-                if (i + 1 < unitLength) {
-                    const lowPos = i + 1;
-                    const lowCode = text.charCodeAt(lowPos);
-                    if (lowCode >= 0xdc00 && lowCode <= 0xdfff) {
-                        data.setUint16(pos, code, !big);
-                        data.setUint16(lowPos, lowCode, !big);
-                        i++;
-                        continue;
-                    }
-                }
+    let i = 0;
 
-                if (fatal) {
-                    throwInvalidSurrogate(code, i);
-                } else {
-                    data.setUint16(
-                        pos,
-                        fallback(text, i, endian, Encoding.Utf16),
-                        !big,
-                    );
-                }
-            } else {
-                // 孤立的低代理项
-                if (fatal) {
-                    throwInvalidSurrogate(code, i);
-                } else {
-                    data.setUint16(
-                        pos,
-                        fallback(text, i, endian, Encoding.Utf16),
-                        !big,
-                    );
-                }
-            }
-        } else {
-            data.setUint16(pos, code, !big);
-        }
+    while (i < len) {
+        const code = text.codePointAt(i)!;
+        const _size = subtle.measureSize(code, fatal, i);
+        subtle.encode(code, _size, little, temp);
+
+        i += needsSurrogatePair(code) ? 2 : 1;
     }
 
     return asUint8Array(data);
@@ -206,22 +113,22 @@ export function encode(text: string, opts?: EncodeOptions): Uint8Array {
  * 检测 UTF-16 字节数据的字节序
  *
  * @param bytes 字节数据
- * @returns 字节序
+ * @returns 字节序，若无法检测则返回 `undefined`
  */
-export function sniff(bytes: BufferSource): Endian {
+export function sniff(bytes: BufferSource): Endian | undefined {
     const data = asUint8Array(bytes);
 
     if (data.length < 2) {
-        return Endian.Unknown;
+        return undefined;
     }
 
     const bom = (data[0] << 8) | data[1];
-    if (bom === bomCode) {
+    if (bom === BOM) {
         return Endian.Big;
-    } else if (bom === reverseBomCode) {
+    } else if (bom === BOM_REVERSE) {
         return Endian.Little;
     } else {
-        return Endian.Unknown;
+        return undefined;
     }
 }
 
@@ -229,10 +136,10 @@ export function sniff(bytes: BufferSource): Endian {
  * 验证是否为有效的 UTF-16 字节数据
  *
  * @param bytes 字节数据
- * @param endian 指定字节序，默认会自动检测，若无法检测且未指定则直接返回 `false`
+ * @param endian 指定字节序，默认会自动检测，若无法检测且未指定则使用平台字节序，若平台字节序非大端或小端，则使用小端字节序
  * @returns 是否为有效的 UTF-16 编码
  */
-export function verify(bytes: BufferSource, endian?: CodecableEndian): boolean {
+export function verify(bytes: BufferSource, endian?: Endian): boolean {
     const data = asDataView(bytes);
 
     // UTF-16 编码的字节长度必须是偶数
@@ -241,40 +148,29 @@ export function verify(bytes: BufferSource, endian?: CodecableEndian): boolean {
     }
 
     // 获取字节序
-    let _endian = sniff(data);
-    let offset = 0;
+    const _endian = sniff(data);
+    const hasBom = _endian != null;
 
-    if (_endian !== Endian.Unknown) {
-        offset += 2;
-    } else {
-        _endian = endian ?? Endian.Little;
-    }
+    const len = data.byteLength / 2;
+    const little = (_endian ?? endian ?? PLATFORM_ENDIAN) !== Endian.Big;
 
-    const unitLength = (data.byteLength - offset) / 2;
-    const big = _endian === Endian.Big;
+    for (let i = hasBom ? 1 : 0; i < len; i++) {
+        const pos = i * 2;
+        const code = data.getUint16(pos, little);
 
-    for (let i = 0; i < unitLength; i++) {
-        const pos = offset + i * 2;
-
-        const code = data.getUint16(pos, !big);
-
-        // 检查是否是高代理项
-        if (code >= 0xd800 && code <= 0xdbff) {
-            if (i + 1 >= unitLength) {
+        if (isHighSurrogate(code)) {
+            if (i + 1 >= len) {
                 return false;
             }
 
-            const lowPos = offset + (i + 1) * 2;
-            const lowCode = data.getUint16(lowPos, !big);
-
-            // 检查下一个是否是低代理项
-            if (lowCode < 0xdc00 || lowCode > 0xdfff) {
+            const lowCode = data.getUint16(pos + 2, little);
+            if (!isLowSurrogate(lowCode)) {
                 return false;
             }
 
             // 跳过已验证的低代理项
             i++;
-        } else if (code >= 0xdc00 && code <= 0xdfff) {
+        } else if (isLowSurrogate(code)) {
             return false;
         }
     }
@@ -283,17 +179,82 @@ export function verify(bytes: BufferSource, endian?: CodecableEndian): boolean {
 }
 
 /**
- * @param text 要检查的字符串
- * @param allowReplacementChar 是否允许存在替换字符 `U+001A` `U+FFFD`
- * @returns 是否是格式良好的 UTF-16 字符串
+ * 判断字符串是否可被编码为完全有效的 UTF-16 字节数据
+ *
+ * 等同于调用 {@link String.isWellFormed} 和 {@link hasReplacementChar} 方法。
  */
-export function isWellFormed(
-    text: string,
-    allowReplacementChar: boolean = true,
-): boolean {
-    // 在 JavaScript 中，所有字符串内部都已是 UTF-16 编码，仅需检查未配对的代理项
-    if (!text.isWellFormed()) {
-        return false;
-    }
-    return allowReplacementChar ? true : !replacementCharRegex.test(text);
+export function isWellFormed(text: string): boolean {
+    return text.isWellFormed() && !hasReplacementChar(text);
 }
+
+/**
+ * 精确测量字符串编码为 UTF-16 时可能的最大字节数
+ */
+export function measureSize(text: string, bom: boolean = false): number {
+    return text.length * 2 + (bom ? 2 : 0);
+}
+
+/**
+ * 精确测量 UTF-16 字节数据解码为字符串后的长度
+ */
+export function measureLength(
+    bytes: BufferSource,
+    opts?: DecodeOptions,
+): number {
+    const fatal = opts?.fatal ?? false;
+    const fallback = opts?.fallback ?? decodeFallback.replace;
+    const data = asDataView(bytes);
+    const byteLength = data.byteLength;
+    const hasRedundantByte = byteLength % 2 !== 0;
+
+    if (byteLength === 0) {
+        return 0;
+    }
+
+    if (hasRedundantByte) {
+        if (fatal) {
+            throwInvalidLength(byteLength, "even");
+        } else if (byteLength === 1) {
+            return fallback(data, 0, true).length;
+        }
+    }
+
+    const endian = sniff(bytes);
+    const hasBom = endian != null;
+    const little = (endian ?? opts?.endian ?? PLATFORM_ENDIAN) !== Endian.Big;
+
+    const temp = {
+        codePoint: 0,
+        offset: hasBom ? 2 : 0,
+        fallbackText: undefined as string | undefined,
+    };
+
+    let len = 0;
+
+    while (temp.offset + 2 <= byteLength) {
+        const offset = temp.offset;
+        const byte = data.getUint16(offset, little);
+        const _len = subtle.measureLength(byte, fatal, offset);
+        subtle.decode(data, byte, _len, little, fatal, fallback, temp);
+
+        if (temp.fallbackText == null) {
+            len += 1;
+        } else {
+            len += temp.fallbackText.length;
+        }
+    }
+
+    // 剩余的无效的单字节数据
+    if (temp.offset < byteLength) {
+        len += fallback(data, temp.offset, true).length;
+    }
+
+    return len;
+}
+
+export {
+    /**
+     * UTF-16 底层 API
+     */
+    subtle,
+};

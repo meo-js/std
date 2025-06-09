@@ -38,10 +38,10 @@ export type Unwrap<T> = T extends null | undefined
 export type Asyncify<T extends fn> = tf.Asyncify<T>;
 
 /**
- * 将 {@link PromisableLike} 值转换为值数组
+ * 将 {@link PromisableLike} 值转换为 {@link Promise} 值
  *
  */
-export async function toPromise<T>(value?: PromisableLike<T>): Promise<T> {
+export async function promisify<T>(value?: PromisableLike<T>): Promise<T> {
     if (isPromise(value)) {
         return value;
     } else {

@@ -24,7 +24,7 @@ export const PLATFORM_ENDIAN: Endian = (function () {
             return Endian.Big;
         }
     }
-    return Endian.Unknown;
+    return Endian.Platform;
 })();
 
 /**

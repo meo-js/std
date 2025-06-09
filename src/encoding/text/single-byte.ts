@@ -4,45 +4,33 @@
  * @internal
  */
 
-import { Endian, asUint8Array } from "../../typed-array.js";
-import { throwInvalidChar } from "../error.js";
+import { hasReplacementChar } from "../../string.js";
+import { asUint8Array } from "../../typed-array.js";
 import * as decodeFallback from "./decode-fallback.js";
-import * as encodeFallback from "./encode-fallback.js";
-import { Encoding } from "./enum.js";
 import type {
     SingleByteDecodeOptions,
     SingleByteEncodeOptions,
 } from "./options.js";
-import { replacementCharRegex } from "./replacement-char.js";
+import * as subtle from "./subtle/single-byte.js";
 
 export function _decode(
     maxCode: number,
-    encoding: Encoding,
     bytes: BufferSource,
     opts?: SingleByteDecodeOptions,
 ): string {
     const fatal = opts?.fatal ?? false;
     const fallback = opts?.fallback ?? decodeFallback.replace;
+    const data = asUint8Array(bytes);
 
     if (bytes.byteLength === 0) {
         return "";
     }
 
-    const data = asUint8Array(bytes);
     let str = "";
-
     let i = 0;
+
     for (const code of data) {
-        if (code > maxCode) {
-            if (fatal) {
-                throwInvalidChar(code, i);
-            } else {
-                str += fallback(data, i, Endian.Little, encoding);
-            }
-        } else {
-            str += String.fromCharCode(code);
-        }
-        i++;
+        str += subtle.decode(maxCode, data, code, fatal, fallback, i++);
     }
 
     return str;
@@ -50,26 +38,15 @@ export function _decode(
 
 export function _encode(
     maxCode: number,
-    encoding: Encoding,
     text: string,
     opts?: SingleByteEncodeOptions,
 ): Uint8Array {
     const fatal = opts?.fatal ?? false;
-    const fallback = opts?.fallback ?? encodeFallback.replace;
 
     const buffer = new Uint8Array(text.length);
 
     for (let i = 0; i < text.length; i++) {
-        const code = text.charCodeAt(i);
-        if (code > maxCode) {
-            if (fatal) {
-                throwInvalidChar(code, i);
-            } else {
-                buffer[i] = fallback(text, i, Endian.Little, encoding);
-            }
-        } else {
-            buffer[i] = code;
-        }
+        buffer[i] = subtle.encode(maxCode, text.charCodeAt(i), fatal, i);
     }
 
     return buffer;
@@ -87,11 +64,7 @@ export function _verify(maxCode: number, bytes: BufferSource): boolean {
     return true;
 }
 
-export function _isWellFormed(
-    maxCode: number,
-    text: string,
-    allowReplacementChar: boolean = true,
-): boolean {
+export function _isWellFormed(maxCode: number, text: string): boolean {
     for (let i = 0; i < text.length; i++) {
         const code = text.charCodeAt(i);
         if (code > maxCode) {
@@ -99,5 +72,5 @@ export function _isWellFormed(
         }
     }
 
-    return allowReplacementChar ? true : !replacementCharRegex.test(text);
+    return !hasReplacementChar(text);
 }

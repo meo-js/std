@@ -1,0 +1,76 @@
+/**
+ * @module
+ *
+ * @internal
+ */
+import { HAS_ARRAYBUFFER_TRANSFER } from "../env.js";
+import { isArrayBuffer } from "../predicate.js";
+import { asUint8Array } from "../typed-array.js";
+
+// NOTE: 后续如果要公开抽象，可能应该是一个基于 ArrayBuffer 的 Array 类？
+export class ResizableBuffer {
+    private _buffer: Uint8Array;
+    private _position: number = 0;
+
+    get buffer(): Uint8Array {
+        return this._buffer;
+    }
+
+    get length(): number {
+        return this._position;
+    }
+
+    constructor(initialSize: number) {
+        this._buffer = new Uint8Array(initialSize);
+    }
+
+    push(value: number): void {
+        this._buffer[this._position++] = value;
+    }
+
+    at(index: number): number {
+        return this._buffer[index];
+    }
+
+    set(index: number, value: number): void {
+        this._buffer[index] = value;
+    }
+
+    expand() {
+        const buffer = this._buffer;
+        let newLength = buffer.length;
+
+        if (newLength <= 32) {
+            newLength = 96;
+        } else if (newLength <= 1024) {
+            newLength *= 2;
+        } else {
+            newLength *= 1.5;
+        }
+
+        if (HAS_ARRAYBUFFER_TRANSFER) {
+            const src = isArrayBuffer(buffer)
+                ? buffer
+                : (buffer.buffer as ArrayBuffer);
+            this._buffer = new Uint8Array(src.transfer(newLength));
+        } else {
+            const src = asUint8Array(buffer);
+            const out = new Uint8Array(newLength);
+            out.set(src);
+            this._buffer = out;
+        }
+    }
+
+    expandIfNeeded(increment: number): boolean {
+        if (this._position + increment > this._buffer.length) {
+            this.expand();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    toUint8Array(): Uint8Array {
+        return this._buffer.subarray(0, this._position);
+    }
+}

@@ -396,6 +396,6 @@ export function containsExactly(
 /**
  * 将 {@link Arrayable} 值转换为值数组
  */
-export function toArray<T>(value: Arrayable<T>): T[] {
+export function arrayify<T>(value: Arrayable<T>): T[] {
     return Array.isArray(value) ? value : [value];
 }

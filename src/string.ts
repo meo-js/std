@@ -7,6 +7,7 @@ import * as sts from "string-ts";
 import { MAX_CALLSTACK } from "./env.js";
 import { isArray, isFunction, isObject, type IsNever } from "./predicate.js";
 import type { Rng } from "./protocol.js";
+import type { checked } from "./ts.js";
 import type { If } from "./ts/logical.js";
 import type { TypedArray } from "./typed-array.js";
 
@@ -180,10 +181,14 @@ export type ToTitleCase<T extends string> = sts.TitleCase<T>;
 const urlAlphabet =
     "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
 
+const replacementCharRegex =
+    // eslint-disable-next-line no-control-regex -- checked.
+    /[\uFFFD\u001A]/gu;
+
 /**
  * 与 {@link String.fromCharCode} 作用完全一致，但采用性能最佳的实现方式
  */
-export function fromCharCodes(arr: TypedArray | number[]) {
+export function fromCharCodes(arr: number[] | TypedArray) {
     if (isArray(arr)) {
         if (arr.length > MAX_CALLSTACK) {
             // 只能单个进行转换，否则分块必须 slice 数组，这可能很昂贵
@@ -215,7 +220,7 @@ export function fromCharCodes(arr: TypedArray | number[]) {
 /**
  * 与 {@link String.fromCodePoint} 作用完全一致，但采用性能最佳的实现方式
  */
-export function fromCodePoints(arr: TypedArray | number[]) {
+export function fromCodePoints(arr: number[] | TypedArray) {
     if (isArray(arr)) {
         if (arr.length > MAX_CALLSTACK) {
             // 只能单个进行转换，否则分块必须 slice 数组，这可能很昂贵
@@ -494,12 +499,114 @@ export function toTitleCase(str: string): string {
     return sts.titleCase(str);
 }
 
+/**
+ * 将字符串转换为 UTF-16 编码单元数组
+ */
+export function toCharCodes<T extends number[] | TypedArray>(
+    str: string,
+    out: T = [] as checked,
+): number {
+    for (let i = 0; i < str.length; i++) {
+        out[i++] = str.charCodeAt(i);
+    }
+    return str.length;
+}
+
+/**
+ * 将字符串转换为 Unicode 码点数组
+ */
+export function toCodePoints<T extends number[] | TypedArray>(
+    str: string,
+    out: T = [] as checked,
+): number {
+    const len = str.length;
+    let i = 0;
+    let index = 0;
+    while (i < len) {
+        const code = str.codePointAt(i)!;
+        out[index++] = code;
+        i += needsSurrogatePair(code) ? 2 : 1;
+    }
+    return index;
+}
+
+/**
+ * 将一个有效的 UTF-16 代理对转换为 Unicode 码点
+ *
+ * @returns 返回对应的 Unicode 码点，如果 {@link high} 并非有效的高代理，则直接返回 {@link high} 的值。
+ */
 export function toCodePoint(high: number, low: number): number {
-    if (high < 0xd800 || high > 0xdbff) {
+    if (!isHighSurrogate(high)) {
         return high;
+    } else {
+        return (high - 0xd800) * 0x400 + (low - 0xdc00) + 0x10000;
     }
-    if (low < 0xdc00 || low > 0xdfff) {
-        throw new RangeError("Invalid low surrogate");
+}
+
+/**
+ * 将一个有效的 Unicode 码点转换为 UTF-16 编码单元
+ *
+ * @returns 一个包含高位和低位编码单元的数组，如果码点小于等于 `0xffff`，则低位为 `0`。
+ */
+export function toCharCode(codePoint: number): [high: number, low: number] {
+    if (needsSurrogatePair(codePoint)) {
+        const high = toHighSurrogate(codePoint);
+        const low = toLowSurrogate(codePoint);
+        return [high, low];
+    } else {
+        return [codePoint, 0];
     }
-    return (high - 0xd800) * 0x400 + (low - 0xdc00) + 0x10000;
+}
+
+/**
+ * 将一个有效的 Unicode 码点转换为 UTF-16 高代理编码单元
+ *
+ * 请确保该码点需要使用代理对编码，否则会返回错误的结果。
+ */
+export function toHighSurrogate(codePoint: number): number {
+    return ((codePoint - 0x10000) >> 10) + 0xd800;
+}
+
+/**
+ * 将一个有效的 Unicode 码点转换为 UTF-16 低代理编码单元
+ *
+ * 请确保该码点需要使用代理对编码，否则会返回错误的结果。
+ */
+export function toLowSurrogate(codePoint: number): number {
+    return ((codePoint - 0x10000) & 0x3ff) + 0xdc00;
+}
+
+/**
+ * 判断 UTF-16 编码单元是否为高/低代理对
+ */
+export function isSurrogate(charCode: number): boolean {
+    return isHighSurrogate(charCode) || isLowSurrogate(charCode);
+}
+
+/**
+ * 判断 UTF-16 编码单元是否为高代理对
+ */
+export function isHighSurrogate(charCode: number): boolean {
+    return charCode >= 0xd800 && charCode <= 0xdbff;
+}
+
+/**
+ * 判断 UTF-16 编码单元是否为低代理对
+ */
+export function isLowSurrogate(charCode: number): boolean {
+    return charCode >= 0xdc00 && charCode <= 0xdfff;
+}
+
+/**
+ * 判断一个有效的 Unicode 码点是否需要使用代理对编码
+ */
+export function needsSurrogatePair(codePoint: number): boolean {
+    return codePoint > 0xffff;
+}
+
+/**
+ * 判断字符串是否存在替换字符 `U+001A` 或 `U+FFFD`
+ */
+export function hasReplacementChar(text: string) {
+    return replacementCharRegex.test(text);
 }

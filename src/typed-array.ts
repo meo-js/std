@@ -3,6 +3,7 @@
  *
  * @module
  */
+import { PLATFORM_ENDIAN } from "./env.js";
 import {
     isArrayBuffer,
     isBigInt64Array,
@@ -37,10 +38,20 @@ export type TypedArray =
     | Float64Array;
 
 /**
+ * 存储 `number` 类型数值的类型化数组
+ */
+export type NumberTypedArray = Exclude<TypedArray, BigIntTypedArray>;
+
+/**
+ * 存储 `bigint` 类型数值的类型化数组
+ */
+export type BigIntTypedArray = BigUint64Array | BigInt64Array;
+
+/**
  * 字节序枚举
  */
 export enum Endian {
-    Unknown = "unknown",
+    Platform = "platform",
     Little = "le",
     Big = "be",
 }
@@ -242,4 +253,14 @@ export function getBufferInfo(v: BufferSource): BufferInfo {
     } else {
         return new BufferInfo(v.buffer, v.byteOffset, v.byteLength);
     }
+}
+
+/**
+ * 检测传入的字节序是否为平台字节序
+ *
+ * @param endian 字节序
+ * @returns `boolean`
+ */
+export function isPlatformEndian(endian: Endian): boolean {
+    return endian === Endian.Platform || endian === PLATFORM_ENDIAN;
 }

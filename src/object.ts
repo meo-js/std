@@ -160,8 +160,6 @@ export type Assign<
 
 type _EnsureObject<T> = T extends readonly unknown[] ? ToObject<Mutable<T>> : T;
 
-let fastProto: unknown = null;
-
 /**
  * @returns 若属性在原型链中存在则返回 `true`，否则返回 `false`
  */
@@ -397,27 +395,4 @@ export function invert<K extends PropertyKey, V extends PropertyKey>(
     }
 
     return result;
-}
-
-/**
- * 强制将对象转换为某些 JavaScript 引擎所谓的 “快速对象”
- *
- * @see {@link https://github.com/sindresorhus/to-fast-properties}
- */
-export function forceToFastObject<T extends object>(o: T): T {
-    return _FastObject(o) as T;
-}
-
-function _FastObject(this: void, o: object) {
-    if (fastProto !== null) {
-        (<{ a: number }>(<unknown>this)).a = 1; // < SotreIC >
-        const res = fastProto;
-        fastProto = null;
-        return res;
-    }
-
-    fastProto = _FastObject.prototype = o;
-
-    // @ts-expect-error -- ts7009 checked.
-    return new _FastObject() as unknown;
 }
