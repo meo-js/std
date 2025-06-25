@@ -264,3 +264,18 @@ export function getBufferInfo(v: BufferSource): BufferInfo {
 export function isPlatformEndian(endian: Endian): boolean {
     return endian === Endian.Platform || endian === PLATFORM_ENDIAN;
 }
+
+/**
+ * 标准化字节序的输入
+ *
+ * 该函数用于解决当用户传入 {@link Endian.Platform} 时无法确定是使用平台字节序还是平台字节序是特殊字节序的问题。
+ *
+ * @returns 若输入的是 {@link Endian.Platform} 或 `undefined`，则返回 {@link PLATFORM_ENDIAN}，否则返回原值
+ */
+export function normalizeEndian(endian: Endian = PLATFORM_ENDIAN): Endian {
+    if (endian === Endian.Platform) {
+        return PLATFORM_ENDIAN;
+    } else {
+        return endian;
+    }
+}

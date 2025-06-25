@@ -3,7 +3,7 @@
  *
  * @module
  */
-import * as tf from "type-fest";
+import type * as tf from "type-fest";
 import { isBigInt, isNumber } from "./predicate.js";
 import type { And, Not } from "./ts/logical.js";
 

@@ -3,7 +3,7 @@
  *
  * @module
  */
-import * as tf from "type-fest";
+import type * as tf from "type-fest";
 
 /**
  * 条件类型

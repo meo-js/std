@@ -6,10 +6,8 @@ import {
     hasReplacementChar,
     isHighSurrogate,
     isLowSurrogate,
-    isReplacementCodePoint,
     isSurrogate,
     needsSurrogatePair,
-    toCodePoint,
     toHighSurrogate,
     toLowSurrogate,
     UNICODE_REPLACEMENT_CODE_POINT,
@@ -23,6 +21,7 @@ import {
 } from "../error.js";
 import * as decodeFallback from "./decode-fallback.js";
 import type { Utf16DecodeOptions, Utf16EncodeOptions } from "./options.js";
+import { IsWellFormedPipe, VerifyPipe } from "./utf.js";
 
 /**
  * 大端序 UTF-16 BOM
@@ -116,10 +115,12 @@ class DecodePipe implements IPipe<number, string> {
                     const cont = next(fallback(unit, true));
                     this.totalPosition += 2;
                     if (!cont) {
+                        // 继续处理 unit2
+                        return this.handleUnit(next);
+                    } else {
+                        buffer.clear();
                         return false;
                     }
-                    // 继续处理 unit2
-                    return this.handleUnit(next);
                 }
             }
         } else if (isLowSurrogate(unit)) {
@@ -240,166 +241,6 @@ class EncodePipe implements IPipe<number, number> {
     }
 }
 
-class VerifyPipe implements IPipe<number, boolean, boolean> {
-    private endian: Endian;
-    private buffer = new CircleDataView(4);
-    // 0 1 2 对应初始字节序，3 4 5 对应已最终确认字节序，顺序是平台、小端、大端
-    private endianFlag = 0;
-    private result: boolean = true;
-
-    constructor(
-        private allowReplacementChar: boolean = false,
-        endian?: Endian,
-    ) {
-        this.endian = normalizeEndian(endian);
-        this.endianFlag = toEndianFlag(this.endian, false);
-    }
-
-    transform(byte: number, next: Next<boolean>): boolean {
-        const { buffer, endianFlag } = this;
-
-        buffer.writeUint8(byte);
-
-        if (buffer.size % 2 !== 0) {
-            return true;
-        }
-
-        // 未确定字节序
-        if (endianFlag < 3) {
-            const endian = sniff(buffer.peekUint8(0)!, byte);
-            if (endian != null) {
-                this.endianFlag = toEndianFlag(endian, true);
-                buffer.skip(2);
-                return true;
-            } else {
-                this.endianFlag += 3;
-                return this.handleUnit(next);
-            }
-        } else {
-            return this.handleUnit(next);
-        }
-    }
-
-    private handleUnit(next: Next<boolean>): boolean {
-        const { buffer, endianFlag } = this;
-        const little = endianFlag !== 5;
-
-        const unit = buffer.peekUint16(0, little)!;
-
-        if (isHighSurrogate(unit)) {
-            const unit2 = buffer.peekUint16(2, little);
-            if (unit2 != null) {
-                buffer.skip(2);
-                if (isLowSurrogate(unit2)) {
-                    buffer.skip(2);
-                    return this.checkReplacementChar(
-                        toCodePoint(unit, unit2),
-                        next,
-                    );
-                } else {
-                    this.result = false;
-                    next(false);
-                    return false;
-                }
-            } else {
-                // 没有 unit2，等待下一个字节
-                return true;
-            }
-        } else if (isLowSurrogate(unit)) {
-            buffer.skip(2);
-            this.result = false;
-            next(false);
-            return false;
-        } else {
-            buffer.skip(2);
-            return this.checkReplacementChar(unit, next);
-        }
-    }
-
-    private checkReplacementChar(
-        codePoint: number,
-        next: Next<boolean>,
-    ): boolean {
-        if (!this.allowReplacementChar && isReplacementCodePoint(codePoint)) {
-            this.result = false;
-            next(false);
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    flush(next: Next<boolean>): boolean {
-        const hasUnreadBytes = this.buffer.size > 0;
-
-        this.reset();
-
-        if (!this.result) {
-            return false;
-        }
-
-        // 上一个字符是高代理项，但没有后续的低代理项 / 存在无法组成 Uint16 的字节
-        if (hasUnreadBytes) {
-            next(false);
-            return false;
-        }
-
-        next(true);
-        return true;
-    }
-
-    catch?(error: unknown): void {
-        this.reset();
-    }
-
-    reset() {
-        this.buffer.clear();
-        this.endianFlag = toEndianFlag(this.endian, false);
-        this.result = true;
-    }
-}
-
-class IsWellFormedPipe implements IPipe<number, boolean, boolean> {
-    private result: boolean = true;
-
-    constructor(private allowReplacementChar: boolean = false) {}
-
-    transform(codePoint: number, next: Next<boolean>): boolean {
-        if (isSurrogate(codePoint)) {
-            this.result = false;
-            next(false);
-            return false;
-        } else {
-            if (
-                !this.allowReplacementChar
-                && isReplacementCodePoint(codePoint)
-            ) {
-                this.result = false;
-                next(false);
-                return false;
-            } else {
-                return true;
-            }
-        }
-    }
-
-    flush(next: Next<boolean>): boolean {
-        const result = this.result;
-        this.result = true;
-
-        if (!result) {
-            return false;
-        }
-
-        next(true);
-        return true;
-    }
-
-    catch(error: unknown): void {
-        this.result = true;
-    }
-}
-
 /**
  * 创建一个解码 UTF-16 字节数据的管道
  */
@@ -418,7 +259,12 @@ export function encodePipe(opts?: Utf16EncodeOptions) {
  * 创建一个验证字节数据是否为有效 UTF-16 编码的管道
  */
 export function verifyPipe(allowReplacementChar?: boolean, endian?: Endian) {
-    return new Pipe(new VerifyPipe(allowReplacementChar, endian));
+    return new Pipe(
+        new VerifyPipe(
+            decodePipe({ fatal: true, endian }),
+            allowReplacementChar,
+        ),
+    );
 }
 
 /**
@@ -499,8 +345,6 @@ export function verify(
 
 /**
  * 判断字符串是否可被编码为完全有效的 UTF-16 字节数据
- *
- * 等同于调用 {@link String.isWellFormed} 和 {@link hasReplacementChar} 方法。
  */
 export function isWellFormed(
     text: string,

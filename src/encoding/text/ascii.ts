@@ -2,8 +2,49 @@ import type {
     SingleByteDecodeOptions,
     SingleByteEncodeOptions,
 } from "./options.js";
-import { _decode, _encode, _isWellFormed, _verify } from "./single-byte.js";
-import * as subtle from "./subtle/ascii.js";
+import {
+    _decode,
+    _decodePipe,
+    _encode,
+    _encodePipe,
+    _isWellFormed,
+    _isWellFormedPipe,
+    _verify,
+    _verifyPipe,
+} from "./single-byte.js";
+
+/**
+ * Ascii 最大码点
+ */
+export const MAX_CODE = 127;
+
+/**
+ * 创建一个解码 Ascii 字节数据的管道
+ */
+export function decodePipe(opts?: SingleByteDecodeOptions) {
+    return _decodePipe(MAX_CODE, opts);
+}
+
+/**
+ * 创建一个编码字符码点为 Ascii 字节数据的管道
+ */
+export function encodePipe(opts?: SingleByteEncodeOptions) {
+    return _encodePipe(MAX_CODE, opts);
+}
+
+/**
+ * 创建一个验证字节数据是否为有效 Ascii 编码的管道
+ */
+export function verifyPipe(allowReplacementChar?: boolean) {
+    return _verifyPipe(MAX_CODE, allowReplacementChar);
+}
+
+/**
+ * 创建一个验证字符码点是否能编码为 Ascii 的管道
+ */
+export function isWellFormedPipe(allowReplacementChar?: boolean) {
+    return _isWellFormedPipe(MAX_CODE, allowReplacementChar);
+}
 
 /**
  * 以 Ascii 解码字节数据为字符串
@@ -16,7 +57,7 @@ export function decode(
     bytes: BufferSource,
     opts?: SingleByteDecodeOptions,
 ): string {
-    return _decode(subtle.MAX_CODE, bytes, opts);
+    return _decode(MAX_CODE, bytes, opts);
 }
 
 /**
@@ -30,30 +71,31 @@ export function encode(
     text: string,
     opts?: SingleByteEncodeOptions,
 ): Uint8Array {
-    return _encode(subtle.MAX_CODE, text, opts);
+    return _encode(MAX_CODE, text, opts);
 }
 
 /**
  * 验证是否为有效的 Ascii 字节数据
  *
  * @param bytes 字节数据
+ * @param allowReplacementChar 是否允许存在替换字符 `U+001A`，默认 `false`
  * @returns 是否为有效的 Ascii 编码
  */
-export function verify(bytes: BufferSource): boolean {
-    return _verify(subtle.MAX_CODE, bytes);
+export function verify(
+    bytes: BufferSource,
+    allowReplacementChar?: boolean,
+): boolean {
+    return _verify(MAX_CODE, bytes, allowReplacementChar);
 }
 
 /**
  * @param text 要检查的字符串
+ * @param allowReplacementChar 是否允许存在替换字符 `U+001A`，默认 `false`
  * @returns 是否是有效的 Ascii 字符串
  */
-export function isWellFormed(text: string): boolean {
-    return _isWellFormed(subtle.MAX_CODE, text);
+export function isWellFormed(
+    text: string,
+    allowReplacementChar?: boolean,
+): boolean {
+    return _isWellFormed(MAX_CODE, text, allowReplacementChar);
 }
-
-export {
-    /**
-     * Ascii 底层 API
-     */
-    subtle,
-};

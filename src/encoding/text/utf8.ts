@@ -1,49 +1,295 @@
-import { ResizableBuffer } from "../../internal/resizable-buffer.js";
-import { hasReplacementChar, needsSurrogatePair } from "../../string.js";
+import { CircleBuffer } from "../../memory.js";
+import { flat, Pipe, type IPipe, type Next } from "../../pipe.js";
+import { concatString, flatToCodePoint } from "../../pipe/string.js";
+import { toUint8Array } from "../../pipe/typed-array.js";
+import {
+    hasReplacementChar,
+    isSurrogate,
+    needsSurrogatePair,
+} from "../../string.js";
 import { asUint8Array } from "../../typed-array.js";
+import {
+    catchError,
+    throwInvalidByte,
+    throwInvalidSurrogate,
+    wrapError,
+} from "../error.js";
 import * as decodeFallback from "./decode-fallback.js";
-import type { SingleByteDecodeOptions, Utf8EncodeOptions } from "./options.js";
-import { unicodeReplacementCharBytes } from "./replacement-char.js";
-import * as subtle from "./subtle/utf8.js";
-import { BOM } from "./subtle/utf8.js";
+import type { Utf8DecodeOptions, Utf8EncodeOptions } from "./options.js";
+import { IsWellFormedPipe, VerifyPipe } from "./utf.js";
+
+/**
+ * UTF-8 BOM
+ */
+export const BOM = new Uint8Array([0xef, 0xbb, 0xbf]);
+
+const REPLACEMENT_CHAR_BYTES = new Uint8Array([0xef, 0xbf, 0xbd]);
+
+class DecodePipe implements IPipe<number, string> {
+    private fatal: boolean;
+    private fallback: decodeFallback.DecodeFallback;
+    private buffer = new CircleBuffer(new Uint8Array(4));
+    private totalPosition = 0;
+    private bomDetected: 0 | 1 | 2 | 3 = 0;
+
+    constructor(opts?: Utf8DecodeOptions) {
+        this.fatal = opts?.fatal ?? false;
+        this.fallback = opts?.fallback ?? decodeFallback.replace;
+    }
+
+    transform(byte: number, next: Next<string>): boolean {
+        this.buffer.write(byte);
+
+        if (this.bomDetected === 3) {
+            return this.handleUnit(next, false);
+        } else {
+            switch (this.bomDetected) {
+                case 0:
+                    if (byte === BOM[0]) {
+                        this.bomDetected = 1;
+                        return true;
+                    } else {
+                        this.bomDetected = 3;
+                        return this.handleUnit(next, false);
+                    }
+
+                case 1:
+                    if (byte === BOM[1]) {
+                        this.bomDetected = 2;
+                        return true;
+                    } else {
+                        this.bomDetected = 3;
+                        return this.handleUnit(next, false);
+                    }
+
+                case 2:
+                    if (byte === BOM[2]) {
+                        this.bomDetected = 3;
+                        this.buffer.skip(3);
+                        this.totalPosition += 3;
+                        return true;
+                    } else {
+                        this.bomDetected = 3;
+                        return this.handleUnit(next, false);
+                    }
+            }
+        }
+    }
+
+    private handleUnit(next: Next<string>, flush: boolean): boolean {
+        const { buffer, fatal, fallback } = this;
+
+        const byte = buffer.peek()!;
+        const len = measureUnitLength(byte, this.fatal);
+
+        if (len === 1) {
+            buffer.skip(1);
+            const cont = next(String.fromCharCode(byte));
+            this.totalPosition += 1;
+            return cont;
+        }
+
+        if (len === -1) {
+            buffer.skip(1);
+            const cont = next(fallback(byte, true));
+            this.totalPosition += 1;
+            return cont;
+        }
+
+        // 等待更多字节
+        if (buffer.size < len) {
+            if (flush) {
+                if (fatal) {
+                    throwInvalidByte(byte);
+                } else {
+                    buffer.skip(1);
+                    const cont = next(fallback(byte, true));
+                    this.totalPosition += 1;
+                    if (cont) {
+                        return this.handleUnit(next, flush);
+                    } else {
+                        return false;
+                    }
+                }
+            } else {
+                return true;
+            }
+        }
+
+        // 组合字节
+        let codePoint = 0;
+        for (let i = 1; i < len; i++) {
+            const _byte = buffer.peek(i)!;
+            if ((_byte & 0xc0) !== 0x80) {
+                if (fatal) {
+                    throwInvalidByte(byte);
+                } else {
+                    buffer.skip(1);
+                    const cont = next(fallback(byte, true));
+                    this.totalPosition += 1;
+                    if (cont) {
+                        return this.handleUnit(next, flush);
+                    } else {
+                        buffer.clear();
+                        return false;
+                    }
+                }
+            } else {
+                codePoint = (codePoint << 6) | (_byte & 0x3f);
+            }
+        }
+        if (len === 2) {
+            codePoint = ((byte & 0x1f) << 6) | codePoint;
+        } else if (len === 3) {
+            codePoint = ((byte & 0x0f) << 12) | codePoint;
+        } else {
+            codePoint = ((byte & 0x07) << 18) | codePoint;
+        }
+
+        buffer.skip(len);
+
+        if (isSurrogate(codePoint) || codePoint > 0x10ffff) {
+            if (fatal) {
+                throwInvalidSurrogate(codePoint);
+            } else {
+                const cont = next(fallback(codePoint, true));
+                this.totalPosition += len;
+                return cont;
+            }
+        }
+
+        const cont = next(String.fromCodePoint(codePoint));
+        this.totalPosition += len;
+        return cont;
+    }
+
+    flush(next: Next<string>): void {
+        while (this.buffer.size !== 0) {
+            if (!this.handleUnit(next, true)) {
+                break;
+            }
+        }
+
+        this.reset();
+    }
+
+    catch(error: unknown): unknown {
+        const totalPosition = this.totalPosition;
+        this.reset();
+        return wrapError(error, totalPosition);
+    }
+
+    reset() {
+        this.buffer.clear();
+        this.totalPosition = 0;
+        this.bomDetected = 0;
+    }
+}
+
+class EncodePipe implements IPipe<number, number> {
+    private fatal: boolean;
+    private addBom: boolean;
+    private needAddBom: boolean;
+
+    constructor(opts?: Utf8EncodeOptions) {
+        this.fatal = opts?.fatal ?? false;
+        this.addBom = opts?.bom ?? false;
+        this.needAddBom = this.addBom;
+    }
+
+    transform(codePoint: number, next: Next<number>): boolean {
+        if (this.needAddBom) {
+            this.needAddBom = false;
+            if (!(next(BOM[0]) && next(BOM[1]) && next(BOM[2]))) {
+                return false;
+            }
+        }
+
+        if (codePoint <= 0x7f) {
+            return next(codePoint);
+        } else if (codePoint <= 0x7ff) {
+            return (
+                next((codePoint >> 6) | 0xc0) && next((codePoint & 0x3f) | 0x80)
+            );
+        } else if (isSurrogate(codePoint)) {
+            if (this.fatal) {
+                throwInvalidSurrogate(codePoint);
+            } else {
+                return (
+                    next(REPLACEMENT_CHAR_BYTES[0])
+                    && next(REPLACEMENT_CHAR_BYTES[1])
+                    && next(REPLACEMENT_CHAR_BYTES[2])
+                );
+            }
+        } else if (codePoint <= 0xffff) {
+            return (
+                next((codePoint >> 12) | 0xe0)
+                && next(((codePoint >> 6) & 0x3f) | 0x80)
+                && next((codePoint & 0x3f) | 0x80)
+            );
+        } else {
+            return (
+                next((codePoint >> 18) | 0xf0)
+                && next(((codePoint >> 12) & 0x3f) | 0x80)
+                && next(((codePoint >> 6) & 0x3f) | 0x80)
+                && next((codePoint & 0x3f) | 0x80)
+            );
+        }
+    }
+
+    flush(next: Next<number>): void {
+        const { needAddBom } = this;
+        this.reset();
+        if (needAddBom) {
+            next(BOM[0]) && next(BOM[1]) && next(BOM[2]);
+        }
+    }
+
+    reset() {
+        this.needAddBom = this.addBom;
+    }
+}
+
+/**
+ * 创建一个解码 UTF-8 字节数据的管道
+ */
+export function decodePipe(opts?: Utf8DecodeOptions) {
+    return new Pipe(new DecodePipe(opts));
+}
+
+/**
+ * 创建一个编码字符码点为 UTF-8 字节数据的管道
+ */
+export function encodePipe(opts?: Utf8EncodeOptions) {
+    return new Pipe(new EncodePipe(opts));
+}
+
+/**
+ * 创建一个验证字节数据是否为有效 UTF-8 编码的管道
+ */
+export function verifyPipe(allowReplacementChar?: boolean) {
+    return new Pipe(
+        new VerifyPipe(decodePipe({ fatal: true }), allowReplacementChar),
+    );
+}
+
+/**
+ * 创建一个验证字符串码点是否能编码为 UTF-8 的管道
+ */
+export function isWellFormedPipe(allowReplacementChar?: boolean) {
+    return new Pipe(new IsWellFormedPipe(allowReplacementChar));
+}
 
 /**
  * 以 UTF-8 解码字节数据为字符串
  *
  * @param bytes 字节数据
- * @param opts {@link SingleByteDecodeOptions}
+ * @param opts {@link Utf8DecodeOptions}
  * @returns 字符串
  */
-export function decode(
-    bytes: BufferSource,
-    opts?: SingleByteDecodeOptions,
-): string {
+export function decode(bytes: BufferSource, opts?: Utf8DecodeOptions): string {
     const data = asUint8Array(bytes);
-    const fatal = opts?.fatal ?? false;
-    const fallback = opts?.fallback ?? decodeFallback.replace;
-
-    let str = "";
-
-    const temp = {
-        codePoint: 0,
-        offset: hasBom(data) ? 3 : 0,
-        fallbackText: undefined as string | undefined,
-    };
-
-    while (temp.offset < data.length) {
-        const offset = temp.offset;
-        const byte = data[offset];
-        const _len = subtle.measureLength(byte, fatal, offset);
-        subtle.decode(data, byte, _len, fatal, fallback, temp);
-
-        if (temp.fallbackText == null) {
-            str += String.fromCodePoint(temp.codePoint);
-        } else {
-            str += temp.fallbackText;
-        }
-    }
-
-    return str;
+    return Pipe.run(data, flat(), decodePipe(opts), concatString());
 }
 
 /**
@@ -54,44 +300,13 @@ export function decode(
  * @returns UTF-8 字节数据
  */
 export function encode(text: string, opts?: Utf8EncodeOptions): Uint8Array {
-    const addBom = opts?.bom ?? false;
-    const fatal = opts?.fatal ?? false;
-
-    const buffer = new ResizableBuffer(addBom ? text.length + 3 : text.length);
-
-    const temp = {
-        buffer: buffer.buffer,
-        offset: 0,
-    };
-
-    if (addBom) {
-        buffer.push(BOM[0]);
-        buffer.push(BOM[1]);
-        buffer.push(BOM[2]);
-        temp.offset += 3;
-    }
-
-    const len = text.length;
-    let i = 0;
-
-    while (i < len) {
-        const code = text.codePointAt(i)!;
-        let _size = subtle.measureSize(code, fatal, i);
-
-        if (_size === 0) {
-            _size = unicodeReplacementCharBytes.length as 3;
-        }
-
-        if (buffer.expandIfNeeded(_size)) {
-            temp.buffer = buffer.buffer;
-        }
-
-        subtle.encode(code, _size, temp);
-
-        i += needsSurrogatePair(code) ? 2 : 1;
-    }
-
-    return buffer.toUint8Array();
+    return Pipe.run(
+        text,
+        flatToCodePoint(),
+        catchError(),
+        encodePipe(opts),
+        toUint8Array(),
+    );
 }
 
 /**
@@ -113,38 +328,28 @@ export function hasBom(bytes: Uint8Array): boolean {
  * 验证是否为有效的 UTF-8 字节数据
  *
  * @param bytes 字节数据
+ * @param allowReplacementChar 是否允许存在替换字符 `U+001A` 或 `U+FFFD`，默认 `false`
  * @returns 是否为有效的 UTF-8 编码
  */
-export function verify(bytes: BufferSource): boolean {
+export function verify(
+    bytes: BufferSource,
+    allowReplacementChar?: boolean,
+): boolean {
     const data = asUint8Array(bytes);
-
-    const temp = {
-        codePoint: 0,
-        offset: hasBom(data) ? 3 : 0,
-        fallbackText: undefined as string | undefined,
-    };
-
-    while (temp.offset < data.length) {
-        const offset = temp.offset;
-        const byte = data[offset];
-        const _len = subtle.measureLength(byte, false, offset);
-        subtle.decode(data, byte, _len, false, decodeFallback.replace, temp);
-
-        if (temp.fallbackText != null) {
-            return false;
-        }
-    }
-
-    return true;
+    return Pipe.run(data, flat(), verifyPipe(allowReplacementChar));
 }
 
 /**
  * 判断字符串是否可被编码为完全有效的 UTF-8 字节数据
- *
- * 等同于调用 {@link String.isWellFormed} 和 {@link hasReplacementChar} 方法。
  */
-export function isWellFormed(text: string): boolean {
-    return text.isWellFormed() && !hasReplacementChar(text);
+export function isWellFormed(
+    text: string,
+    allowReplacementChar: boolean = false,
+): boolean {
+    return (
+        text.isWellFormed()
+        && (allowReplacementChar || !hasReplacementChar(text))
+    );
 }
 
 /**
@@ -167,10 +372,10 @@ export function measureSize(text: string, opts?: Utf8EncodeOptions): number {
 
     while (i < len) {
         const code = text.codePointAt(i)!;
-        const _size = subtle.measureSize(code, fatal, i);
+        const _size = measureCharSize(code, fatal);
 
-        if (_size === 0) {
-            size += unicodeReplacementCharBytes.length;
+        if (_size === -1) {
+            size += REPLACEMENT_CHAR_BYTES.length;
         } else {
             size += _size;
         }
@@ -186,39 +391,64 @@ export function measureSize(text: string, opts?: Utf8EncodeOptions): number {
  */
 export function measureLength(
     bytes: BufferSource,
-    opts?: SingleByteDecodeOptions,
+    opts?: Utf8DecodeOptions,
 ): number {
     const data = asUint8Array(bytes);
-    const fatal = opts?.fatal ?? false;
-    const fallback = opts?.fallback ?? decodeFallback.replace;
-
-    let length = 0;
-
-    const temp = {
-        codePoint: 0,
-        offset: hasBom(data) ? 3 : 0,
-        fallbackText: undefined as string | undefined,
-    };
-
-    while (temp.offset < data.length) {
-        const offset = temp.offset;
-        const byte = data[offset];
-        const _len = subtle.measureLength(byte, fatal, offset);
-        subtle.decode(data, byte, _len, fatal, fallback, temp);
-
-        if (temp.fallbackText != null) {
-            length += temp.fallbackText.length;
-        } else {
-            length += needsSurrogatePair(temp.codePoint) ? 2 : 1;
-        }
-    }
-
-    return length;
+    let len = 0;
+    Pipe.run(data, flat(), decodePipe(opts), input => {
+        len += input.length;
+    });
+    return len;
 }
 
-export {
-    /**
-     * UTF-8 底层 API
-     */
-    subtle,
-};
+/**
+ * 精确测量 Unicode 码点编码为 UTF-8 时所需字节数
+ *
+ * @returns -1 表示无效代理对，1 - 4 为完整长度
+ */
+export function measureCharSize(
+    codePoint: number,
+    fatal: boolean,
+): -1 | 1 | 2 | 3 | 4 {
+    if (codePoint <= 0x7f) {
+        return 1;
+    } else if (codePoint <= 0x7ff) {
+        return 2;
+    } else if (isSurrogate(codePoint)) {
+        if (fatal) {
+            throwInvalidSurrogate(codePoint);
+        } else {
+            return -1;
+        }
+    } else if (codePoint <= 0xffff) {
+        return 3;
+    } else {
+        return 4;
+    }
+}
+
+/**
+ * 精确测量 UTF-8 起始字节对应 Unicode 码点的完整字节序列长度
+ *
+ * @returns -1 表示无效字节，1 - 4 为完整长度
+ */
+export function measureUnitLength(
+    byte: number,
+    fatal: boolean,
+): -1 | 1 | 2 | 3 | 4 {
+    if ((byte & 0x80) === 0) {
+        return 1;
+    } else if ((byte & 0xe0) === 0xc0) {
+        return 2;
+    } else if ((byte & 0xf0) === 0xe0) {
+        return 3;
+    } else if ((byte & 0xf8) === 0xf0) {
+        return 4;
+    } else {
+        if (fatal) {
+            throwInvalidSurrogate(byte);
+        } else {
+            return -1;
+        }
+    }
+}

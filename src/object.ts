@@ -3,7 +3,7 @@
  *
  * @module
  */
-import * as tf from "type-fest";
+import type * as tf from "type-fest";
 import type { ToObject, Zip } from "./array.js";
 import { isRecordObject } from "./predicate.js";
 import type { checked, IsLiteral, Mutable } from "./ts.js";

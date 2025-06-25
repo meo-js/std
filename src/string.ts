@@ -177,6 +177,28 @@ export type ToSnakeCase<T extends string> = sts.SnakeCase<T>;
  */
 export type ToTitleCase<T extends string> = sts.TitleCase<T>;
 
+/**
+ * Ascii 替换字符 `U+001A`
+ */
+export const ASCII_REPLACEMENT_CHAR = "\u001A";
+
+/**
+ * Ascii 替换字符 `U+001A` 码点
+ */
+export const ASCII_REPLACEMENT_CODE_POINT =
+    ASCII_REPLACEMENT_CHAR.charCodeAt(0);
+
+/**
+ * Unicode 替换字符 `U+FFFD`
+ */
+export const UNICODE_REPLACEMENT_CHAR = "\uFFFD";
+
+/**
+ * Unicode 替换字符 `U+FFFD` 码点
+ */
+export const UNICODE_REPLACEMENT_CODE_POINT =
+    UNICODE_REPLACEMENT_CHAR.charCodeAt(0);
+
 // from https://github.com/ai/nanoid
 const urlAlphabet =
     "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
@@ -548,13 +570,18 @@ export function toCodePoint(high: number, low: number): number {
  *
  * @returns 一个包含高位和低位编码单元的数组，如果码点小于等于 `0xffff`，则低位为 `0`。
  */
-export function toCharCode(codePoint: number): [high: number, low: number] {
+export function toCodeUnit(
+    codePoint: number,
+    out: [high: number, low: number] = [0, 0],
+): [high: number, low: number] {
     if (needsSurrogatePair(codePoint)) {
-        const high = toHighSurrogate(codePoint);
-        const low = toLowSurrogate(codePoint);
-        return [high, low];
+        out[0] = toHighSurrogate(codePoint);
+        out[1] = toLowSurrogate(codePoint);
+        return out;
     } else {
-        return [codePoint, 0];
+        out[0] = codePoint;
+        out[1] = 0;
+        return out;
     }
 }
 
@@ -595,6 +622,30 @@ export function isHighSurrogate(charCode: number): boolean {
  */
 export function isLowSurrogate(charCode: number): boolean {
     return charCode >= 0xdc00 && charCode <= 0xdfff;
+}
+
+/**
+ * 判断 Unicode 码点是否为替换字符 `U+001A` 或 `U+FFFD`
+ */
+export function isReplacementCodePoint(codePoint: number): boolean {
+    return (
+        isAsciiReplacementCodePoint(codePoint)
+        || isUnicodeReplacementCodePoint(codePoint)
+    );
+}
+
+/**
+ * 判断 Unicode 码点是否为 Ascii 替换字符 `U+001A`
+ */
+export function isAsciiReplacementCodePoint(codePoint: number): boolean {
+    return codePoint === ASCII_REPLACEMENT_CODE_POINT;
+}
+
+/**
+ * 判断 Unicode 码点是否为 Unicode 替换字符 `U+FFFD`
+ */
+export function isUnicodeReplacementCodePoint(codePoint: number): boolean {
+    return codePoint === UNICODE_REPLACEMENT_CODE_POINT;
 }
 
 /**
