@@ -214,24 +214,24 @@ export function fromCharCodes(arr: number[] | TypedArray) {
     if (isArray(arr)) {
         if (arr.length > MAX_CALLSTACK) {
             // 只能单个进行转换，否则分块必须 slice 数组，这可能很昂贵
-            let result = "";
+            const parts: string[] = [];
             for (let i = 0; i < arr.length; i++) {
-                result += String.fromCharCode(arr[i]);
+                parts.push(String.fromCharCode(arr[i]));
             }
-            return result;
+            return parts.join("");
         } else {
             return String.fromCharCode.apply(undefined, arr);
         }
     } else {
         if (arr.length > MAX_CALLSTACK) {
             // 分块进行转换
-            let result = "";
+            const parts: string[] = [];
             for (let i = 0; i < arr.length; i += MAX_CALLSTACK) {
                 const chunk = arr.subarray(i, i + MAX_CALLSTACK);
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- checked.
-                result += String.fromCharCode.apply(undefined, chunk as any);
+                parts.push(String.fromCharCode.apply(undefined, chunk as any));
             }
-            return result;
+            return parts.join("");
         } else {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- checked.
             return String.fromCharCode.apply(undefined, arr as any);
@@ -246,24 +246,24 @@ export function fromCodePoints(arr: number[] | TypedArray) {
     if (isArray(arr)) {
         if (arr.length > MAX_CALLSTACK) {
             // 只能单个进行转换，否则分块必须 slice 数组，这可能很昂贵
-            let result = "";
+            const parts: string[] = [];
             for (let i = 0; i < arr.length; i++) {
-                result += String.fromCodePoint(arr[i]);
+                parts.push(String.fromCodePoint(arr[i]));
             }
-            return result;
+            return parts.join("");
         } else {
             return String.fromCodePoint.apply(undefined, arr);
         }
     } else {
         if (arr.length > MAX_CALLSTACK) {
             // 分块进行转换
-            let result = "";
+            const parts: string[] = [];
             for (let i = 0; i < arr.length; i += MAX_CALLSTACK) {
                 const chunk = arr.subarray(i, i + MAX_CALLSTACK);
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- checked.
-                result += String.fromCodePoint.apply(undefined, chunk as any);
+                parts.push(String.fromCodePoint.apply(undefined, chunk as any));
             }
-            return result;
+            return parts.join("");
         } else {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- checked.
             return String.fromCodePoint.apply(undefined, arr as any);
@@ -631,6 +631,21 @@ export function isReplacementCodePoint(codePoint: number): boolean {
     return (
         isAsciiReplacementCodePoint(codePoint)
         || isUnicodeReplacementCodePoint(codePoint)
+    );
+}
+
+/**
+ * 判断 Unicode 码点是否为空白字符
+ *
+ * 包括：制表符 `U+0009`、换行符 `U+000A`、回车符 `U+000D`、换页符 `U+000C` 和空格 `U+0020`
+ */
+export function isWhitespaceCodePoint(codePoint: number): boolean {
+    return (
+        codePoint === 0x09
+        || codePoint === 0x0a
+        || codePoint === 0x0c
+        || codePoint === 0x0d
+        || codePoint === 0x20
     );
 }
 

@@ -1,8 +1,11 @@
+import { flat, Pipe, type IPipe, type Next } from "../../pipe.js";
+import { concatString, flatToCodePoint } from "../../pipe/string.js";
+import { toUint8Array } from "../../pipe/typed-array.js";
 import { isString } from "../../predicate.js";
+import { isWhitespaceCodePoint } from "../../string.js";
 import { asUint8Array } from "../../typed-array.js";
-import { unit8 } from "../byte.js";
 import { throwInvalidChar, throwInvalidLength } from "../error.js";
-import * as text from "../text.js";
+import { utf8 } from "../text.js";
 import type { HexDecodeOptions, HexEncodeOptions } from "./options.js";
 
 const encodeTable = [
@@ -280,113 +283,247 @@ const decodeTable = new Uint8Array([
 const whitespaceRegex = /\s+/gu;
 const verifyRegex = /^[0-9a-fA-F]+$/u;
 
+class EncodePipe implements IPipe<number, string> {
+    private pretty: boolean;
+    private first = true;
+
+    constructor(opts?: HexEncodeOptions) {
+        this.pretty = opts?.pretty ?? false;
+    }
+
+    transform(byte: number, next: Next<string>): boolean {
+        if (this.pretty) {
+            if (this.first) {
+                this.first = false;
+                return next(encodeTable[byte].toUpperCase());
+            } else {
+                return next(` ${encodeTable[byte].toUpperCase()}`);
+            }
+        } else {
+            return next(encodeTable[byte]);
+        }
+    }
+
+    flush(next: Next<string>): void {
+        this.first = true;
+    }
+
+    catch(error: unknown): void {
+        this.first = true;
+    }
+}
+
 /**
- * 将字节数据编码为十六进制字符串
+ * Hex 解码管道类
+ */
+class DecodePipe implements IPipe<number, number> {
+    private fatal: boolean;
+    private prevCode = -1;
+
+    constructor(opts?: HexDecodeOptions) {
+        this.fatal = opts?.fatal ?? true;
+    }
+
+    transform(codePoint: number, next: Next<number>): boolean {
+        if (isWhitespaceCodePoint(codePoint)) {
+            return true;
+        }
+
+        if (
+            // 0-9, A-F, a-f
+            (codePoint >= 0x30 && codePoint <= 0x39)
+            || (codePoint >= 0x41 && codePoint <= 0x46)
+            || (codePoint >= 0x61 && codePoint <= 0x66)
+        ) {
+            const hex = decodeTable[codePoint];
+            if (this.prevCode !== -1) {
+                const byte = (this.prevCode << 4) | hex;
+                this.prevCode = -1;
+                return next(byte);
+            } else {
+                this.prevCode = hex;
+            }
+        } else {
+            if (this.fatal) {
+                throwInvalidChar(codePoint);
+            }
+        }
+
+        return true;
+    }
+
+    flush(next: Next<number>): void {
+        const { prevCode } = this;
+        this.prevCode = -1;
+        if (prevCode !== -1) {
+            if (this.fatal) {
+                throwInvalidLength(1, 2, true);
+            }
+        }
+    }
+
+    catch(error: unknown): void {
+        this.prevCode = -1;
+    }
+}
+
+/**
+ * Hex 验证管道类
+ */
+class VerifyPipe implements IPipe<number, boolean> {
+    private hasPrev = false;
+    private result: boolean = true;
+
+    transform(codePoint: number, next: Next<boolean>): boolean {
+        if (isWhitespaceCodePoint(codePoint)) {
+            return true;
+        }
+
+        if (
+            // 0-9, A-F, a-f
+            (codePoint >= 0x30 && codePoint <= 0x39)
+            || (codePoint >= 0x41 && codePoint <= 0x46)
+            || (codePoint >= 0x61 && codePoint <= 0x66)
+        ) {
+            if (this.hasPrev) {
+                this.hasPrev = false;
+            } else {
+                this.hasPrev = true;
+            }
+            return true;
+        } else {
+            this.result = false;
+            next(false);
+            return false;
+        }
+    }
+
+    flush(next: Next<boolean>): boolean {
+        const { hasPrev, result } = this;
+
+        this.reset();
+
+        if (!result) {
+            return false;
+        }
+
+        if (hasPrev) {
+            next(false);
+            return false;
+        }
+
+        next(true);
+        return true;
+    }
+
+    catch(error: unknown): void {
+        this.reset();
+    }
+
+    reset() {
+        this.hasPrev = false;
+        this.result = true;
+    }
+}
+
+/**
+ * 创建一个编码字节数据为 Hex 字符串的管道
+ */
+export function encodePipe(opts?: HexEncodeOptions) {
+    return new Pipe(new EncodePipe(opts));
+}
+
+/**
+ * 创建一个解码 Hex 字符串为字节数据的管道
+ */
+export function decodePipe(opts?: HexDecodeOptions) {
+    return new Pipe(new DecodePipe(opts));
+}
+
+/**
+ * 创建一个验证 Hex 字符串有效性的管道
+ */
+export function verifyPipe() {
+    return new Pipe(new VerifyPipe());
+}
+
+/**
+ * 将字节数据编码为 Hex 字符串
  *
  * @param bytes 字节数据
  * @param opts {@link HexEncodeOptions}
- * @returns 十六进制编码的字符串
+ * @returns Hex 编码的字符串
  */
 export function encode(
     bytes: string | BufferSource,
     opts?: HexEncodeOptions,
 ): string {
+    const pretty = opts?.pretty ?? false;
     if (isString(bytes)) {
-        const encoding = opts?.encoding;
-        if (encoding != null) {
-            return encode(
-                text.encode(bytes, encoding, opts?.encodingOptions),
-                opts,
-            );
-        } else {
-            return encode(unit8.decode(bytes, opts), opts);
-        }
+        return Pipe.run(
+            bytes,
+            flatToCodePoint(),
+            utf8.encodePipe(opts?.utf8Options),
+            encodePipe(opts),
+            concatString(),
+        );
     } else {
         const data = asUint8Array(bytes);
-
-        const len = data.length;
-        let str = "";
-
-        if (opts?.pretty) {
-            for (let i = 0; i < len; i++) {
-                str += encodeTable[data[i]].toUpperCase();
-                if ((i + 1) % 2 === 0 && i + 1 < len) {
-                    str += " ";
-                }
-            }
-        } else {
-            for (let i = 0; i < len; i++) {
-                str += encodeTable[data[i]];
-            }
-        }
-
-        return str;
+        return Pipe.run(
+            data,
+            flat(),
+            encodePipe(opts),
+            concatString(new Array(measureLength(data, pretty))),
+        );
     }
 }
 
 /**
- * 将十六进制字符串解码为字节数据
+ * 将 Hex 字符串解码为字节数据
  *
- * @param text 十六进制字符串
+ * @param text  Hex 字符串
  * @param opts {@link HexDecodeOptions}
  * @returns 字节数据
  */
 export function decode(text: string, opts?: HexDecodeOptions): Uint8Array {
-    text = text.replace(whitespaceRegex, "");
-
     const fatal = opts?.fatal ?? true;
-    let len = text.length;
-
-    if (len % 2 !== 0) {
-        if (fatal) {
-            throwInvalidLength(len, "even");
-        } else {
-            len -= 1;
-        }
-    }
-
-    const bytes = new Uint8Array(len / 2);
-    for (let i = 0, j = 0; i < len; i += 2, j++) {
-        const highChar = text.charCodeAt(i);
-        const lowChar = text.charCodeAt(i + 1);
-
-        if (
-            !(
-                (highChar >= 0x30 && highChar <= 0x39)
-                || (highChar >= 0x61 && highChar <= 0x66)
-                || (highChar >= 0x41 && highChar <= 0x46)
-            )
-            || !(
-                (lowChar >= 0x30 && lowChar <= 0x39)
-                || (lowChar >= 0x61 && lowChar <= 0x66)
-                || (lowChar >= 0x41 && lowChar <= 0x46)
-            )
-        ) {
-            if (fatal) {
-                throwInvalidChar(text.slice(i, i + 2), i);
-            } else {
-                bytes[j] = 0x00;
-            }
-        } else {
-            const high = decodeTable[highChar];
-            const low = decodeTable[lowChar];
-            bytes[j] = (high << 4) | low;
-        }
-    }
-
-    return bytes;
+    return Pipe.run(
+        text,
+        flatToCodePoint(),
+        decodePipe(opts),
+        toUint8Array(fatal ? new Uint8Array(measureSize(text)) : undefined),
+    );
 }
 
 /**
  * @param text 字符串
- * @returns 返回是否为有效的十六进制字符串
+ * @returns 返回是否为有效的 Hex 字符串
  */
 export function verify(text: string) {
     text = text.replace(whitespaceRegex, "");
 
-    if (text.length === 0 || text.length % 2 !== 0) {
+    if (text.length % 2 !== 0) {
         return false;
     }
 
     return verifyRegex.test(text);
+}
+
+/**
+ * 计算字节数据编码为 Hex 字符串的精确长度
+ */
+export function measureLength(bytes: BufferSource, pretty: boolean): number {
+    const data = asUint8Array(bytes);
+    const baseLength = data.length * 2;
+    return pretty ? baseLength + Math.max(0, data.length - 1) : baseLength;
+}
+
+/**
+ * 计算 Hex 字符串解码为字节数据的精确长度
+ *
+ * 请注意仅当解码时 `fatal` 为 `true` 且未抛出错误时，该函数计算的长度才绝对准确。
+ */
+export function measureSize(text: string): number {
+    text = text.replace(whitespaceRegex, "");
+    return Math.floor(text.length / 2);
 }

@@ -1,9 +1,11 @@
+import { flat, Pipe, type IPipe, type Next } from "../../pipe.js";
+import { concatString, flatToCodePoint } from "../../pipe/string.js";
+import { toUint8Array } from "../../pipe/typed-array.js";
 import { isString } from "../../predicate.js";
 import { asUint8Array } from "../../typed-array.js";
-import { throwInvalidChar, throwUnexpectedEnd } from "../error.js";
-import * as text from "../text.js";
+import { throwInvalidChar, throwInvalidLength } from "../error.js";
+import { utf8 } from "../text.js";
 import type { Base64DecodeOptions, Base64EncodeOptions } from "./options.js";
-import * as unit8 from "./unit8.js";
 
 const encodeTable =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -12,19 +14,23 @@ const encodeUrlTable =
 
 // 存储的值为对应的 Base64 索引值（0-63），填充 0xFF 表示无效的 Base64 字符
 const decodeTable = new Uint8Array([
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 62, 0xff, 62, 0xff, 63, 52, 53,
-    54, 55, 56, 57, 58, 59, 60, 61, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0,
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-    22, 23, 24, 25, 0xff, 0xff, 0xff, 0xff, 63, 0xff, 26, 27, 28, 29, 30, 31,
-    32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-    51, 0xff, 0xff, 0xff, 0xff, 0xff,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 62, 255,
+    62, 255, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 255, 255, 255, 255,
+    255, 255, 255, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+    18, 19, 20, 21, 22, 23, 24, 25, 255, 255, 255, 255, 63, 255, 26, 27, 28, 29,
+    30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+    49, 50, 51, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
 ]);
-
-// 用于移除所有空白字符
-const whitespaceRegex = /\s+/gu;
 
 // 任意填充，不支持变体
 const verifyRegex =
@@ -49,6 +55,311 @@ const verifyAnyAndNoPadRegex =
     /^([A-Za-z0-9+/\-_]{4})*([A-Za-z0-9+/\-_]{2}|[A-Za-z0-9+/\-_]{3})?$/u;
 
 /**
+ * @internal
+ */
+export class _EncodePipe implements IPipe<number, string> {
+    private table: string;
+    private padding: boolean;
+    private buffer = new Uint8Array(3);
+    private bufferPosition: number = 0;
+    private tempStrs = ["", "", "", ""];
+
+    constructor(urlSafe: boolean = false, opts?: Base64EncodeOptions) {
+        this.table = urlSafe ? encodeUrlTable : encodeTable;
+        this.padding = opts?.padding ?? true;
+    }
+
+    transform(byte: number, next: Next<string>): boolean {
+        const { buffer, tempStrs, table } = this;
+        buffer[this.bufferPosition++] = byte;
+
+        // 当缓冲区有 3 个字节时进行编码
+        if (this.bufferPosition === 3) {
+            this.bufferPosition = 0;
+            const n = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
+            tempStrs[0] = table[(n >> 18) & 63];
+            tempStrs[1] = table[(n >> 12) & 63];
+            tempStrs[2] = table[(n >> 6) & 63];
+            tempStrs[3] = table[n & 63];
+            return next(tempStrs.join(""));
+        }
+
+        return true;
+    }
+
+    flush(next: Next<string>): void {
+        const { bufferPosition, buffer, tempStrs, table } = this;
+        if (bufferPosition > 0) {
+            if (bufferPosition === 1) {
+                const n = buffer[0] << 16;
+                tempStrs[0] = table[(n >> 18) & 63];
+                tempStrs[1] = table[(n >> 12) & 63];
+                if (this.padding) {
+                    tempStrs[2] = "=";
+                    tempStrs[3] = "=";
+                } else {
+                    tempStrs[2] = tempStrs[3] = "";
+                }
+            } else if (bufferPosition === 2) {
+                const n = (buffer[0] << 16) | (buffer[1] << 8);
+                tempStrs[0] = table[(n >> 18) & 63];
+                tempStrs[1] = table[(n >> 12) & 63];
+                tempStrs[2] = table[(n >> 6) & 63];
+                if (this.padding) {
+                    tempStrs[3] = "=";
+                } else {
+                    tempStrs[3] = "";
+                }
+            }
+            this.bufferPosition = 0;
+            next(tempStrs.join(""));
+        }
+    }
+
+    catch(error: unknown): void {
+        this.bufferPosition = 0;
+    }
+}
+
+/**
+ * Base64 解码管道类
+ */
+class DecodePipe implements IPipe<number, number> {
+    private fatal: boolean;
+    private buffer = new Uint8Array(4);
+    private bufferPosition = 0;
+    private padded = false;
+
+    constructor(opts?: Base64DecodeOptions) {
+        this.fatal = opts?.fatal ?? true;
+    }
+
+    transform(codePoint: number, next: Next<number>): boolean {
+        const { buffer, fatal } = this;
+
+        // '='
+        if (codePoint === 61) {
+            this.padded = true;
+            return true;
+        }
+
+        // codePoint 可能超出 255
+        const value = decodeTable[codePoint] ?? 0xff;
+
+        if (value === 0xff) {
+            if (fatal) {
+                throwInvalidChar(codePoint);
+            } else {
+                return true;
+            }
+        }
+
+        // padding 之后不应该有其他字符
+        if (this.padded) {
+            if (fatal) {
+                throwInvalidChar(codePoint);
+            }
+        }
+
+        buffer[this.bufferPosition++] = value;
+
+        // 处理完整的 4 字符组
+        if (this.bufferPosition === 4) {
+            const n =
+                (buffer[0] << 18)
+                | (buffer[1] << 12)
+                | (buffer[2] << 6)
+                | buffer[3];
+            this.bufferPosition = 0;
+            return (
+                next((n >> 16) & 0xff)
+                && next((n >> 8) & 0xff)
+                && next(n & 0xff)
+            );
+        }
+
+        return true;
+    }
+
+    flush(next: Next<number>): void {
+        const { bufferPosition, buffer, fatal } = this;
+        this.reset();
+        if (bufferPosition > 0) {
+            if (bufferPosition < 2) {
+                if (fatal) {
+                    throwInvalidLength(1, 2, true);
+                }
+                return;
+            }
+
+            const n = (buffer[0] << 18) | (buffer[1] << 12);
+
+            if (bufferPosition > 2) {
+                const n2 = n | (buffer[2] << 6);
+                next((n >> 16) & 0xff) && next((n2 >> 8) & 0xff);
+            } else {
+                next((n >> 16) & 0xff);
+            }
+        }
+    }
+
+    catch(error: unknown): void {
+        this.reset();
+    }
+
+    reset() {
+        this.bufferPosition = 0;
+        this.padded = false;
+    }
+}
+
+/**
+ * Base64 验证管道类
+ */
+class VerifyPipe implements IPipe<number, boolean> {
+    private allowVariant: boolean;
+    private padding: boolean | undefined;
+    private position: number = 0;
+    private padCount: number = 0;
+    private result: boolean = true;
+
+    constructor(allowVariant: boolean = true, padding?: boolean) {
+        this.allowVariant = allowVariant;
+        this.padding = padding;
+    }
+
+    transform(codePoint: number, next: Next<boolean>): boolean {
+        // 检查是否为填充字符 '='
+        if (codePoint === 61) {
+            this.padCount++;
+
+            // 最多只能有2个填充字符
+            if (this.padCount > 2) {
+                this.result = false;
+                next(false);
+                return false;
+            }
+
+            this.position++;
+            return true;
+        }
+
+        // 如果已经遇到填充字符，后面不应该再有其他字符
+        if (this.padCount > 0) {
+            this.result = false;
+            next(false);
+            return false;
+        }
+
+        // 检查字符是否为有效的 Base64 字符
+        if (!this.isValidChar(codePoint)) {
+            this.result = false;
+            next(false);
+            return false;
+        }
+
+        this.position++;
+        return true;
+    }
+
+    flush(next: Next<boolean>): boolean {
+        const { result, position, padding, padCount } = this;
+        this.reset();
+
+        if (!result) {
+            return false;
+        }
+
+        const remainder = position % 4;
+
+        if (remainder === 1) {
+            // Base64 不能有单独的一个字符
+            next(false);
+            return false;
+        } else if (remainder > 1) {
+            // 如果有余数，检查填充要求
+            if (padding === true) {
+                // 强制要求填充，但没有填充字符
+                if (padCount === 0) {
+                    next(false);
+                    return false;
+                } else {
+                    // 检查填充字符数量是否正确
+                    const expectedPadding = 4 - remainder;
+                    if (padCount !== expectedPadding) {
+                        next(false);
+                        return false;
+                    }
+                }
+            } else if (padding === false) {
+                // 强制禁止填充，但有填充字符
+                if (padCount > 0) {
+                    next(false);
+                    return false;
+                }
+            } else {
+                // padding === undefined 不检查填充
+            }
+        }
+
+        next(true);
+        return true;
+    }
+
+    catch(error: unknown): void {
+        this.reset();
+    }
+
+    private isValidChar(codePoint: number): boolean {
+        if (
+            (codePoint >= 65 && codePoint <= 90) // A-Z
+            || (codePoint >= 97 && codePoint <= 122) // a-z
+            || (codePoint >= 48 && codePoint <= 57) // 0-9
+            || codePoint === 43 // +
+            || codePoint === 47 // /
+        ) {
+            return true;
+        }
+
+        if (this.allowVariant) {
+            return (
+                codePoint === 45 // -
+                || codePoint === 95 // _
+            );
+        } else {
+            return false;
+        }
+    }
+
+    reset() {
+        this.position = 0;
+        this.padCount = 0;
+        this.result = true;
+    }
+}
+
+/**
+ * 创建一个编码字节数据为 Base64 字符串的管道
+ */
+export function encodePipe(opts?: Base64EncodeOptions) {
+    return new Pipe(new _EncodePipe(false, opts));
+}
+
+/**
+ * 创建一个解码 Base64 字符串为字节数据的管道
+ */
+export function decodePipe(opts?: Base64DecodeOptions) {
+    return new Pipe(new DecodePipe(opts));
+}
+
+/**
+ * 创建一个验证 Base64 字符串有效性的管道
+ */
+export function verifyPipe(allowVariant: boolean = true, padding?: boolean) {
+    return new Pipe(new VerifyPipe(allowVariant, padding));
+}
+
+/**
  * 将字节数据编码为 Base64 字符串
  *
  * @param bytes 字节数据
@@ -70,71 +381,23 @@ export function _encode(
     urlSafe: boolean,
     opts?: Base64EncodeOptions,
 ): string {
+    const padding = opts?.padding ?? true;
     if (isString(bytes)) {
-        const encoding = opts?.encoding;
-        if (encoding != null) {
-            return encode(
-                text.encode(bytes, encoding, opts?.encodingOptions),
-                opts,
-            );
-        } else {
-            return encode(unit8.decode(bytes, opts), opts);
-        }
+        return Pipe.run(
+            bytes,
+            flatToCodePoint(),
+            utf8.encodePipe(opts?.utf8Options),
+            new _EncodePipe(urlSafe, opts),
+            concatString(),
+        );
     } else {
         const data = asUint8Array(bytes);
-        const len = data.length;
-        const table = urlSafe ? encodeUrlTable : encodeTable;
-        const padding = opts?.padding ?? true;
-
-        let resultLength = Math.floor(len / 3) * 4;
-
-        // 处理最后的余数部分
-        const remainder = len % 3;
-        if (remainder > 0) {
-            // 每个余数字节需要额外的编码字符
-            resultLength += remainder + 1;
-            // 如果需要填充，添加填充字符数量
-            if (padding) {
-                resultLength += 3 - remainder;
-            }
-        }
-
-        let result = "";
-        let i = 0;
-
-        // 处理完整的 3 字节块
-        for (; i + 2 < len; i += 3) {
-            const n = (data[i] << 16) | (data[i + 1] << 8) | data[i + 2];
-            result += table[(n >> 18) & 63];
-            result += table[(n >> 12) & 63];
-            result += table[(n >> 6) & 63];
-            result += table[n & 63];
-        }
-
-        // 处理余下的字节
-        if (i < len) {
-            let n = data[i] << 16;
-            if (i + 1 < len) {
-                n |= data[i + 1] << 8;
-            }
-
-            result += table[(n >> 18) & 63];
-            result += table[(n >> 12) & 63];
-
-            if (i + 1 < len) {
-                result += table[(n >> 6) & 63];
-                if (padding) {
-                    result += "=";
-                }
-            } else {
-                if (padding) {
-                    result += "=";
-                    result += "=";
-                }
-            }
-        }
-
-        return result;
+        return Pipe.run(
+            data,
+            flat(),
+            new _EncodePipe(urlSafe, opts),
+            concatString(new Array(measureLength(data, padding))),
+        );
     }
 }
 
@@ -146,113 +409,27 @@ export function _encode(
  * @returns 字节数据
  */
 export function decode(text: string, opts?: Base64DecodeOptions): Uint8Array {
-    text = text.replace(whitespaceRegex, "");
-
-    const len = text.length;
     const fatal = opts?.fatal ?? true;
-
-    // 计算填充长度
-    let padLength = 0;
-
-    if (len > 0) {
-        if (text.charAt(len - 1) === "=") {
-            padLength++;
-            if (text.charAt(len - 2) === "=") {
-                padLength++;
-            }
-        } else {
-            // 处理无填充情况下的隐含填充长度
-            const remainder = len % 4;
-            if (remainder !== 0) {
-                // 如果长度不是 4 的倍数，计算隐含的填充数量
-                padLength = 4 - remainder;
-            }
-        }
-    }
-
-    // 计算结果字节数组长度
-    const outputLength = Math.floor((len * 3) / 4) - padLength;
-    const result = new Uint8Array(outputLength);
-
-    let resultIndex = 0;
-    let i = 0;
-
-    // 处理完整的 4 字节组
-    const completeGroups = Math.floor(len / 4);
-    for (let groupIndex = 0; groupIndex < completeGroups; groupIndex++) {
-        // 获取 4 个字符对应的 6 位值
-        const a = decodeChar(text.charCodeAt(i), fatal, i);
-        i++;
-        const b = decodeChar(text.charCodeAt(i), fatal, i);
-        i++;
-        const c = decodeChar(text.charCodeAt(i), fatal, i);
-        i++;
-        const d = decodeChar(text.charCodeAt(i), fatal, i);
-        i++;
-
-        // 组合成 3 个字节
-        const n = (a << 18) | (b << 12) | (c << 6) | d;
-
-        // 写入结果数组
-        result[resultIndex++] = (n >> 16) & 0xff;
-        result[resultIndex++] = (n >> 8) & 0xff;
-        result[resultIndex++] = n & 0xff;
-    }
-
-    // 处理剩余的不完整组（当字符串长度不是 4 的倍数时）
-    const remainingChars = len % 4;
-    if (remainingChars > 0) {
-        // 必须至少有两个字符才能解码一个字节
-        if (remainingChars < 2) {
-            if (fatal) {
-                throwUnexpectedEnd();
-            } else {
-                return result;
-            }
-        }
-
-        // 获取剩余字符对应的 6 位值
-        const a = decodeChar(text.charCodeAt(i), fatal, i);
-        i++;
-        const b = decodeChar(text.charCodeAt(i), fatal, i);
-        i++;
-
-        // 组合成字节
-        const n = (a << 18) | (b << 12);
-
-        // 写入结果数组
-        result[resultIndex++] = (n >> 16) & 0xff;
-
-        // 如果有第三个字符，继续解码
-        if (remainingChars > 2) {
-            const c = decodeChar(text.charCodeAt(i), fatal, i);
-            i++;
-            const n2 = n | (c << 6);
-            result[resultIndex++] = (n2 >> 8) & 0xff;
-        }
-    }
-
-    return result;
+    return Pipe.run(
+        text,
+        flatToCodePoint(),
+        new DecodePipe(opts),
+        toUint8Array(fatal ? new Uint8Array(measureSize(text)) : undefined),
+    );
 }
 
 /**
  * @param text 字符串
- * @param anyVariant 是否允许变体，默认为 `true`
+ * @param allowVariant 是否允许变体，默认为 `true`
  * @param padding 是否检查填充符，默认为 `undefined`，表示不检查，`true` 则强制必要的填充符，`false` 则强制禁止填充符
  * @returns 返回是否为有效的 Base64 字符串
  */
 export function verify(
     text: string,
-    anyVariant: boolean = true,
+    allowVariant: boolean = true,
     padding?: boolean,
 ): boolean {
-    text = text.replace(whitespaceRegex, "");
-
-    if (text.length === 0) {
-        return false;
-    }
-
-    if (anyVariant) {
+    if (allowVariant) {
         if (padding === true) {
             return verifyAnyAndPadRegex.test(text);
         } else if (padding === false) {
@@ -271,21 +448,47 @@ export function verify(
     }
 }
 
-function decodeChar(charCode: number, fatal: boolean, offset: number): number {
-    if (charCode < 0 || charCode > 127) {
-        if (fatal) {
-            throwInvalidChar(charCode, offset);
-        } else {
-            return 0x00;
-        }
+/**
+ * 计算字节数据编码为 Base64 字符串的精确长度
+ */
+export function measureLength(bytes: BufferSource, padding: boolean): number {
+    const byteLength = asUint8Array(bytes).length;
+    if (padding) {
+        return Math.ceil(byteLength / 3) * 4;
+    } else {
+        const groupCount = Math.floor(byteLength / 3);
+        const remainder = byteLength % 3;
+        return groupCount * 4 + (remainder > 0 ? remainder + 1 : 0);
     }
-    const val = decodeTable[charCode];
-    if (val === 0xff) {
-        if (fatal) {
-            throwInvalidChar(charCode, offset);
-        } else {
-            return 0x00;
-        }
+}
+
+/**
+ * 计算 Base64 字符串解码为字节数据的精确长度
+ *
+ * 请注意仅当解码时 `fatal` 为 `true` 且未抛出错误时，该函数计算的长度才绝对准确。
+ */
+export function measureSize(text: string): number {
+    const len = text.length;
+    if (len === 0) return 0;
+
+    let paddingCount = 0;
+    if (text.endsWith("==")) {
+        paddingCount = 2;
+    } else if (text.endsWith("=")) {
+        paddingCount = 1;
     }
-    return val;
+
+    const base64Len = len - paddingCount;
+    const groupCount = Math.floor(base64Len / 4);
+    const remainder = base64Len % 4;
+
+    let result = groupCount * 3;
+
+    if (remainder === 2) {
+        result += 1;
+    } else if (remainder === 3) {
+        result += 2;
+    }
+
+    return result;
 }

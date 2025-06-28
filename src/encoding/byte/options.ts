@@ -1,22 +1,8 @@
-import type { CodecableEndian } from "../shared.js";
-import type { CodecableEncoding as CodecableTextEncoding } from "../text/enum.js";
-import type { EncodeOptions as TextEncodeOptions } from "../text/options.js";
+import type { Utf8EncodeOptions } from "../text/options.js";
 import { Encoding } from "./enum.js";
 
 /**
- * 字节数据编码多字节选项
- */
-export interface MultibyteOptions {
-    /**
-     * 指定多字节编解码时的字节序
-     *
-     * @default 默认使用平台字节序
-     */
-    endian?: CodecableEndian;
-}
-
-/**
- * 字节数据编码多字节选项
+ * 字节数据编码无效数据处理选项
  */
 export interface FatalOptions {
     /**
@@ -24,14 +10,10 @@ export interface FatalOptions {
      *
      * @default true
      *
-     * @example {@link Encoding.Unit8}
-     * `fatal` 为 `false` 时，不会检查字符代码是否超出 `0xff`。
-     * @example {@link Encoding.Unit16}
-     * `fatal` 为 `false` 时，数据可能会被截断返回。
      * @example {@link Encoding.Hex}
-     * `fatal` 为 `false` 时，数据可能会被截断且带有无效字节 `0x00` 返回。
+     * `fatal` 为 `false` 时会跳过无效字符。
      * @example {@link Encoding.Base64}
-     * `fatal` 为 `false` 时，数据可能会被截断且带有任何无效数据返回。
+     * `fatal` 为 `false` 时会跳过无效字符。
      */
     fatal?: boolean;
 }
@@ -41,24 +23,9 @@ export interface FatalOptions {
  */
 export interface StringOptions {
     /**
-     * `string` 文本编码
-     *
-     * 当输入数据是 `string` 类型时，先用指定编码格式编码为字节数据后再进行处理。
-     *
-     * 若传入 `undefined` 则将 `string` 的每个代码单元作为单个字节进行处理。
-     *
-     * @default undefined
+     * 文本 UTF-8 编码选项
      */
-    encoding?: CodecableTextEncoding;
-
-    /**
-     * 文本编码选项
-     *
-     * 仅 {@link encoding} 传入非 `undefined` 时有效。
-     *
-     * @default 请查看 {@link TextEncodeOptions}
-     */
-    encodingOptions?: TextEncodeOptions;
+    utf8Options?: Utf8EncodeOptions;
 }
 
 /**
@@ -96,7 +63,7 @@ export interface HexOptions {
 /**
  * Base64 编码选项
  */
-export type Base64EncodeOptions = StringOptions & FatalOptions & Base64Options;
+export type Base64EncodeOptions = StringOptions & Base64Options;
 
 /**
  * Base64 解码选项
@@ -104,31 +71,9 @@ export type Base64EncodeOptions = StringOptions & FatalOptions & Base64Options;
 export type Base64DecodeOptions = FatalOptions;
 
 /**
- * Unit8 编码选项
- */
-export type Unit8EncodeOptions = StringOptions & FatalOptions;
-
-/**
- * Unit8 解码选项
- */
-export type Unit8DecodeOptions = FatalOptions;
-
-/**
- * Unit16 编码选项
- */
-export type Unit16EncodeOptions = StringOptions
-    & MultibyteOptions
-    & FatalOptions;
-
-/**
- * Unit16 解码选项
- */
-export type Unit16DecodeOptions = MultibyteOptions;
-
-/**
  * Hex 编码选项
  */
-export type HexEncodeOptions = StringOptions & FatalOptions & HexOptions;
+export type HexEncodeOptions = StringOptions & HexOptions;
 
 /**
  * Hex 解码选项
@@ -138,13 +83,9 @@ export type HexDecodeOptions = FatalOptions;
 /**
  * 字节数据编码选项
  */
-export type EncodeOptions = StringOptions
-    & MultibyteOptions
-    & FatalOptions
-    & Base64Options
-    & HexOptions;
+export type EncodeOptions = StringOptions & Base64Options & HexOptions;
 
 /**
  * 字节数据解码选项
  */
-export type DecodeOptions = MultibyteOptions & FatalOptions;
+export type DecodeOptions = FatalOptions;
