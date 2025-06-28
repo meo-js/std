@@ -58,7 +58,7 @@ export interface Base64VerifyOptions {
     /**
      * 填充符选项
      *
-     * @default undefined 表示不检查，`true` 则强制必要的填充符，`false` 则强制禁止填充符
+     * @default undefined `undefined` 表示不检查，`true` 则强制必要的填充符，`false` 则强制禁止填充符
      */
     padding?: boolean;
 }
