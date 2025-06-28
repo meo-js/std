@@ -3,25 +3,7 @@ import * as base64Url from "./base64-url.js";
 import * as base64 from "./base64.js";
 import { Encoding } from "./enum.js";
 import * as hex from "./hex.js";
-import type { DecodeOptions, EncodeOptions } from "./options.js";
-
-/**
- * 字节数据验证选项
- */
-export interface VerifyOptions {
-    /**
-     * 是否允许变体（仅适用于 Base64/Base64Url）
-     *
-     * @default true
-     */
-    allowVariant?: boolean;
-    /**
-     * 填充符选项（仅适用于 Base64/Base64Url）
-     *
-     * @default undefined 表示不检查，true 则强制必要的填充符，false 则强制禁止填充符
-     */
-    padding?: boolean;
-}
+import type { DecodeOptions, EncodeOptions, VerifyOptions } from "./options.js";
 
 /**
  * 创建一个将字节数据编码为字符串的管道

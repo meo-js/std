@@ -45,6 +45,25 @@ export interface Base64Options {
 }
 
 /**
+ * Base64 验证选项
+ */
+export interface Base64VerifyOptions {
+    /**
+     * 是否允许变体
+     *
+     * @default true
+     */
+    allowVariant?: boolean;
+
+    /**
+     * 填充符选项
+     *
+     * @default undefined 表示不检查，true 则强制必要的填充符，false 则强制禁止填充符
+     */
+    padding?: boolean;
+}
+
+/**
  * 字节数据编码针对 Hex 的编码选项
  */
 export interface HexOptions {
@@ -69,6 +88,11 @@ export type Base64EncodeOptions = StringOptions & Base64Options;
  * Base64 解码选项
  */
 export type Base64DecodeOptions = FatalOptions;
+
+/**
+ * 字节数据验证选项
+ */
+export type VerifyOptions = Base64VerifyOptions;
 
 /**
  * Hex 编码选项
