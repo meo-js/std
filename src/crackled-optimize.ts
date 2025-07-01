@@ -10,7 +10,7 @@ let fastProto: unknown = null;
 /**
  * 强制将对象转换为某些 JavaScript 引擎所谓的 “快速对象”
  *
- * @see {@link https://github.com/sindresorhus/to-fast-properties}
+ * @see [to-fast-properties](https://github.com/sindresorhus/to-fast-properties)
  */
 export function forceToFastObject<T extends object>(o: T): T {
     return _FastObject(o) as T;
@@ -35,7 +35,7 @@ function _FastObject(this: void, o: object) {
  *
  * 即解除某些 JavaScript 引擎的 “分片字符串” 对大字符串的引用。
  *
- * @see {@link https://stackoverflow.com/questions/79478418/how-to-correctly-unref-a-v8-substring-sliced-string-from-its-source-string}
+ * @see [Discussion](https://stackoverflow.com/questions/79478418/how-to-correctly-unref-a-v8-substring-sliced-string-from-its-source-string)
  */
 export function forceToUnslicedString(str: string): string {
     const temp: PlainObject = {};

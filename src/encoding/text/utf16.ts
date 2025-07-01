@@ -1,4 +1,3 @@
-import { CircleDataView } from "../../memory/circle-buffer.js";
 import { flat, Pipe, type IPipe, type Next } from "../../pipe.js";
 import { concatString, flatToCodePoint } from "../../pipe/string.js";
 import { toUint8Array } from "../../pipe/typed-array.js";
@@ -51,7 +50,8 @@ class DecodePipe implements IPipe<number, string> {
     private fatal: boolean;
     private fallback: decodeFallback.DecodeFallback;
     private endian: Endian;
-    private buffer = new CircleDataView(4);
+    private buffer = new DataView(new ArrayBuffer(4));
+    private bufferSize = 0;
     private totalPosition = 0;
     // 0 1 2 对应初始字节序，3 4 5 对应已最终确认字节序，顺序是平台、小端、大端
     private endianFlag = 0;
@@ -63,21 +63,36 @@ class DecodePipe implements IPipe<number, string> {
         this.endianFlag = toEndianFlag(this.endian, false);
     }
 
+    private consumeBytes(count: number): void {
+        const { bufferSize, buffer } = this;
+        if (count === bufferSize) {
+            this.bufferSize = 0;
+        } else {
+            const remaining = bufferSize - count;
+            for (let i = 0; i < remaining; i++) {
+                buffer.setUint8(i, buffer.getUint8(i + count));
+            }
+            this.bufferSize = remaining;
+        }
+    }
+
+    private clearBytes(): void {
+        this.bufferSize = 0;
+    }
+
     transform(byte: number, next: Next<string>): boolean {
-        const { buffer, endianFlag } = this;
+        this.buffer.setUint8(this.bufferSize++, byte);
 
-        buffer.writeUint8(byte);
-
-        if (buffer.size % 2 !== 0) {
+        if (this.bufferSize % 2 !== 0) {
             return true;
         }
 
         // 未确定字节序
-        if (endianFlag < 3) {
-            const endian = sniff(buffer.peekUint8(0)!, byte);
+        if (this.endianFlag < 3) {
+            const endian = sniff(this.buffer.getUint8(0), byte);
             if (endian != null) {
                 this.endianFlag = toEndianFlag(endian, true);
-                buffer.skip(2);
+                this.consumeBytes(2);
                 this.totalPosition += 2;
                 return true;
             } else {
@@ -90,21 +105,21 @@ class DecodePipe implements IPipe<number, string> {
     }
 
     private handleUnit(next: Next<string>): boolean {
-        const { buffer, endianFlag, fatal, fallback } = this;
+        const { bufferSize, buffer, endianFlag, fatal, fallback } = this;
         const little = endianFlag !== 5;
 
-        const unit = buffer.peekUint16(0, little)!;
+        const unit = buffer.getUint16(0, little);
 
         if (isHighSurrogate(unit)) {
-            if (buffer.size < 4) {
+            if (bufferSize < 4) {
                 // 没有 unit2，等待下一个字节
                 return true;
             }
 
-            const unit2 = buffer.peekUint16(2, little)!;
-            buffer.skip(2);
+            const unit2 = buffer.getUint16(2, little);
+            this.consumeBytes(2);
             if (isLowSurrogate(unit2)) {
-                buffer.skip(2);
+                this.consumeBytes(2);
                 const cont = next(String.fromCharCode(unit, unit2));
                 this.totalPosition += 4;
                 return cont;
@@ -118,13 +133,13 @@ class DecodePipe implements IPipe<number, string> {
                         // 继续处理 unit2
                         return this.handleUnit(next);
                     } else {
-                        buffer.clear();
+                        this.clearBytes();
                         return false;
                     }
                 }
             }
         } else if (isLowSurrogate(unit)) {
-            buffer.skip(2);
+            this.consumeBytes(2);
             if (fatal) {
                 throwInvalidSurrogate(unit);
             } else {
@@ -133,7 +148,7 @@ class DecodePipe implements IPipe<number, string> {
                 return cont;
             }
         } else {
-            buffer.skip(2);
+            this.consumeBytes(2);
             const cont = next(String.fromCharCode(unit));
             this.totalPosition += 2;
             return cont;
@@ -141,12 +156,12 @@ class DecodePipe implements IPipe<number, string> {
     }
 
     flush(next: Next<string>): void {
-        const { fallback, fatal, buffer, endianFlag } = this;
+        const { fallback, fatal, bufferSize, buffer, endianFlag } = this;
         const little = endianFlag !== 5;
 
         // 上一个字符是高代理项，但没有后续的低代理项
-        if (buffer.size >= 2) {
-            const surrogate = buffer.readUint16(little)!;
+        if (bufferSize >= 2) {
+            const surrogate = buffer.getUint16(0, little);
             if (fatal) {
                 throwInvalidSurrogate(surrogate);
             } else {
@@ -155,12 +170,13 @@ class DecodePipe implements IPipe<number, string> {
                     return;
                 }
                 this.totalPosition += 2;
+                this.consumeBytes(2);
             }
         }
 
         // 存在无法组成 Uint16 的字节
-        if (buffer.size > 0) {
-            const byte = buffer.readUint8()!;
+        if (bufferSize > 0) {
+            const byte = this.buffer.getUint8(0);
             if (fatal) {
                 throwInvalidByte(byte);
             } else {
@@ -178,7 +194,7 @@ class DecodePipe implements IPipe<number, string> {
     }
 
     reset() {
-        this.buffer.clear();
+        this.clearBytes();
         this.totalPosition = 0;
         this.endianFlag = toEndianFlag(this.endian, false);
     }

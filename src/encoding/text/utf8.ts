@@ -1,4 +1,3 @@
-import { CircleBuffer } from "../../memory.js";
 import { flat, Pipe, type IPipe, type Next } from "../../pipe.js";
 import { concatString, flatToCodePoint } from "../../pipe/string.js";
 import { toUint8Array } from "../../pipe/typed-array.js";
@@ -28,7 +27,8 @@ const REPLACEMENT_CHAR_BYTES = new Uint8Array([0xef, 0xbf, 0xbd]);
 class DecodePipe implements IPipe<number, string> {
     private fatal: boolean;
     private fallback: decodeFallback.DecodeFallback;
-    private buffer = new CircleBuffer(new Uint8Array(4));
+    private buffer = new Uint8Array(4);
+    private bufferSize = 0;
     private totalPosition = 0;
     private bomDetected: 0 | 1 | 2 | 3 = 0;
 
@@ -37,8 +37,23 @@ class DecodePipe implements IPipe<number, string> {
         this.fallback = opts?.fallback ?? decodeFallback.replace;
     }
 
+    private consumeBytes(count: number): void {
+        const { bufferSize } = this;
+        if (count === bufferSize) {
+            this.bufferSize = 0;
+        } else {
+            const remaining = bufferSize - count;
+            this.buffer.copyWithin(0, count, bufferSize);
+            this.bufferSize = remaining;
+        }
+    }
+
+    private clearBytes(): void {
+        this.bufferSize = 0;
+    }
+
     transform(byte: number, next: Next<string>): boolean {
-        this.buffer.write(byte);
+        this.buffer[this.bufferSize++] = byte;
 
         if (this.bomDetected === 3) {
             return this.handleUnit(next, false);
@@ -65,7 +80,7 @@ class DecodePipe implements IPipe<number, string> {
                 case 2:
                     if (byte === BOM[2]) {
                         this.bomDetected = 3;
-                        this.buffer.skip(3);
+                        this.consumeBytes(3);
                         this.totalPosition += 3;
                         return true;
                     } else {
@@ -77,32 +92,32 @@ class DecodePipe implements IPipe<number, string> {
     }
 
     private handleUnit(next: Next<string>, flush: boolean): boolean {
-        const { buffer, fatal, fallback } = this;
+        const { buffer, bufferSize, fatal, fallback } = this;
 
-        const byte = buffer.peek()!;
-        const len = measureUnitLength(byte, this.fatal);
+        const byte = buffer[0];
+        const len = measureUnitLength(byte, fatal);
 
         if (len === 1) {
-            buffer.skip(1);
+            this.consumeBytes(1);
             const cont = next(String.fromCharCode(byte));
             this.totalPosition += 1;
             return cont;
         }
 
         if (len === -1) {
-            buffer.skip(1);
+            this.consumeBytes(1);
             const cont = next(fallback(byte, true));
             this.totalPosition += 1;
             return cont;
         }
 
         // 等待更多字节
-        if (buffer.size < len) {
+        if (bufferSize < len) {
             if (flush) {
                 if (fatal) {
                     throwInvalidByte(byte);
                 } else {
-                    buffer.skip(1);
+                    this.consumeBytes(1);
                     const cont = next(fallback(byte, true));
                     this.totalPosition += 1;
                     if (cont) {
@@ -119,18 +134,18 @@ class DecodePipe implements IPipe<number, string> {
         // 组合字节
         let codePoint = 0;
         for (let i = 1; i < len; i++) {
-            const _byte = buffer.peek(i)!;
+            const _byte = buffer[i];
             if ((_byte & 0xc0) !== 0x80) {
                 if (fatal) {
                     throwInvalidByte(byte);
                 } else {
-                    buffer.skip(1);
+                    this.consumeBytes(1);
                     const cont = next(fallback(byte, true));
                     this.totalPosition += 1;
                     if (cont) {
                         return this.handleUnit(next, flush);
                     } else {
-                        buffer.clear();
+                        this.clearBytes();
                         return false;
                     }
                 }
@@ -146,7 +161,7 @@ class DecodePipe implements IPipe<number, string> {
             codePoint = ((byte & 0x07) << 18) | codePoint;
         }
 
-        buffer.skip(len);
+        this.consumeBytes(len);
 
         if (isSurrogate(codePoint) || codePoint > 0x10ffff) {
             if (fatal) {
@@ -164,7 +179,7 @@ class DecodePipe implements IPipe<number, string> {
     }
 
     flush(next: Next<string>): void {
-        while (this.buffer.size !== 0) {
+        while (this.bufferSize !== 0) {
             if (!this.handleUnit(next, true)) {
                 break;
             }
@@ -180,7 +195,7 @@ class DecodePipe implements IPipe<number, string> {
     }
 
     reset() {
-        this.buffer.clear();
+        this.clearBytes();
         this.totalPosition = 0;
         this.bomDetected = 0;
     }
@@ -307,6 +322,15 @@ export function encode(text: string, opts?: Utf8EncodeOptions): Uint8Array {
         encodePipe(opts),
         toUint8Array(),
     );
+}
+
+export function encodeInto(
+    text: string,
+    target: Uint8Array,
+    opts?: Utf8EncodeOptions,
+): { read: number; written: number } {
+    // TODO
+    return undefined!;
 }
 
 /**
