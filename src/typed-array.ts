@@ -23,29 +23,55 @@ import {
 /**
  * 类型化数组
  */
-export type TypedArray =
-    | Uint8Array
-    | Uint8ClampedArray
-    | Uint16Array
-    | Uint32Array
-    | Int8Array
-    | Int16Array
-    | Int32Array
-    | BigUint64Array
-    | BigInt64Array
-    // | Float16Array (unstable)
-    | Float32Array
-    | Float64Array;
+export type TypedArray<TArrayBuffer extends ArrayBufferLike = ArrayBufferLike> =
+
+        | Uint8Array<TArrayBuffer>
+        | Uint8ClampedArray<TArrayBuffer>
+        | Uint16Array<TArrayBuffer>
+        | Uint32Array<TArrayBuffer>
+        | Int8Array<TArrayBuffer>
+        | Int16Array<TArrayBuffer>
+        | Int32Array<TArrayBuffer>
+        | BigUint64Array<TArrayBuffer>
+        | BigInt64Array<TArrayBuffer>
+        // | Float16Array (unstable)
+        | Float32Array<TArrayBuffer>
+        | Float64Array<TArrayBuffer>;
 
 /**
  * 存储 `number` 类型数值的类型化数组
  */
-export type NumberTypedArray = Exclude<TypedArray, BigIntTypedArray>;
+export type NumberTypedArray<
+    TArrayBuffer extends ArrayBufferLike = ArrayBufferLike,
+> = Exclude<TypedArray<TArrayBuffer>, BigIntTypedArray<TArrayBuffer>>;
 
 /**
  * 存储 `bigint` 类型数值的类型化数组
  */
-export type BigIntTypedArray = BigUint64Array | BigInt64Array;
+export type BigIntTypedArray<
+    TArrayBuffer extends ArrayBufferLike = ArrayBufferLike,
+> = BigUint64Array<TArrayBuffer> | BigInt64Array<TArrayBuffer>;
+
+/**
+ * {@link ArrayBufferView} 构造函数类型
+ */
+export type ArrayBufferViewConstructor<
+    TArrayBuffer extends ArrayBufferLike = ArrayBufferLike,
+> = new (
+    buffer: TArrayBuffer & { BYTES_PER_ELEMENT?: never },
+    byteOffset?: number,
+    byteLength?: number,
+) => TypedArray | DataView;
+
+/**
+ * {@link ArrayBufferViewConstructor} 的实例类型
+ *
+ * 使用该类型解决直接使用 TypeScript 内置的 {@link InstanceType} 无法得到正确的 `TArrayBuffer` 泛型的问题。
+ */
+export type ArrayBufferViewConstructorInstanceOf<
+    T extends ArrayBufferViewConstructor = ArrayBufferViewConstructor,
+    TArrayBuffer extends ArrayBufferLike = ArrayBufferLike,
+> = T extends Uint8ArrayConstructor ? Uint8Array<TArrayBuffer> : never;
 
 /**
  * 字节序枚举

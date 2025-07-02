@@ -78,29 +78,44 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
     /**
      * 传入值与管道并立即执行
      */
-    static run<In, Out, Final = void>(
+    static run<In, Out = void, Final = void>(
         input: In,
         a: PipeLike<In, Out, Final>,
     ): NoInfer<Final>;
-    static run<In, In2, Out, Final = void>(
+    static run<In, In2 = void, Out = void, Final = void>(
         input: In,
         a: PipeLike<In, In2>,
         b: PipeLike<In2, Out, Final>,
     ): NoInfer<Final>;
-    static run<In, In2, In3, Out, Final = void>(
+    static run<In, In2 = void, In3 = void, Out = void, Final = void>(
         input: In,
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
         c: PipeLike<In3, Out, Final>,
     ): NoInfer<Final>;
-    static run<In, In2, In3, In4, Out, Final = void>(
+    static run<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        Out = void,
+        Final = void,
+    >(
         input: In,
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
         c: PipeLike<In3, In4>,
         d: PipeLike<In4, Out, Final>,
     ): NoInfer<Final>;
-    static run<In, In2, In3, In4, In5, Out, Final = void>(
+    static run<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        Out = void,
+        Final = void,
+    >(
         input: In,
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
@@ -108,7 +123,16 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
         d: PipeLike<In4, In5>,
         e: PipeLike<In5, Out, Final>,
     ): NoInfer<Final>;
-    static run<In, In2, In3, In4, In5, In6, Out, Final = void>(
+    static run<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        Out = void,
+        Final = void,
+    >(
         input: In,
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
@@ -117,7 +141,17 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
         e: PipeLike<In5, In6>,
         f: PipeLike<In6, Out, Final>,
     ): NoInfer<Final>;
-    static run<In, In2, In3, In4, In5, In6, In7, Out, Final = void>(
+    static run<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        In7 = void,
+        Out = void,
+        Final = void,
+    >(
         input: In,
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
@@ -127,7 +161,18 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
         f: PipeLike<In6, In7>,
         g: PipeLike<In7, Out, Final>,
     ): NoInfer<Final>;
-    static run<In, In2, In3, In4, In5, In6, In7, In8, Out, Final = void>(
+    static run<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        In7 = void,
+        In8 = void,
+        Out = void,
+        Final = void,
+    >(
         input: In,
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
@@ -138,7 +183,19 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
         g: PipeLike<In7, In8>,
         h: PipeLike<In8, Out, Final>,
     ): NoInfer<Final>;
-    static run<In, In2, In3, In4, In5, In6, In7, In8, In9, Out, Final = void>(
+    static run<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        In7 = void,
+        In8 = void,
+        In9 = void,
+        Out = void,
+        Final = void,
+    >(
         input: In,
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
@@ -152,16 +209,16 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
     ): NoInfer<Final>;
     static run<
         In,
-        In2,
-        In3,
-        In4,
-        In5,
-        In6,
-        In7,
-        In8,
-        In9,
-        In10,
-        Out,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        In7 = void,
+        In8 = void,
+        In9 = void,
+        In10 = void,
+        Out = void,
         Final = void,
     >(
         input: In,
@@ -186,32 +243,56 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
     /**
      * 传入值与管道并立即执行
      */
-    static chain<In, Out, Final = void>(
+    static chain<In, Out = void, Final = void>(
         a: PipeLike<In, Out, Final>,
     ): NoInfer<Final>;
-    static chain<In, In2, Out, Final = void>(
+    static chain<In, In2 = void, Out = void, Final = void>(
         a: PipeLike<In, In2>,
         b: PipeLike<In2, Out, Final>,
     ): NoInfer<Final>;
-    static chain<In, In2, In3, Out, Final = void>(
+    static chain<In, In2 = void, In3 = void, Out = void, Final = void>(
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
         c: PipeLike<In3, Out, Final>,
     ): NoInfer<Final>;
-    static chain<In, In2, In3, In4, Out, Final = void>(
+    static chain<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        Out = void,
+        Final = void,
+    >(
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
         c: PipeLike<In3, In4>,
         d: PipeLike<In4, Out, Final>,
     ): NoInfer<Final>;
-    static chain<In, In2, In3, In4, In5, Out, Final = void>(
+    static chain<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        Out = void,
+        Final = void,
+    >(
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
         c: PipeLike<In3, In4>,
         d: PipeLike<In4, In5>,
         e: PipeLike<In5, Out, Final>,
     ): NoInfer<Final>;
-    static chain<In, In2, In3, In4, In5, In6, Out, Final = void>(
+    static chain<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        Out = void,
+        Final = void,
+    >(
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
         c: PipeLike<In3, In4>,
@@ -219,7 +300,17 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
         e: PipeLike<In5, In6>,
         f: PipeLike<In6, Out, Final>,
     ): NoInfer<Final>;
-    static chain<In, In2, In3, In4, In5, In6, In7, Out, Final = void>(
+    static chain<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        In7 = void,
+        Out = void,
+        Final = void,
+    >(
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
         c: PipeLike<In3, In4>,
@@ -228,7 +319,18 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
         f: PipeLike<In6, In7>,
         g: PipeLike<In7, Out, Final>,
     ): NoInfer<Final>;
-    static chain<In, In2, In3, In4, In5, In6, In7, In8, Out, Final = void>(
+    static chain<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        In7 = void,
+        In8 = void,
+        Out = void,
+        Final = void,
+    >(
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
         c: PipeLike<In3, In4>,
@@ -238,7 +340,19 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
         g: PipeLike<In7, In8>,
         h: PipeLike<In8, Out, Final>,
     ): NoInfer<Final>;
-    static chain<In, In2, In3, In4, In5, In6, In7, In8, In9, Out, Final = void>(
+    static chain<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        In7 = void,
+        In8 = void,
+        In9 = void,
+        Out = void,
+        Final = void,
+    >(
         a: PipeLike<In, In2>,
         b: PipeLike<In2, In3>,
         c: PipeLike<In3, In4>,
@@ -251,16 +365,16 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
     ): NoInfer<Final>;
     static chain<
         In,
-        In2,
-        In3,
-        In4,
-        In5,
-        In6,
-        In7,
-        In8,
-        In9,
-        In10,
-        Out,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        In7 = void,
+        In8 = void,
+        In9 = void,
+        In10 = void,
+        Out = void,
         Final = void,
     >(
         a: PipeLike<In, In2>,
@@ -295,7 +409,7 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
 
     constructor(private handler: IPipe<In, Out, Final>) {}
 
-    private _pipe<NewOut, NewFinal>(
+    private _pipe<NewOut = void, NewFinal = void>(
         to: Pipe<Out, NewOut, NewFinal>,
     ): Pipe<In, NewOut, NewFinal> {
         if (this.nextPipe) {
@@ -312,7 +426,7 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
      *
      * @returns 返回当前管道实例，但类型被更新为新类型
      */
-    pipe<NewOut, NewFinal>(
+    pipe<NewOut = void, NewFinal = void>(
         to: PipeLike<Out, NewOut, NewFinal>,
     ): Pipe<In, NewOut, NewFinal> {
         return this._pipe(pipe(to));
@@ -417,7 +531,7 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
 /**
  * 创建一个管道
  */
-export function pipe<In = uncertain, Out = unknown, Final = void>(
+export function pipe<In = uncertain, Out = void, Final = void>(
     pipe: PipeLike<In, Out, Final>,
 ): Pipe<In, Out, Final> {
     return pipe instanceof Pipe
