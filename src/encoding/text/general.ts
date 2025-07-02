@@ -146,6 +146,39 @@ export function encode(
 }
 
 /**
+ * 将字符串编码到指定缓冲区
+ */
+export function encodeInto(
+    text: string,
+    out: BufferSource,
+    encoding: CodecableEncoding,
+    opts?: EncodeOptions,
+): { read: number; written: number } {
+    switch (encoding) {
+        case CodecableEncoding.Ascii:
+            return ascii.encodeInto(text, out, opts);
+        case CodecableEncoding.Utf8:
+            return utf8.encodeInto(text, out, opts);
+        case CodecableEncoding.Utf16:
+            return utf16.encodeInto(text, out, opts);
+        case CodecableEncoding.Utf16le:
+            return utf16.encodeInto(text, out, {
+                ...opts,
+                endian: Endian.Little,
+            });
+        case CodecableEncoding.Utf16be:
+            return utf16.encodeInto(text, out, {
+                ...opts,
+                endian: Endian.Big,
+            });
+        case CodecableEncoding.Iso8859_1:
+            return latin1.encodeInto(text, out, opts);
+        default:
+            throwUnsupportedEncoding(encoding);
+    }
+}
+
+/**
  * 将字节数据解码为字符串
  */
 export function decode(

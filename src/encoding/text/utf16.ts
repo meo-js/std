@@ -20,7 +20,7 @@ import {
 } from "../error.js";
 import * as decodeFallback from "./decode-fallback.js";
 import type { Utf16DecodeOptions, Utf16EncodeOptions } from "./options.js";
-import { IsWellFormedPipe, VerifyPipe } from "./utf.js";
+import { _encodeInto, IsWellFormedPipe, VerifyPipe } from "./utf.js";
 
 /**
  * 大端序 UTF-16 BOM
@@ -317,6 +317,28 @@ export function encode(text: string, opts?: Utf16EncodeOptions): Uint8Array {
         catchError(),
         encodePipe(opts),
         toUint8Array(new Uint8Array(measureSize(text, addBom))),
+    );
+}
+
+/**
+ * 编码字符串为 UTF-16 字节数据至指定缓冲区
+ *
+ * @param text 字符串
+ * @param out 输出缓冲区
+ * @param opts {@link Utf16EncodeOptions}
+ * @returns 返回一个对象，包含已转换的 UTF-16 编码单元数量和写入缓冲区的字节数
+ */
+export function encodeInto(
+    text: string,
+    out: BufferSource,
+    opts?: Utf16EncodeOptions,
+): { read: number; written: number } {
+    return _encodeInto(
+        text,
+        out,
+        encodePipe(opts),
+        measureSize(text, opts?.bom),
+        4,
     );
 }
 

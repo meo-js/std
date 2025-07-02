@@ -3,10 +3,9 @@
  *
  * @internal
  */
-
 import { Pipe, type IPipe, type Next } from "../../pipe.js";
 import { flat } from "../../pipe/common.js";
-import { concatString, flatToCodePoint } from "../../pipe/string.js";
+import { concatString, flatToCharCode } from "../../pipe/string.js";
 import { toUint8Array } from "../../pipe/typed-array.js";
 import {
     ASCII_REPLACEMENT_CODE_POINT,
@@ -151,7 +150,7 @@ export function _encode(
 ): Uint8Array {
     return Pipe.run(
         text,
-        flatToCodePoint(),
+        flatToCharCode(),
         catchError(),
         _encodePipe(maxCode, opts),
         toUint8Array(new Uint8Array(text.length)),
@@ -174,7 +173,47 @@ export function _isWellFormed(
 ): boolean {
     return Pipe.run(
         text,
-        flatToCodePoint(),
+        flatToCharCode(),
         _verifyPipe(maxCode, allowReplacementChar),
     );
+}
+
+export function _encodeInto(
+    maxCode: number,
+    text: string,
+    out: BufferSource,
+    opts?: SingleByteEncodeOptions,
+): { read: number; written: number } {
+    const buffer = asUint8Array(out);
+
+    let read = 0;
+    let written = 0;
+
+    if (buffer.length >= text.length) {
+        read = text.length;
+        Pipe.run(
+            text,
+            flatToCharCode(),
+            catchError(),
+            _encodePipe(maxCode, opts),
+            toUint8Array(new Uint8Array(text.length)),
+        );
+    } else {
+        const usableLength = Math.min(text.length, buffer.length);
+        const encoder = catchError<number>()
+            .pipe(_encodePipe(maxCode, opts))
+            .pipe(input => {
+                buffer[written++] = input;
+            });
+
+        for (let read = 0; read < usableLength; read++) {
+            const code = text.charCodeAt(read);
+            encoder.push(code);
+        }
+    }
+
+    return {
+        read,
+        written,
+    };
 }

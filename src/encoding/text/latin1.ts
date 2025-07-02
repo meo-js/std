@@ -6,6 +6,7 @@ import {
     _decode,
     _decodePipe,
     _encode,
+    _encodeInto,
     _encodePipe,
     _isWellFormed,
     _isWellFormedPipe,
@@ -72,6 +73,22 @@ export function encode(
     opts?: SingleByteEncodeOptions,
 ): Uint8Array {
     return _encode(MAX_CODE, text, opts);
+}
+
+/**
+ * 编码字符串为 Latin1 字节数据至指定缓冲区
+ *
+ * @param text 字符串
+ * @param out 输出缓冲区
+ * @param opts {@link SingleByteEncodeOptions}
+ * @returns 返回一个对象，包含已转换的 UTF-16 编码单元数量和写入缓冲区的字节数
+ */
+export function encodeInto(
+    text: string,
+    out: BufferSource,
+    opts?: SingleByteEncodeOptions,
+): { read: number; written: number } {
+    return _encodeInto(MAX_CODE, text, out, opts);
 }
 
 /**

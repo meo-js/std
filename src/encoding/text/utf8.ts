@@ -15,7 +15,7 @@ import {
 } from "../error.js";
 import * as decodeFallback from "./decode-fallback.js";
 import type { Utf8DecodeOptions, Utf8EncodeOptions } from "./options.js";
-import { IsWellFormedPipe, VerifyPipe } from "./utf.js";
+import { _encodeInto, IsWellFormedPipe, VerifyPipe } from "./utf.js";
 
 /**
  * UTF-8 BOM
@@ -324,13 +324,26 @@ export function encode(text: string, opts?: Utf8EncodeOptions): Uint8Array {
     );
 }
 
+/**
+ * 编码字符串为 UTF-8 字节数据至指定缓冲区
+ *
+ * @param text 字符串
+ * @param out 输出缓冲区
+ * @param opts {@link Utf8EncodeOptions}
+ * @returns 返回一个对象，包含已转换的 UTF-16 编码单元数量和写入缓冲区的字节数
+ */
 export function encodeInto(
     text: string,
-    target: Uint8Array,
+    out: BufferSource,
     opts?: Utf8EncodeOptions,
 ): { read: number; written: number } {
-    // TODO
-    return undefined!;
+    return _encodeInto(
+        text,
+        out,
+        encodePipe(opts),
+        estimateSize(text, opts?.bom),
+        4,
+    );
 }
 
 /**

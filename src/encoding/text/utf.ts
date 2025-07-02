@@ -3,8 +3,15 @@
  *
  * @internal
  */
-import type { IPipe, Next, Pipe } from "../../pipe.js";
-import { isReplacementCodePoint, isSurrogate } from "../../string.js";
+import { Pipe, type IPipe, type Next } from "../../pipe.js";
+import { flatToCodePoint } from "../../pipe/string.js";
+import {
+    isReplacementCodePoint,
+    isSurrogate,
+    needsSurrogatePair,
+} from "../../string.js";
+import { asUint8Array } from "../../typed-array.js";
+import { catchError } from "../error.js";
 
 export class VerifyPipe implements IPipe<number, boolean, boolean> {
     private result: boolean = true;
@@ -98,4 +105,56 @@ export class IsWellFormedPipe implements IPipe<number, boolean, boolean> {
     catch(error: unknown): void {
         this.result = true;
     }
+}
+
+export function _encodeInto(
+    text: string,
+    out: BufferSource,
+    encodePipe: Pipe<number, number, void>,
+    sufficientSize: number,
+    tempSize: number,
+): { read: number; written: number } {
+    const buffer = asUint8Array(out);
+
+    let read = 0;
+    let written = 0;
+
+    if (buffer.length >= sufficientSize) {
+        read = text.length;
+        Pipe.run(text, flatToCodePoint(), catchError(), encodePipe, input => {
+            buffer[written++] = input;
+        });
+    } else {
+        const temp = new Uint8Array(tempSize);
+        let i = 0;
+        const len = text.length;
+        const encoder = catchError<number>()
+            .pipe(encodePipe)
+            .pipe(input => {
+                temp[i++] = input;
+            });
+
+        while (read < len) {
+            const code = text.codePointAt(read)!;
+            read += needsSurrogatePair(code) ? 2 : 1;
+
+            encoder.push(code);
+
+            if (buffer.length - written < i) {
+                // 剩余空间不足
+                break;
+            }
+
+            for (let j = 0; j < i; j++) {
+                buffer[written++] = temp[j];
+            }
+
+            i = 0;
+        }
+    }
+
+    return {
+        read,
+        written,
+    };
 }
