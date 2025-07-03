@@ -5,8 +5,8 @@
  */
 import { Pipe, type IPipe, type Next } from "../../pipe.js";
 import { flat } from "../../pipe/common.js";
-import { concatString, flatToCharCode } from "../../pipe/string.js";
-import { toUint8Array } from "../../pipe/typed-array.js";
+import { concatString, flatCharCodes } from "../../pipe/string.js";
+import { toUint8Array, toUint8ArrayWithCount } from "../../pipe/typed-array.js";
 import {
     ASCII_REPLACEMENT_CODE_POINT,
     isAsciiReplacementCodePoint,
@@ -150,7 +150,7 @@ export function _encode(
 ): Uint8Array {
     return Pipe.run(
         text,
-        flatToCharCode(),
+        flatCharCodes(),
         catchError(),
         _encodePipe(maxCode, opts),
         toUint8Array(new Uint8Array(text.length)),
@@ -173,7 +173,7 @@ export function _isWellFormed(
 ): boolean {
     return Pipe.run(
         text,
-        flatToCharCode(),
+        flatCharCodes(),
         _verifyPipe(maxCode, allowReplacementChar),
     );
 }
@@ -186,31 +186,18 @@ export function _encodeInto(
 ): { read: number; written: number } {
     const buffer = asUint8Array(out);
 
-    let read = 0;
-    let written = 0;
+    const read = Math.min(text.length, buffer.length);
+    const encoder = catchError<number>()
+        .pipe(_encodePipe(maxCode, opts))
+        .pipe(toUint8ArrayWithCount(buffer));
 
-    if (buffer.length >= text.length) {
-        read = text.length;
-        Pipe.run(
-            text,
-            flatToCharCode(),
-            catchError(),
-            _encodePipe(maxCode, opts),
-            toUint8Array(new Uint8Array(text.length)),
-        );
-    } else {
-        const usableLength = Math.min(text.length, buffer.length);
-        const encoder = catchError<number>()
-            .pipe(_encodePipe(maxCode, opts))
-            .pipe(input => {
-                buffer[written++] = input;
-            });
-
-        for (let read = 0; read < usableLength; read++) {
-            const code = text.charCodeAt(read);
-            encoder.push(code);
-        }
+    for (let i = 0; i < read; i++) {
+        const code = text.charCodeAt(i);
+        encoder.push(code);
     }
+
+    // 编码器自身需确保不会在刷新阶段推送字节，所以仅调用无需处理
+    const written = encoder.flush().written;
 
     return {
         read,

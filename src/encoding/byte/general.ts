@@ -94,6 +94,33 @@ export function decode(
 }
 
 /**
+ * 将字符串解码到指定的缓冲区中
+ *
+ * @param text 字符串
+ * @param encoding 编码方式
+ * @param out 输出缓冲区
+ * @param opts {@link DecodeOptions}
+ * @returns 返回一个对象，包含已读取的字符数量和写入缓冲区的字节数
+ */
+export function decodeInto(
+    text: string,
+    encoding: Encoding,
+    out: BufferSource,
+    opts?: DecodeOptions,
+): { read: number; written: number } {
+    switch (encoding) {
+        case Encoding.Hex:
+            return hex.decodeInto(text, out, opts);
+        case Encoding.Base64:
+            return base64.decodeInto(text, out, opts);
+        case Encoding.Base64Url:
+            return base64Url.decodeInto(text, out, opts);
+        default:
+            throwUnsupportedEncoding(encoding);
+    }
+}
+
+/**
  * 验证字符串是否为指定编码的有效数据
  */
 export function verify(

@@ -1,5 +1,9 @@
 import { flat, Pipe, type IPipe, type Next } from "../../pipe.js";
-import { concatString, flatToCodePoint } from "../../pipe/string.js";
+import {
+    concatString,
+    flatCharCodes,
+    flatCodePoints,
+} from "../../pipe/string.js";
 import { toUint8Array } from "../../pipe/typed-array.js";
 import { isString } from "../../predicate.js";
 import { isWhitespaceCodePoint } from "../../string.js";
@@ -7,6 +11,7 @@ import { asUint8Array } from "../../typed-array.js";
 import { throwInvalidChar, throwInvalidLength } from "../error.js";
 import { utf8 } from "../text.js";
 import type { HexDecodeOptions, HexEncodeOptions } from "./options.js";
+import { _decodeInto } from "./shared.js";
 
 const encodeTable = [
     "00",
@@ -462,7 +467,7 @@ export function encode(
     if (isString(bytes)) {
         return Pipe.run(
             bytes,
-            flatToCodePoint(),
+            flatCodePoints(),
             utf8.encodePipe(opts?.utf8Options),
             encodePipe(opts),
             concatString(),
@@ -489,10 +494,26 @@ export function decode(text: string, opts?: HexDecodeOptions): Uint8Array {
     const fatal = opts?.fatal ?? true;
     return Pipe.run(
         text,
-        flatToCodePoint(),
+        flatCharCodes(),
         decodePipe(opts),
         toUint8Array(fatal ? new Uint8Array(measureSize(text)) : undefined),
     );
+}
+
+/**
+ * 将 Hex 字符串解码到指定的缓冲区中
+ *
+ * @param text Hex 字符串
+ * @param out 输出缓冲区
+ * @param opts {@link HexDecodeOptions}
+ * @returns 返回一个对象，包含已读取的字符数量和写入缓冲区的字节数
+ */
+export function decodeInto(
+    text: string,
+    out: BufferSource,
+    opts?: HexDecodeOptions,
+): { read: number; written: number } {
+    return _decodeInto(text, out, decodePipe(opts), measureSize(text), 1);
 }
 
 /**
@@ -521,7 +542,7 @@ export function measureLength(bytes: BufferSource, pretty: boolean): number {
 /**
  * 计算 Hex 字符串解码为字节数据的精确长度
  *
- * 请注意仅当解码时 `fatal` 为 `true` 且未抛出错误时，该函数计算的长度才绝对准确。
+ * 注意：仅当解码时 `fatal` 为 `true` 且未抛出错误时，该函数计算的长度才绝对准确，否则返回的长度为最大长度。
  */
 export function measureSize(text: string): number {
     text = text.replace(whitespaceRegex, "");

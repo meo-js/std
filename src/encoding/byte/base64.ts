@@ -1,11 +1,16 @@
 import { flat, Pipe, type IPipe, type Next } from "../../pipe.js";
-import { concatString, flatToCodePoint } from "../../pipe/string.js";
+import {
+    concatString,
+    flatCharCodes,
+    flatCodePoints,
+} from "../../pipe/string.js";
 import { toUint8Array } from "../../pipe/typed-array.js";
 import { isString } from "../../predicate.js";
 import { asUint8Array } from "../../typed-array.js";
 import { throwInvalidChar, throwInvalidLength } from "../error.js";
 import { utf8 } from "../text.js";
 import type { Base64DecodeOptions, Base64EncodeOptions } from "./options.js";
+import { _decodeInto } from "./shared.js";
 
 const encodeTable =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -143,6 +148,13 @@ class DecodePipe implements IPipe<number, number> {
             return true;
         }
 
+        // padding 之后不应该有其他字符
+        if (this.padded) {
+            if (fatal) {
+                throwInvalidChar(codePoint);
+            }
+        }
+
         // codePoint 可能超出 255
         const value = decodeTable[codePoint] ?? 0xff;
 
@@ -151,13 +163,6 @@ class DecodePipe implements IPipe<number, number> {
                 throwInvalidChar(codePoint);
             } else {
                 return true;
-            }
-        }
-
-        // padding 之后不应该有其他字符
-        if (this.padded) {
-            if (fatal) {
-                throwInvalidChar(codePoint);
             }
         }
 
@@ -360,20 +365,6 @@ export function verifyPipe(allowVariant: boolean = true, padding?: boolean) {
 }
 
 /**
- * 将字节数据编码为 Base64 字符串
- *
- * @param bytes 字节数据
- * @param opts {@link Base64EncodeOptions}
- * @returns Base64 字符串
- */
-export function encode(
-    bytes: string | BufferSource,
-    opts?: Base64EncodeOptions,
-): string {
-    return _encode(bytes, false, opts);
-}
-
-/**
  * @internal
  */
 export function _encode(
@@ -385,7 +376,7 @@ export function _encode(
     if (isString(bytes)) {
         return Pipe.run(
             bytes,
-            flatToCodePoint(),
+            flatCodePoints(),
             utf8.encodePipe(opts?.utf8Options),
             new _EncodePipe(urlSafe, opts),
             concatString(),
@@ -402,6 +393,20 @@ export function _encode(
 }
 
 /**
+ * 将字节数据编码为 Base64 字符串
+ *
+ * @param bytes 字节数据
+ * @param opts {@link Base64EncodeOptions}
+ * @returns Base64 字符串
+ */
+export function encode(
+    bytes: string | BufferSource,
+    opts?: Base64EncodeOptions,
+): string {
+    return _encode(bytes, false, opts);
+}
+
+/**
  * 将 Base64 字符串解码为字节数据
  *
  * @param text Base64 字符串
@@ -412,10 +417,26 @@ export function decode(text: string, opts?: Base64DecodeOptions): Uint8Array {
     const fatal = opts?.fatal ?? true;
     return Pipe.run(
         text,
-        flatToCodePoint(),
+        flatCharCodes(),
         new DecodePipe(opts),
         toUint8Array(fatal ? new Uint8Array(measureSize(text)) : undefined),
     );
+}
+
+/**
+ * 将 Base64 字符串解码到指定的缓冲区中
+ *
+ * @param text Base64 字符串
+ * @param out 输出缓冲区
+ * @param opts {@link Base64DecodeOptions}
+ * @returns 返回一个对象，包含已读取的字符数量和写入缓冲区的字节数
+ */
+export function decodeInto(
+    text: string,
+    out: BufferSource,
+    opts?: Base64DecodeOptions,
+): { read: number; written: number } {
+    return _decodeInto(text, out, decodePipe(opts), measureSize(text), 3);
 }
 
 /**
@@ -465,7 +486,7 @@ export function measureLength(bytes: BufferSource, padding: boolean): number {
 /**
  * 计算 Base64 字符串解码为字节数据的精确长度
  *
- * 请注意仅当解码时 `fatal` 为 `true` 且未抛出错误时，该函数计算的长度才绝对准确。
+ * 注意：仅当解码时 `fatal` 为 `true` 且未抛出错误时，该函数计算的长度才绝对准确，否则返回的长度为最大长度。
  */
 export function measureSize(text: string): number {
     const len = text.length;

@@ -1,5 +1,5 @@
 import { flat, Pipe, type IPipe, type Next } from "../../pipe.js";
-import { concatString, flatToCodePoint } from "../../pipe/string.js";
+import { concatString, flatCodePoints } from "../../pipe/string.js";
 import { toUint8Array } from "../../pipe/typed-array.js";
 import {
     hasReplacementChar,
@@ -313,7 +313,7 @@ export function encode(text: string, opts?: Utf16EncodeOptions): Uint8Array {
     const addBom = opts?.bom ?? true;
     return Pipe.run(
         text,
-        flatToCodePoint(),
+        flatCodePoints(),
         catchError(),
         encodePipe(opts),
         toUint8Array(new Uint8Array(measureSize(text, addBom))),
@@ -322,6 +322,8 @@ export function encode(text: string, opts?: Utf16EncodeOptions): Uint8Array {
 
 /**
  * 编码字符串为 UTF-16 字节数据至指定缓冲区
+ *
+ * 注意：无论提供的选项如何都不会编码 BOM，如有需要请手动添加。
  *
  * @param text 字符串
  * @param out 输出缓冲区
@@ -336,8 +338,11 @@ export function encodeInto(
     return _encodeInto(
         text,
         out,
-        encodePipe(opts),
-        measureSize(text, opts?.bom),
+        encodePipe({
+            ...opts,
+            bom: false,
+        }),
+        measureSize(text, false),
         4,
     );
 }

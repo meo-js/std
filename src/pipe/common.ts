@@ -1,6 +1,6 @@
 import { toIterable } from "../iterator.js";
 import { Pipe, type IPipe, type Next } from "../pipe.js";
-import { isArray, isFunction } from "../predicate.js";
+import { isArray } from "../predicate.js";
 
 class Map<In, Out> implements IPipe<In, Out> {
     private index = 0;
@@ -143,6 +143,30 @@ class Find<T> implements IPipe<T, T | undefined, T | undefined> {
         this.index = 0;
         this.found = undefined;
         this.hasFound = false;
+    }
+}
+
+class Enumerate<T> implements IPipe<Iterable<T>, [index: number, value: T]> {
+    private index = 0;
+
+    transform(
+        input: Iterable<T>,
+        next: Next<[index: number, value: T]>,
+    ): boolean {
+        for (const item of input) {
+            if (!next([this.index++, item])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    flush(next: Next<[index: number, value: T]>): void {
+        this.index = 0;
+    }
+
+    catch(error: unknown): void {
+        this.index = 0;
     }
 }
 
@@ -353,32 +377,35 @@ class ToArrayWithOut<T> implements IPipe<T, T[], T[]> {
     }
 }
 
-class ToArrayWithCallback<T> implements IPipe<T, T[], T[]> {
-    private out!: T[];
+class ToArrayWithCount<T>
+    implements
+        IPipe<
+            T,
+            { buffer: T[]; written: number },
+            { buffer: T[]; written: number }
+        >
+{
     private index = 0;
 
-    constructor(private initialize: () => T[]) {
-        this.reset();
-    }
+    constructor(private out: T[]) {}
 
-    transform(input: T, next: Next<T[]>): void {
+    transform(input: T, next: Next<{ buffer: T[]; written: number }>): void {
         this.out[this.index++] = input;
     }
 
-    flush(next: Next<T[]>): T[] {
-        const result = this.out;
-        this.reset();
+    flush(next: Next<{ buffer: T[]; written: number }>): {
+        buffer: T[];
+        written: number;
+    } {
+        const { out, index } = this;
+        const result = { buffer: out, written: index };
+        this.index = 0;
         next(result);
         return result;
     }
 
     catch(error: unknown): void {
-        this.reset();
-    }
-
-    reset() {
         this.index = 0;
-        this.out = this.initialize();
     }
 }
 
@@ -466,6 +493,13 @@ export function flat<T>(): Pipe<Iterable<T>, T> {
 }
 
 /**
+ * 创建逐个传输输入迭代器值和索引的管道
+ */
+export function enumerate<T>(): Pipe<Iterable<T>, [index: number, value: T]> {
+    return new Pipe(new Enumerate<T>());
+}
+
+/**
  * 创建映射并扁平化结果的管道
  */
 export function flatMap<In, Out>(
@@ -517,16 +551,23 @@ export function take<T>(limit: number): Pipe<T, T> {
 }
 
 /**
- * 创建转换为数组的管道
+ * 创建将元素收集到 {@link Array} 的管道
  */
-export function toArray<T>(out?: T[] | (() => T[])): Pipe<T, T[], T[]> {
+export function toArray<T>(out?: T[]): Pipe<T, T[], T[]> {
     if (isArray(out)) {
         return new Pipe(new ToArrayWithOut(out));
-    } else if (isFunction(out)) {
-        return new Pipe(new ToArrayWithCallback(out));
     } else {
         return new Pipe(new ToArray());
     }
+}
+
+/**
+ * 创建将元素收集到 {@link Array} 的管道
+ */
+export function toArrayWithCount<T>(
+    out: T[],
+): Pipe<T, { buffer: T[]; written: number }, { buffer: T[]; written: number }> {
+    return new Pipe(new ToArrayWithCount(out));
 }
 
 /**

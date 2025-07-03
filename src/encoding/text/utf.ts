@@ -4,7 +4,8 @@
  * @internal
  */
 import { Pipe, type IPipe, type Next } from "../../pipe.js";
-import { flatToCodePoint } from "../../pipe/string.js";
+import { flatCodePoints } from "../../pipe/string.js";
+import { toUint8ArrayWithCount } from "../../pipe/typed-array.js";
 import {
     isReplacementCodePoint,
     isSurrogate,
@@ -121,9 +122,13 @@ export function _encodeInto(
 
     if (buffer.length >= sufficientSize) {
         read = text.length;
-        Pipe.run(text, flatToCodePoint(), catchError(), encodePipe, input => {
-            buffer[written++] = input;
-        });
+        written = Pipe.run(
+            text,
+            flatCodePoints(),
+            catchError(),
+            encodePipe,
+            toUint8ArrayWithCount(buffer),
+        ).written;
     } else {
         const temp = new Uint8Array(tempSize);
         let i = 0;
@@ -136,7 +141,7 @@ export function _encodeInto(
 
         while (read < len) {
             const code = text.codePointAt(read)!;
-            read += needsSurrogatePair(code) ? 2 : 1;
+            const tempLen = needsSurrogatePair(code) ? 2 : 1;
 
             encoder.push(code);
 
@@ -150,7 +155,11 @@ export function _encodeInto(
             }
 
             i = 0;
+            read += tempLen;
         }
+
+        // 编码器自身需确保不会在刷新阶段推送字节，所以仅调用无需处理
+        encoder.flush();
     }
 
     return {
