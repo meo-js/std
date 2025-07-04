@@ -4,6 +4,7 @@
  * @internal
  */
 import { HAS_ARRAYBUFFER_TRANSFER } from "../env.js";
+import { Pipe, type IPipe, type Next } from "../pipe.js";
 import { isArrayBuffer } from "../predicate.js";
 import { asUint8Array } from "../typed-array.js";
 
@@ -73,4 +74,32 @@ export class ResizableBuffer {
     toUint8Array(): Uint8Array {
         return this._buffer.subarray(0, this._position);
     }
+}
+
+export class ResizableBufferPipe implements IPipe<number, ResizableBuffer> {
+    private _buffer: ResizableBuffer;
+
+    constructor(private initialSize: number) {
+        this._buffer = new ResizableBuffer(initialSize);
+    }
+
+    transform(input: number, next: Next<ResizableBuffer>): void {
+        this._buffer.expandIfNeeded(1);
+        this._buffer.push(input);
+    }
+
+    flush(next: Next<ResizableBuffer>): ResizableBuffer {
+        const buffer = this._buffer;
+        this._buffer = new ResizableBuffer(this.initialSize);
+        next(buffer);
+        return buffer;
+    }
+
+    catch(error: unknown): void {
+        this._buffer = new ResizableBuffer(this.initialSize);
+    }
+}
+
+export function toResizableBuffer(initialSize: number) {
+    return new Pipe(new ResizableBufferPipe(initialSize));
 }
