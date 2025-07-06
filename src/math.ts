@@ -4,6 +4,7 @@
  * @module
  */
 import type * as tf from "type-fest";
+import { throwUnsignedWithNegative } from "./internal/error.js";
 import { isBigInt, isNumber } from "./predicate.js";
 import type { And, Not } from "./ts/logical.js";
 
@@ -282,4 +283,132 @@ function _div(dividend: Numeric, divisor: Numeric, plus: number) {
     const n0 = BigInt(0);
     const n1 = BigInt(plus);
     return a / b + (a % b < n0 ? n1 : n0);
+}
+
+/**
+ * 计算以 `2` 为底的对数，返回向下取整的结果
+ *
+ * @param value 必须 >= 0
+ */
+export function flog2(value: number): number;
+export function flog2(value: bigint): bigint;
+export function flog2(value: Numeric): Numeric {
+    if (value < 0) {
+        throwUnsignedWithNegative("flog2()");
+    }
+
+    if (isBigInt(value)) {
+        return _bitLengthUnsigned(value) - BigInt(1);
+    } else {
+        if (value === 0) return 0;
+        return Math.floor(Math.log2(value));
+    }
+}
+
+/**
+ * 计算以 `2` 为底的对数，返回向上取整的结果
+ *
+ * @param value 必须 >= 0
+ */
+export function clog2(value: number): number;
+export function clog2(value: bigint): bigint;
+export function clog2(value: Numeric): Numeric {
+    if (value < 0) {
+        throwUnsignedWithNegative("clog2()");
+    }
+
+    if (isBigInt(value)) {
+        if (value <= BigInt(1)) return BigInt(0);
+
+        const bits = _bitLengthUnsigned(value);
+        // 如果恰好是 2 的幂，则不需要再 +1
+        return (value & (value - BigInt(1))) === BigInt(0)
+            ? bits - BigInt(1)
+            : bits;
+    } else {
+        if (value <= 1) return 0;
+        return Math.ceil(Math.log2(value));
+    }
+}
+
+/**
+ * @param value 必须 >= 0
+ * @returns 返回 {@link value} 的二进制位长度，如果是 `0`，则返回 `1`
+ */
+function _bitLengthUnsigned(value: bigint): bigint {
+    if (value === BigInt(0)) return BigInt(1);
+
+    let bits = BigInt(0);
+
+    // 先逐步右移，直到剩余的值小于 STEP 位，减少循环次数以提高效率
+    const STEP = BigInt(32);
+    while (value >> STEP) {
+        value >>= STEP;
+        bits += STEP;
+    }
+
+    // 最后逐 bit 统计剩余高位
+    while (value) {
+        value >>= BigInt(1);
+        bits++;
+    }
+
+    return bits;
+}
+
+/**
+ * 传入一个整数，返回足以存储该值的最小二进制位数
+ *
+ * @param value 数值
+ * @param signed 是否返回补码的位宽，默认为 `true`
+ */
+export function bitLength(value: Numeric, signed: boolean = true): number {
+    const v = typeof value === "bigint" ? value : BigInt(value);
+
+    if (!signed) {
+        if (v < BigInt(0)) {
+            throwUnsignedWithNegative("bitLength(signed = false)");
+        }
+        return Number(_bitLengthUnsigned(v));
+    }
+
+    if (v >= BigInt(0)) {
+        // 检测最高有效位 (MSB) 是否为 1；若是 1，就再加一位做符号位，否则保持不变
+        const bits = _bitLengthUnsigned(v);
+        const needExtra = (v & (BigInt(1) << (bits - BigInt(1)))) !== BigInt(0);
+        return Number(bits + (needExtra ? BigInt(1) : BigInt(0)));
+    } else {
+        // 位宽需满足 v >= -2^(bits-1)
+        const m = -v;
+        const bits =
+            _bitLengthUnsigned(m)
+            + ((m & (m - BigInt(1))) === BigInt(0) ? BigInt(0) : BigInt(1));
+        return Number(bits);
+    }
+}
+
+/**
+ * 返回指定位数的最大整数值
+ *
+ * @param bits 位数
+ * @param signed 是否使用补码，默认为 `true`
+ * @returns 最大整数值
+ */
+export function maxIntOfBits(bits: number, signed: boolean = true): bigint {
+    const b = BigInt(bits);
+    return signed
+        ? (BigInt(1) << (b - BigInt(1))) - BigInt(1)
+        : (BigInt(1) << b) - BigInt(1);
+}
+
+/**
+ * 返回指定位数的最小整数值
+ *
+ * @param bits 位数
+ * @param signed 是否使用补码，默认为 `true`
+ * @returns 最小整数值，如果不使用补码会直接返回 `0`
+ */
+export function minIntOfBits(bits: number, signed: boolean = true): bigint {
+    const b = BigInt(bits);
+    return signed ? -(BigInt(1) << (b - BigInt(1))) : BigInt(0);
 }
