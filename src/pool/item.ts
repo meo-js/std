@@ -3,7 +3,9 @@ import type { Poolable } from "../protocol/poolable.js";
 /**
  * 池对象句柄
  */
-export class PoolItemHandle<T extends PoolItem = object> implements Disposable {
+export class PoolItemHandle<out T extends PoolItem = object>
+    implements Disposable
+{
     constructor(
         private pool: { put(item: T): void },
         private item: T | null,

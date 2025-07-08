@@ -10,7 +10,7 @@ import type { uncertain } from "./ts.js";
 /**
  * 基础错误类
  */
-export class BaseError<T extends number = number> extends Error {
+export class BaseError<out T extends number = number> extends Error {
     /**
      * 错误码
      */
