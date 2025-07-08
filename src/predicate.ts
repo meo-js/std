@@ -789,6 +789,43 @@ export function isError(value: unknown): value is Error {
 }
 
 /**
+ * 检测值是否为 {@link Disposable} 类型
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isDisposable(value: unknown): value is Disposable {
+    return (
+        isObjectLike<RecordObject>(value) && isFunction(value[Symbol.dispose])
+    );
+}
+
+/**
+ * 检测值是否为 {@link AsyncDisposable} 类型
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isAsyncDisposable(value: unknown): value is AsyncDisposable {
+    return (
+        isObjectLike<RecordObject>(value)
+        && isFunction(value[Symbol.asyncDispose])
+    );
+}
+
+/**
+ * 检测值是否为 {@link Disposable} 或 {@link AsyncDisposable} 类型
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isAnyDisposable(
+    value: unknown,
+): value is AsyncDisposable | Disposable {
+    return isDisposable(value) || isAsyncDisposable(value);
+}
+
+/**
  * 检测值是否为原生实现函数
  *
  * 根据 {@link Function.prototype.toString} 的返回值是否包括 `"native code"` 来判断。

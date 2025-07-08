@@ -492,7 +492,7 @@ function forEachDataView(
 }
 
 class StringBytes implements BytesImpl {
-    protected data: string;
+    private data: string;
 
     /**
      * @inheritdoc
@@ -555,9 +555,9 @@ class StringBytes implements BytesImpl {
 }
 
 class StringWithUtf8Bytes implements BytesImpl {
-    protected data: string | Uint8Array;
-    protected bom: boolean = false;
-    protected fatal: boolean = false;
+    private data: string | Uint8Array;
+    private bom: boolean = false;
+    private fatal: boolean = false;
 
     /**
      * @inheritdoc
@@ -616,7 +616,7 @@ class StringWithUtf8Bytes implements BytesImpl {
         }
     }
 
-    protected convertToBuffer() {
+    private convertToBuffer() {
         this.data = utf8.encode(this.data as string, {
             bom: this.bom,
             fatal: this.fatal,
@@ -645,7 +645,7 @@ class StringWithUtf8Bytes implements BytesImpl {
 }
 
 class TypedArrayBytes<T extends TypedArray> implements BytesImpl {
-    protected data: T;
+    private data: T;
 
     /**
      * @inheritdoc
@@ -757,9 +757,9 @@ function createDataViewClass(
     set: DataViewFunction,
 ) {
     return class DataViewBytes implements BytesImpl {
-        protected data: TypedArray;
-        protected view: DataView;
-        protected little: boolean;
+        private data: TypedArray;
+        private view: DataView;
+        private little: boolean;
 
         /**
          * @inheritdoc

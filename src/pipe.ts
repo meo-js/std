@@ -21,7 +21,7 @@ const noop = () => true;
 /**
  * 管道接口
  */
-export interface IPipe<In = uncertain, Out = unknown, Final = void> {
+export interface IPipe<in In = uncertain, out Out = unknown, out Final = void> {
     /**
      * 该函数在值输入管道时回调，可用于处理和转换值
      *

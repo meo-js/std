@@ -8,7 +8,6 @@ import type * as tf from "type-fest";
 import type { INF, Sub } from "./math.js";
 import type { IsNever } from "./predicate.js";
 import type { Rng } from "./protocol.js";
-import { is } from "./protocol/equatable.js";
 import type { IsLiteral, ToArray } from "./ts.js";
 import type { If } from "./ts/logical.js";
 
@@ -346,7 +345,7 @@ export function contains(a: unknown[], b: unknown[]) {
         let find = false;
         for (let i = 0; i < a.length; i++) {
             const v2 = a[i];
-            if (is(v, v2)) {
+            if (Object.is(v, v2)) {
                 find = true;
                 break;
             }
@@ -372,7 +371,7 @@ export function containsExactly(
 
     if (strictOrder) {
         for (let i = 0; i < a.length; i++) {
-            if (!is(a[i], b[i])) return false;
+            if (!Object.is(a[i], b[i])) return false;
         }
         return true;
     } else {
@@ -381,7 +380,7 @@ export function containsExactly(
             let find = false;
             for (let i = 0; i < b.length; i++) {
                 const v2 = b[i];
-                if (is(v, v2)) {
+                if (Object.is(v, v2)) {
                     find = true;
                     temp.splice(i, 1);
                     break;
