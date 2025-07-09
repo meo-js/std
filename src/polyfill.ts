@@ -41,8 +41,8 @@ import "core-js/proposals/explicit-resource-management.js";
 // --- Web API ---
 import "core-js/web/queue-microtask.js";
 import "core-js/web/structured-clone.js";
+import "./polyfill/abort-controller.js";
 import "./polyfill/observable.js";
+import "./polyfill/report-error.js";
 import "./polyfill/web-streams.js";
 export * from "./polyfill/observable.js";
-// TODO web streams polyfill needs abortcontroller polyfill
-// but https://www.npmjs.com/package/abort-controller is not lastest version
