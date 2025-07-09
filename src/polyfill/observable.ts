@@ -6,7 +6,11 @@
 import { apply, isSupported, type Observable } from "observable-polyfill/fn";
 
 if (!isSupported()) {
-    apply();
+    try {
+        apply();
+    } catch (error) {
+        // EventTarget could be undefined in some environments.
+    }
 }
 
 declare global {

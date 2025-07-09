@@ -204,10 +204,14 @@ class FlatMap<In, Out> implements IPipe<In, Out> {
 class ForEach<T> implements IPipe<T, never, void> {
     private index = 0;
 
-    constructor(private callbackFn: (value: T, index: number) => void) {}
+    constructor(
+        private callbackFn: (value: T, index: number) => void | boolean,
+        private thisArg?: unknown,
+    ) {}
 
-    transform(input: T, next: Next<never>): void {
-        this.callbackFn(input, this.index++);
+    transform(input: T, next: Next<never>): boolean {
+        const result = this.callbackFn.call(this.thisArg, input, this.index++);
+        return result !== false;
     }
 
     flush(next: Next<never>): void {
@@ -512,9 +516,10 @@ export function flatMap<In, Out>(
  * 创建对每个元素执行函数的管道
  */
 export function forEach<T>(
-    callbackFn: (value: T, index: number) => void,
+    callbackFn: (value: T, index: number) => void | boolean,
+    thisArg?: unknown,
 ): Pipe<T, never, void> {
-    return new Pipe(new ForEach(callbackFn));
+    return new Pipe(new ForEach(callbackFn, thisArg));
 }
 
 /**

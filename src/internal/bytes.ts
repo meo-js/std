@@ -81,7 +81,7 @@ export interface Bytes {
      * 遍历每个元素，为每个元素调用一次回调函数
      */
     forEach(
-        callbackfn: (value: number, index: number) => void,
+        callbackfn: (value: number, index: number) => void | boolean,
         thisArg?: unknown,
     ): void;
 }
@@ -124,7 +124,7 @@ export interface BigIntBytes {
      * 遍历每个元素，为每个元素调用一次回调函数
      */
     forEach(
-        callbackfn: (value: bigint, index: number) => void,
+        callbackfn: (value: bigint, index: number) => void | boolean,
         thisArg?: unknown,
     ): void;
 }
@@ -164,7 +164,7 @@ interface BytesImpl {
      * 遍历每个元素，为每个元素调用一次回调函数
      */
     forEach(
-        callbackfn: (value: number | bigint, index: number) => void,
+        callbackfn: (value: number | bigint, index: number) => void | boolean,
         thisArg?: unknown,
     ): void;
 }
@@ -215,7 +215,7 @@ export namespace Bytes {
     export type Callback<T extends number | bigint> = (
         value: T,
         index: number,
-    ) => void;
+    ) => void | boolean;
 
     /**
      * 根据类型返回 {@link forEach} 回调函数类型
@@ -432,7 +432,7 @@ export namespace Bytes {
             }
         } else {
             // 已经是 Bytes 实例
-            data.forEach(callbackfn, thisArg);
+            data.forEach(callbackfn as checked, thisArg);
         }
     }
 }
@@ -441,34 +441,40 @@ function forEachStringWithUtf8(
     text: string,
     bom: boolean,
     fatal: boolean,
-    callbackfn: (value: number, index: number) => void,
+    callbackfn: (value: number, index: number) => void | boolean,
     thisArg?: unknown,
 ) {
     Pipe.run(
         text,
         flatCodePoints(),
         utf8.encodePipe({ bom, fatal }),
-        forEach(callbackfn.bind(thisArg)),
+        forEach(callbackfn, thisArg),
     );
 }
 
 function forEachString(
     text: string,
-    callbackfn: (value: number, index: number) => void,
+    callbackfn: (value: number, index: number) => void | boolean,
     thisArg?: unknown,
 ) {
     for (let i = 0; i < text.length; i++) {
-        callbackfn.call(thisArg, text.charCodeAt(i), i);
+        const result = callbackfn.call(thisArg, text.charCodeAt(i), i);
+        if (result === false) {
+            break;
+        }
     }
 }
 
 function forEachTypedArray(
     bytes: TypedArray,
-    callbackfn: (value: number | bigint, index: number) => void,
+    callbackfn: (value: number | bigint, index: number) => void | boolean,
     thisArg?: unknown,
 ) {
     for (let i = 0; i < bytes.length; i++) {
-        callbackfn.call(thisArg, bytes[i], i);
+        const result = callbackfn.call(thisArg, bytes[i], i);
+        if (result === false) {
+            break;
+        }
     }
 }
 
@@ -477,16 +483,19 @@ function forEachDataView(
     get: DataViewFunction,
     unit: number,
     little: boolean,
-    callbackfn: (value: number | bigint, index: number) => void,
+    callbackfn: (value: number | bigint, index: number) => void | boolean,
     thisArg?: unknown,
 ) {
     let i = 0;
     while (i < bytes.byteLength) {
-        callbackfn.call(
+        const result = callbackfn.call(
             thisArg,
             (<DataViewGetter>get).call(bytes, i, little),
             i,
         );
+        if (result === false) {
+            break;
+        }
         i += unit;
     }
 }
@@ -530,7 +539,7 @@ class StringBytes implements BytesImpl {
      * @inheritdoc
      */
     forEach(
-        callbackfn: (value: number, index: number) => void,
+        callbackfn: (value: number, index: number) => void | boolean,
         thisArg?: unknown,
     ): void {
         forEachString(this.data, callbackfn, thisArg);
@@ -600,7 +609,7 @@ class StringWithUtf8Bytes implements BytesImpl {
      * @inheritdoc
      */
     forEach(
-        callbackfn: (value: number, index: number) => void,
+        callbackfn: (value: number, index: number) => void | boolean,
         thisArg?: unknown,
     ): void {
         if (isString(this.data)) {
@@ -683,7 +692,7 @@ class TypedArrayBytes<T extends TypedArray> implements BytesImpl {
      * @inheritdoc
      */
     forEach(
-        callbackfn: (value: number | bigint, index: number) => void,
+        callbackfn: (value: number | bigint, index: number) => void | boolean,
         thisArg?: unknown,
     ): void {
         forEachTypedArray(this.data, callbackfn, thisArg);
@@ -799,7 +808,10 @@ function createDataViewClass(
          * @inheritdoc
          */
         forEach(
-            callbackfn: (value: number | bigint, index: number) => void,
+            callbackfn: (
+                value: number | bigint,
+                index: number,
+            ) => void | boolean,
             thisArg?: unknown,
         ): void {
             forEachDataView(

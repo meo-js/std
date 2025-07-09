@@ -360,7 +360,7 @@ export function contains(a: unknown[], b: unknown[]) {
  *
  * @param a 数组 A
  * @param b 数组 B
- * @param strictOrder 是否要求一致的成员顺序，默认 `false`
+ * @param strictOrder 是否要求一致的元素顺序，默认 `false`
  */
 export function containsExactly(
     a: unknown[],
