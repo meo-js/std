@@ -12,7 +12,7 @@ const global = <
         & RecordObject<any>
 >globalThis;
 
-const key = Symbol.for("@meojs/utils/global-module");
+const key = Symbol.for("@meojs/global-module");
 const globalModules = global[key] ?? new Map<string, GlobalModule.Options>();
 
 /**
