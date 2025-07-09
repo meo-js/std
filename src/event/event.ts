@@ -14,20 +14,42 @@ import { EventListener } from "./listener.js";
 export class Event<Arguments extends readonly unknown[] = []>
     implements PromiseLike<Arguments>
 {
-    private listeners = new SafeIterArray<EventListener<Arguments>>();
+    private listeners:
+        | null
+        | EventListener<Arguments>
+        | SafeIterArray<EventListener<Arguments>> = null;
 
     /**
      * 添加监听器
      */
     addListener(listener: EventListener<Arguments>) {
-        this.listeners.push(listener);
+        const listeners = this.listeners;
+        if (listeners == null) {
+            this.listeners = listener;
+        } else if (listeners instanceof SafeIterArray) {
+            listeners.push(listener);
+        } else {
+            this.listeners = new SafeIterArray<EventListener<Arguments>>();
+            this.listeners.push(listeners);
+            this.listeners.push(listener);
+        }
     }
 
     /**
      * 移除监听器
      */
     removeListener(listener: EventListener<Arguments>) {
-        return this.listeners.remove(listener);
+        const listeners = this.listeners;
+        if (listeners instanceof SafeIterArray) {
+            return listeners.remove(listener);
+        } else {
+            if (listeners === listener) {
+                this.listeners = null;
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     /**
@@ -57,9 +79,21 @@ export class Event<Arguments extends readonly unknown[] = []>
      * @param thisArg 函数作用域
      */
     off(callback: fn<Arguments>, thisArg?: unknown) {
-        _callbackForRemove = callback;
-        _thisArgForRemove = thisArg;
-        this.listeners.forEach(remove);
+        const listeners = this.listeners;
+        if (listeners instanceof SafeIterArray) {
+            _callbackForRemove = callback;
+            _thisArgForRemove = thisArg;
+            listeners.forEach(remove);
+        } else {
+            if (
+                listeners
+                && listeners.callback === callback
+                // eslint-disable-next-line eqeqeq -- treat null/undefined equally.
+                && listeners.thisArg == thisArg
+            ) {
+                this.listeners = null;
+            }
+        }
     }
 
     /**
@@ -68,14 +102,27 @@ export class Event<Arguments extends readonly unknown[] = []>
      * @param thisArg 函数作用域
      */
     offThisArg(thisArg: unknown) {
-        this.listeners.forEach(removeByThisArg, thisArg);
+        const listeners = this.listeners;
+        if (listeners instanceof SafeIterArray) {
+            listeners.forEach(removeByThisArg, thisArg);
+        } else {
+            // eslint-disable-next-line eqeqeq -- treat null/undefined equally.
+            if (listeners?.thisArg == thisArg) {
+                this.listeners = null;
+            }
+        }
     }
 
     /**
      * 取消所有监听
      */
     offAll() {
-        this.listeners.clear();
+        const listeners = this.listeners;
+        if (listeners instanceof SafeIterArray) {
+            listeners.clear();
+        } else {
+            this.listeners = null;
+        }
     }
 
     /**
@@ -84,7 +131,16 @@ export class Event<Arguments extends readonly unknown[] = []>
      * @param args 事件参数
      */
     emit(...args: Arguments) {
-        this.listeners.forEach(call, args);
+        const listeners = this.listeners;
+
+        if (listeners instanceof SafeIterArray) {
+            listeners.forEach(call, args);
+        } else if (listeners) {
+            if (listeners.once) {
+                this.listeners = null;
+            }
+            listeners.call(args);
+        }
     }
 
     /**

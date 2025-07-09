@@ -1,3 +1,4 @@
+import { Event as _Event } from "../event.js";
 import type { fn } from "../function.js";
 import type { checked } from "../ts.js";
 
@@ -10,11 +11,17 @@ if (
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- checked.
     || globalThis.AbortSignal === undefined
 ) {
-    const abortName = "AbortError";
-    const abortMessage = "signal is aborted without reason";
+    const defaultAbortName = "AbortError";
+    const defaultAbortMessage = "signal is aborted without reason";
+    const timeoutAbortName = "TimeoutError";
+    const timeoutAbortMessage = "signal timed out";
     const abortEvent: Event = { type: "abort" };
 
-    function normalizeAbortReason(reason: unknown) {
+    function normalizeReason(
+        abortName: string,
+        abortMessage: string,
+        reason?: unknown,
+    ) {
         if (reason === undefined) {
             if (typeof document === "undefined") {
                 reason = new Error(abortMessage);
@@ -37,8 +44,70 @@ if (
         return reason;
     }
 
+    function timeoutHandler(signal: AbortSignal) {
+        signal.reason = normalizeReason(timeoutAbortName, timeoutAbortMessage);
+        signal.dispatchEvent(abortEvent);
+    }
+
     class AbortSignal {
-        private _listeners: null | Listener | Listener[] = null;
+        static abort(reason?: unknown) {
+            const signal = new AbortSignal();
+            signal.reason = normalizeReason(
+                defaultAbortName,
+                defaultAbortMessage,
+                reason,
+            );
+            signal.aborted = true;
+            return signal;
+        }
+
+        static any(signals: Iterable<AbortSignal>): AbortSignal {
+            const listenedSignals: AbortSignal[] = [];
+
+            const clear = function (signals: AbortSignal[]) {
+                for (const signal of signals) {
+                    signal.removeEventListener("abort", abortHandler);
+                }
+            };
+
+            const abortHandler = function (this: AbortSignal) {
+                if (this === result) {
+                    clear(listenedSignals);
+                } else {
+                    if (!result.aborted) {
+                        clear(listenedSignals);
+                        result.reason = this.reason;
+                        result.dispatchEvent(abortEvent);
+                    }
+                }
+            };
+
+            for (const signal of signals) {
+                if (signal.aborted) {
+                    clear(listenedSignals);
+                    return AbortSignal.abort(signal.reason);
+                } else {
+                    signal.addEventListener("abort", abortHandler, {
+                        once: true,
+                    });
+                    listenedSignals.push(signal);
+                }
+            }
+
+            const result = new AbortSignal();
+
+            result.addEventListener("abort", abortHandler);
+
+            return result;
+        }
+
+        static timeout(time: number) {
+            const signal = new AbortSignal();
+            setTimeout(timeoutHandler, time, signal);
+            return signal;
+        }
+
+        private _event = new _Event<[event: Event]>();
 
         onabort: ((this: AbortSignal, ev: Event) => unknown) | null = null;
         aborted: boolean = false;
@@ -52,15 +121,7 @@ if (
             if (type !== "abort") {
                 return;
             }
-
-            const listener = { callback, once: options?.once ?? false };
-            if (this._listeners === null) {
-                this._listeners = listener;
-            } else if (Array.isArray(this._listeners)) {
-                this._listeners.push(listener);
-            } else {
-                this._listeners = [this._listeners, listener];
-            }
+            this._event.on(callback);
         }
 
         removeEventListener(
@@ -71,19 +132,7 @@ if (
             if (type !== "abort") {
                 return;
             }
-
-            if (Array.isArray(this._listeners)) {
-                for (let i = 0, l = this._listeners.length; i < l; i++) {
-                    if (this._listeners[i].callback === callback) {
-                        this._listeners.splice(i, 1);
-                        return;
-                    }
-                }
-            } else {
-                if (this._listeners?.callback === callback) {
-                    this._listeners = null;
-                }
-            }
+            this._event.off(callback);
         }
 
         dispatchEvent(event: Event) {
@@ -94,38 +143,14 @@ if (
             this.aborted = true;
 
             this.onabort?.call(this, event);
-
-            if (Array.isArray(this._listeners)) {
-                // TODO 不安全的实现
-                const stack = this._listeners;
-                const stackToCall = stack.slice();
-                for (let i = 0, l = stackToCall.length; i < l; i++) {
-                    const listener = stackToCall[i];
-                    try {
-                        listener.callback.call(this, event);
-                    } catch (e) {
-                        reportError(e);
-                    }
-                    if (listener.once) {
-                        this.removeEventListener(event.type, listener.callback);
-                    }
-                }
-            } else {
-                if (this._listeners) {
-                    try {
-                        this._listeners.callback.call(this, event);
-                    } catch (e) {
-                        reportError(e);
-                    }
-                }
-            }
+            this._event.emit(event);
 
             return true;
         }
 
         when(type: unknown, options?: unknown): unknown {
-            // TODO
-            return null;
+            // FIXME: 等待 Observable 提案普及后再实现
+            throw new Error("AbortSignal.when is not implemented");
         }
 
         throwIfAborted() {
@@ -148,9 +173,14 @@ if (
         signal = new AbortSignal();
 
         abort(reason?: unknown) {
-            const signalReason = normalizeAbortReason(reason);
-            this.signal.reason = signalReason;
-            this.signal.dispatchEvent(abortEvent);
+            if (!this.signal.aborted) {
+                this.signal.reason = normalizeReason(
+                    defaultAbortName,
+                    defaultAbortMessage,
+                    reason,
+                );
+                this.signal.dispatchEvent(abortEvent);
+            }
         }
 
         [Symbol.toStringTag]() {
