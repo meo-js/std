@@ -3,13 +3,6 @@
  */
 export class SafeIterArray<T> implements Iterable<T> {
     /**
-     * @internal
-     */
-    arr: (T | undefined)[];
-    private lockerCount = 0;
-    private dirty: boolean = false;
-
-    /**
      * 是否已锁定
      */
     get locked() {
@@ -29,6 +22,35 @@ export class SafeIterArray<T> implements Iterable<T> {
             this.arr.length = value;
         }
     }
+
+    /**
+     * 有效元素数量
+     */
+    get count() {
+        if (this.dirty) {
+            const arr = this.arr;
+            let count = 0;
+            for (let index = 0; index < arr.length; index++) {
+                if (arr[index] !== undefined) {
+                    count++;
+                }
+            }
+            return count;
+        } else {
+            return this.arr.length;
+        }
+    }
+
+    /**
+     * 是否有未清除的无效值
+     */
+    dirty: boolean = false;
+
+    /**
+     * @internal
+     */
+    arr: (T | undefined)[];
+    private lockerCount = 0;
 
     constructor(arrayLength?: number) {
         this.arr = new Array<T | undefined>(arrayLength ?? 0);

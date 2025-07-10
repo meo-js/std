@@ -14,6 +14,20 @@ import { EventListener } from "./listener.js";
 export class Event<Arguments extends readonly unknown[] = []>
     implements PromiseLike<Arguments>
 {
+    /**
+     * 当前监听器数量
+     */
+    get listenerCount() {
+        const listeners = this.listeners;
+        if (listeners == null) {
+            return 0;
+        } else if (listeners instanceof SafeIterArray) {
+            return listeners.count;
+        } else {
+            return 1;
+        }
+    }
+
     private listeners:
         | null
         | EventListener<Arguments>
@@ -53,6 +67,18 @@ export class Event<Arguments extends readonly unknown[] = []>
     }
 
     /**
+     * 移除所有监听器
+     */
+    removeAllListeners() {
+        const listeners = this.listeners;
+        if (listeners instanceof SafeIterArray) {
+            listeners.clear();
+        } else {
+            this.listeners = null;
+        }
+    }
+
+    /**
      * 监听事件
      *
      * @param callback 事件回调函数
@@ -68,8 +94,21 @@ export class Event<Arguments extends readonly unknown[] = []>
      * @param callback 事件回调函数
      * @param thisArg 函数作用域
      */
-    once(callback: fn<Arguments>, thisArg?: unknown) {
-        this.addListener(new EventListener(callback, thisArg, true));
+    once(): Promise<Arguments>;
+    once(callback: fn<Arguments>, thisArg?: unknown): void;
+    once(
+        callback?: fn<Arguments>,
+        thisArg?: unknown,
+    ): void | Promise<Arguments> {
+        if (callback) {
+            this.addListener(new EventListener(callback, thisArg, true));
+        } else {
+            return new Promise((resolve, reject) => {
+                this.once((...args) => {
+                    resolve(args);
+                });
+            });
+        }
     }
 
     /**
@@ -117,12 +156,7 @@ export class Event<Arguments extends readonly unknown[] = []>
      * 取消所有监听
      */
     offAll() {
-        const listeners = this.listeners;
-        if (listeners instanceof SafeIterArray) {
-            listeners.clear();
-        } else {
-            this.listeners = null;
-        }
+        this.removeAllListeners();
     }
 
     /**
@@ -166,14 +200,14 @@ export class Event<Arguments extends readonly unknown[] = []>
     /**
      * @inheritdoc
      */
-    then<TResult1 = Arguments, TResult2 = never>(
+    async then<TResult1 = Arguments, TResult2 = never>(
         onfulfilled?:
             | ((value: Arguments) => TResult1 | PromiseLike<TResult1>)
             | null,
         onrejected?:
             | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
             | null,
-    ): PromiseLike<TResult1 | TResult2> {
+    ): Promise<TResult1 | TResult2> {
         return new Promise((resolve, reject) => {
             this.once((...args) => {
                 resolve(
