@@ -8,7 +8,7 @@ import { PLATFORM_ENDIAN } from "./env.js";
 import { throwUnsignedWithNegative } from "./internal/error.js";
 import { isBigInt, isNumber, isUint8Array } from "./predicate.js";
 import type { And, Not } from "./ts/logical.js";
-import { Endian } from "./typed-array.js";
+import { asDataView, Endian } from "./typed-array.js";
 
 /**
  * {@link Number} 或 {@link BigInt} 类型
@@ -193,7 +193,7 @@ export interface ToUint8ArrayOptions extends NumericBinaryOptions {
      * 指定输出位数
      *
      * 注意：
-     * - 内部会向上取整为字节数再使用，例如 `53` 位会被向上取整为 `8` 字节（`64` 位）。
+     * - 内部会向上取整为字节数再使用，例如 `53` 位会被向上取整为 `7` 字节（`56` 位）。
      * - 若提供了 `out` 则会忽略该选项，强制使用缓冲区长度
      *
      * @default 若不指定则默认使用 {@link bitLength} 计算最小位数，
@@ -455,40 +455,45 @@ export function minIntOfBits(bits: number, signed: boolean = true): bigint {
     return signed ? -(BigInt(1) << (b - BigInt(1))) : BigInt(0);
 }
 
+function _asUintNumber(bits: number, value: Numeric): number {
+    return isNumber(value) ? value : Number(BigInt.asUintN(bits, value));
+}
+
+function _fastToUint8Array(
+    value: Numeric,
+    len: number,
+    littleEndian: boolean,
+    out: Uint8Array,
+) {
+    const view = asDataView(out);
+    switch (len) {
+        case 1:
+            view.setUint8(0, _asUintNumber(8, value));
+            return true;
+
+        case 2:
+            view.setUint16(0, _asUintNumber(16, value), littleEndian);
+            return true;
+
+        case 4:
+            view.setUint32(0, _asUintNumber(32, value), littleEndian);
+            return true;
+
+        case 8:
+            view.setBigUint64(0, BigInt(value), littleEndian);
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 function _bigIntToUint8Array(
     value: bigint,
-    arg2?: Uint8Array | ToUint8ArrayOptions,
-    opts?: ToUint8ArrayOptions,
+    len: number,
+    littleEndian: boolean,
+    out: Uint8Array,
 ): Uint8Array {
-    if (!isUint8Array(arg2)) {
-        opts = arg2;
-    }
-
-    const {
-        bit,
-        littleEndian = PLATFORM_ENDIAN !== Endian.Big,
-        signed = true,
-    } = opts ?? {};
-
-    if (!signed && value < BigInt(0)) {
-        throwUnsignedWithNegative("toUint8Array(signed = false)");
-    }
-
-    let len = 0;
-    let out: Uint8Array;
-
-    if (isUint8Array(arg2)) {
-        out = arg2;
-        len = bit != null ? Math.ceil(bit / 8) : out.length;
-    } else {
-        len = Math.ceil(bit ?? bitLength(value, signed) / 8);
-        out = new Uint8Array(len);
-    }
-
-    if (value === BigInt(0)) {
-        return out;
-    }
-
     let v = value;
     if (v < BigInt(0)) {
         // 转为补码
@@ -517,17 +522,46 @@ function _bigIntToUint8Array(
     return out;
 }
 
+function _fastFromUint8Array(
+    bytes: Uint8Array,
+    littleEndian: boolean,
+    signed: boolean,
+): Numeric | null {
+    const len = bytes.length;
+    const view = asDataView(bytes);
+
+    switch (len) {
+        case 1:
+            return signed ? view.getInt8(0) : view.getUint8(0);
+
+        case 2:
+            return signed
+                ? view.getInt16(0, littleEndian)
+                : view.getUint16(0, littleEndian);
+
+        case 4:
+            return signed
+                ? view.getInt32(0, littleEndian)
+                : view.getUint32(0, littleEndian);
+
+        case 8:
+            return signed
+                ? view.getBigInt64(0, littleEndian)
+                : view.getBigUint64(0, littleEndian);
+
+        default:
+            return null;
+    }
+}
+
 function _bigIntfromUint8Array(
     bytes: Uint8Array,
-    opts: FromUint8ArrayOptions = {},
+    littleEndian: boolean,
+    signed: boolean,
 ): bigint {
-    const { littleEndian = PLATFORM_ENDIAN !== Endian.Big, signed = true } =
-        opts;
-
     const len = bytes.length;
-    if (len === 0) return BigInt(0);
-
     let value = BigInt(0);
+
     if (littleEndian) {
         for (let i = len - 1; i >= 0; i--) {
             value = (value << BigInt(8)) | BigInt(bytes[i]);
@@ -571,8 +605,48 @@ export function toUint8Array(
     arg2?: Uint8Array | ToUint8ArrayOptions,
     opts?: ToUint8ArrayOptions,
 ): Uint8Array {
-    // TODO: 为 number 类型提供更高效的实现
-    return _bigIntToUint8Array(BigInt(value), arg2, opts);
+    if (!isUint8Array(arg2)) {
+        opts = arg2;
+    }
+
+    const {
+        bit,
+        littleEndian = PLATFORM_ENDIAN !== Endian.Big,
+        signed = true,
+    } = opts ?? {};
+
+    if (!signed && value < 0) {
+        throwUnsignedWithNegative("toUint8Array(signed = false)");
+    }
+
+    let len = 0;
+    let out: Uint8Array;
+    const hasOut = isUint8Array(arg2);
+
+    if (hasOut) {
+        out = arg2;
+        len = bit != null ? Math.ceil(bit / 8) : out.length;
+    } else {
+        len = Math.ceil((bit ?? bitLength(value, signed)) / 8);
+        out = new Uint8Array(len);
+    }
+
+    if (value === 0) {
+        if (hasOut) {
+            out.fill(0);
+        }
+        return out;
+    }
+
+    if (isNumber(value)) {
+        value = Math.trunc(value);
+    }
+
+    if (_fastToUint8Array(value, len, littleEndian, out)) {
+        return out;
+    }
+
+    return _bigIntToUint8Array(BigInt(value), len, littleEndian, out);
 }
 
 /**
@@ -585,6 +659,15 @@ export function fromUint8Array(
     bytes: Uint8Array,
     opts: FromUint8ArrayOptions = {},
 ): Numeric {
-    // TODO: 为 number 类型提供更高效的实现
-    return _bigIntfromUint8Array(bytes, opts);
+    const { littleEndian = PLATFORM_ENDIAN !== Endian.Big, signed = true } =
+        opts;
+
+    if (bytes.length === 0) return 0;
+
+    const result = _fastFromUint8Array(bytes, littleEndian, signed);
+    if (result !== null) {
+        return result;
+    }
+
+    return _bigIntfromUint8Array(bytes, littleEndian, signed);
 }

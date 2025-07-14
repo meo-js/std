@@ -169,7 +169,7 @@ if (
     }
 
     class AbortController {
-        // NOTE: 原生实现的 signal 是不可枚举属性，这里与原生实现不一样
+        // 原生实现的 signal 是不可枚举属性，这里故意与原生实现不一样
         signal = new AbortSignal();
 
         abort(reason?: unknown) {
