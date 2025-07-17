@@ -50,6 +50,7 @@ export class SafeIterArray<T> implements Iterable<T> {
      * @internal
      */
     arr: (T | undefined)[];
+
     private lockerCount = 0;
 
     constructor(arrayLength?: number) {

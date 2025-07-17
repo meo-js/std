@@ -1,4 +1,6 @@
 /**
+ * Cryptographic utilities.
+ *
  * @public
  *
  * @module

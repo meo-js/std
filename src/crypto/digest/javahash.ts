@@ -4,7 +4,7 @@ import { isString } from "../../predicate.js";
 import { asUint8Array } from "../../typed-array.js";
 
 /**
- * Java hashCode 管道实现
+ * Java hashCode 管道实现。
  */
 class JavaHashPipe implements IPipe<number, number, number> {
     private hash!: number;

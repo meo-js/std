@@ -6,11 +6,6 @@ import type { TypedArray } from "../typed-array.js";
  * @template T - {@link TypedArray}
  */
 export class CircleBuffer<T extends TypedArray = TypedArray> {
-    private buffer: T;
-    private tail = 0;
-    private head = 0;
-    private allowOverride = false;
-
     /**
      * 已用空间
      */
@@ -43,6 +38,11 @@ export class CircleBuffer<T extends TypedArray = TypedArray> {
     get full(): boolean {
         return this.length === this.capacity;
     }
+
+    private buffer: T;
+    private tail = 0;
+    private head = 0;
+    private allowOverride = false;
 
     /**
      * 创建环形缓冲区

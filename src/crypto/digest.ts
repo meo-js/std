@@ -1,4 +1,6 @@
 /**
+ * Various hash functions.
+ *
  * @public
  *
  * @module

@@ -4,7 +4,7 @@ import { isString } from "../../predicate.js";
 import { asUint8Array } from "../../typed-array.js";
 
 /**
- * CRC53 哈希管道实现
+ * CYRB53 哈希管道实现.
  */
 class Cyrb53Pipe implements IPipe<number, number, number> {
     private h1!: number;
@@ -51,10 +51,10 @@ function computeResult(h1: number, h2: number): number {
 }
 
 /**
- * 创建一个计算 CRC53 哈希的管道
+ * 创建一个计算 CYRB53 哈希的管道.
  *
  * @param seed 指定种子值，默认为 `0`
- * @returns 返回 CRC53 哈希管道
+ * @returns 返回 CYRB53 哈希管道
  *
  * @see {@link cyrb53}
  */
@@ -71,7 +71,7 @@ export function cyrb53Pipe(seed?: number) {
  * @param seed 指定种子值，默认为 `0`
  * @returns 返回 53 位整数
  */
-// copy from github user: @bryc
+// Copied from GitHub user: @bryc.
 export function cyrb53(input: string | BufferSource, seed = 0): number {
     const data = isString(input) ? utf8.encode(input) : asUint8Array(input);
     const len = data.length;

@@ -15,6 +15,13 @@ type FinalArguments<
 > = If<IsNever<Arguments>, T extends Poolable<infer P> ? P : [], Arguments>;
 
 /**
+ * 描述从类创建的对象池类型
+ */
+// NOTE: 使用 `Pool<T>` 不会自动获得 reuse 函数参数类型
+export type PoolOf<T extends PoolItem> =
+    T extends Poolable<infer P> ? Pool<T, P> : Pool<T, []>;
+
+/**
  * 对象池
  */
 export class Pool<
@@ -262,10 +269,3 @@ export class Pool<
         this[Symbol.dispose]();
     }
 }
-
-/**
- * 描述从类创建的对象池类型
- */
-// NOTE: 使用 `Pool<T>` 不会自动获得 reuse 函数参数类型
-export type PoolOf<T extends PoolItem> =
-    T extends Poolable<infer P> ? Pool<T, P> : Pool<T, []>;

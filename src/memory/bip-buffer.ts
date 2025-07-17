@@ -11,14 +11,6 @@ import { CircleBuffer } from "./circle-buffer.js";
  * 与 {@link CircleBuffer} 不同，{@link BipBuffer} 确保返回的数据块总是连续的，避免了边界处理的复杂性。
  */
 export class BipBuffer<TArrayBuffer extends ArrayBufferLike = ArrayBufferLike> {
-    private buffer: TArrayBuffer;
-    private aStart: number = 0;
-    private aEnd: number = 0;
-    private bStart: number = 0;
-    private bEnd: number = 0;
-    private rStart: number = 0;
-    private rEnd: number = 0;
-
     /**
      * 缓冲区容量
      */
@@ -50,6 +42,14 @@ export class BipBuffer<TArrayBuffer extends ArrayBufferLike = ArrayBufferLike> {
     get empty(): boolean {
         return this.reservedLength === 0 && this.committedLength === 0;
     }
+
+    private buffer: TArrayBuffer;
+    private aStart: number = 0;
+    private aEnd: number = 0;
+    private bStart: number = 0;
+    private bEnd: number = 0;
+    private rStart: number = 0;
+    private rEnd: number = 0;
 
     /**
      * @param arraybuffer 传入 {@link ArrayBufferLike} 实例作为存储空间

@@ -378,8 +378,8 @@ export function containsExactly(
         const temp = [...b];
         for (const v of a) {
             let find = false;
-            for (let i = 0; i < b.length; i++) {
-                const v2 = b[i];
+            for (let i = 0; i < temp.length; i++) {
+                const v2 = temp[i];
                 if (Object.is(v, v2)) {
                     find = true;
                     temp.splice(i, 1);

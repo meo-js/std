@@ -10,9 +10,6 @@ import { asUint8Array } from "../typed-array.js";
 
 // NOTE: 后续如果要公开抽象，可能应该是一个基于 ArrayBuffer 的 Array 类？
 export class ResizableBuffer {
-    private _buffer: Uint8Array;
-    private _position: number = 0;
-
     get buffer(): Uint8Array {
         return this._buffer;
     }
@@ -20,6 +17,9 @@ export class ResizableBuffer {
     get length(): number {
         return this._position;
     }
+
+    private _buffer: Uint8Array;
+    private _position: number = 0;
 
     constructor(initialSize: number) {
         this._buffer = new Uint8Array(initialSize);

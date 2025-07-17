@@ -6,5 +6,5 @@
 import { log } from "../internal/logger.js";
 
 export function reportDuplicatePut() {
-    log.error("do not put the same object back into the object pool again!");
+    log.error("Don't put the recycled object back into the pool again.");
 }

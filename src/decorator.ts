@@ -79,7 +79,7 @@ export declare namespace Decorator {
      *     return class extends target {
      *         constructor(...args) {
      *             super(...args);
-     *             console.log(`constructing an instance of ${name} with arguments ${args.join(", ")}.`);
+     *             console.log(`Constructing an instance of \`${name}\` with arguments \`${args.join(", ")}\`.`);
      *         }
      *     }
      * }
@@ -104,7 +104,7 @@ export declare namespace Decorator {
      * function logged(target, { name }) {
      *     return function (...args) {
      *         const ret = target.call(this, ...args);
-     *         console.log(`${name} has been called.`);
+     *         console.log(`\`${name}\` has been called.`);
      *         return ret;
      *     };
      * }
@@ -131,7 +131,7 @@ export declare namespace Decorator {
      * function logged(target, { name }) {
      *     return function (...args) {
      *         const ret = target.call(this, ...args);
-     *         console.log(`${name} has been called.`);
+     *         console.log(`\`${name}\` has been called.`);
      *         return ret;
      *     };
      * }
@@ -162,7 +162,7 @@ export declare namespace Decorator {
      * function logged(target, { name }) {
      *     return function (...args) {
      *         const ret = target.call(this, ...args);
-     *         console.log(`${name} has been called.`);
+     *         console.log(`\`${name}\` has been called.`);
      *         return ret;
      *     };
      * }
@@ -192,7 +192,7 @@ export declare namespace Decorator {
      * ```ts
      * function logged(target, { name }) {
      *     return function (initialValue) {
-     *         console.log(`initializing ${name} with value ${initialValue}.`);
+     *         console.log(`Initializing \`${name}\` with value \`${initialValue}\`.`);
      *         return initialValue;
      *     };
      * }
@@ -218,17 +218,17 @@ export declare namespace Decorator {
      * function logged(target, { name }) {
      *     return {
      *         get() {
-     *             console.log(`getting ${name}`);
+     *             console.log(`Getting \`${name}\` has been called.`);
      *             return get.call(this);
      *         },
      *
      *         set(val) {
-     *             console.log(`setting ${name} to ${val}`);
+     *         console.log(`Setting \`${name}\` to \`${val}\` has been called.`);
      *             return set.call(this, val);
      *         },
      *
      *         init(initialValue) {
-     *             console.log(`initializing ${name} with value ${initialValue}`);
+     *         console.log(`Initializing \`${name}\` with value \`${initialValue}\`.`);
      *             return initialValue;
      *         }
      *     };

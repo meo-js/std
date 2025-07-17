@@ -212,6 +212,7 @@
         "clean": "rimraf ./dist",
         "lint": "eslint",
         "gen-exports": "npx tsx ./scripts/exports-generator.ts",
+        "ai": "npx tsx ./scripts/ai-process.ts",
         "prepack": "npm run build",
         "publish:patch": "npm version patch && npm publish",
         "publish:minor": "npm version minor && npm publish",

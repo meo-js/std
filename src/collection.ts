@@ -1,40 +1,42 @@
 /**
+ * Collection utilities.
+ *
  * @public
  *
  * @module
  */
 
 /**
- * 任意集合类型
- */
-export type AnyCollection = Collection | WeakCollection;
-
-/**
- * 集合类型
+ * Represents a collection.
  */
 export type Collection<K = unknown, V = unknown> = Map<K, V> | Set<V>;
 
 /**
- * 弱引用集合类型
+ * Represents a weak reference collection.
  */
 export type WeakCollection<T extends WeakKey = WeakKey, V = unknown> =
     | WeakMap<T, V>
     | WeakSet<T>;
 
 /**
- * 类 {@link Map} 集合类型
+ * Represents any collection.
+ */
+export type AnyCollection = Collection | WeakCollection;
+
+/**
+ * Represents any map.
  */
 export type AnyMap<K = unknown, V = unknown> =
     | Map<K, V>
     | WeakMap<K & WeakKey, V>;
 
 /**
- * 类 {@link Set} 集合类型
+ * Represents any set.
  */
 export type AnySet<T = unknown> = Set<T> | WeakSet<T & WeakKey>;
 
 /**
- * {@link AnyCollection} 的键类型
+ * Extracts the key type of an {@link AnyMap} type.
  */
 export type KeyOf<T extends AnyMap> =
     T extends Map<infer K, infer V>
@@ -44,7 +46,9 @@ export type KeyOf<T extends AnyMap> =
           : never;
 
 /**
- * {@link AnyCollection} 的值类型
+ * Extracts the value type of an {@link AnyCollection}.
+ *
+ * @template T The collection type.
  */
 export type ValueOf<T extends AnyCollection> =
     T extends Map<infer K, infer V>
@@ -58,7 +62,9 @@ export type ValueOf<T extends AnyCollection> =
               : never;
 
 /**
- * {@link AnyCollection} 的元素类型
+ * Extracts the entries of an {@link AnyCollection} as an array of `[key, value]` tuples.
+ *
+ * @template T The collection type.
  */
 export type EntriesOf<T extends AnyCollection> =
     T extends Map<infer K, infer V>
