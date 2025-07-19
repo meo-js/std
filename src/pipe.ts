@@ -480,7 +480,7 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
                 errors.push(error);
                 return new AggregateError(
                     errors,
-                    "some errors occurred in the pipeline.",
+                    "Some errors occurred in the pipeline.",
                 );
             } else {
                 return error;

@@ -288,7 +288,7 @@ export namespace Bytes {
                     return new Float64DataViewBytes(data, little) as checked;
                 } else {
                     throw new TypeError(
-                        `unsupported TypedArray type: ${getStringTag(data)}`,
+                        `Unsupported TypedArray type: ${getStringTag(data)}`,
                     );
                 }
             }
@@ -426,7 +426,7 @@ export namespace Bytes {
                     );
                 } else {
                     throw new TypeError(
-                        `unsupported TypedArray type: ${getStringTag(data)}`,
+                        `Unsupported TypedArray type: ${getStringTag(data)}`,
                     );
                 }
             }

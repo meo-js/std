@@ -599,7 +599,9 @@ function _bigIntToUint8Array(
     }
 
     if (tmp !== BigInt(0)) {
-        throw new RangeError(`${value} cannot fit in ${len} bytes.`);
+        throw new RangeError(
+            `${value}n must require ${bitLength(value)} bits buffer, but only has ${len * 8} bits.`,
+        );
     }
 
     return out;
