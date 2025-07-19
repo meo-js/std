@@ -44,10 +44,6 @@ export class PlainPool<out T extends PoolItem = object> implements Disposable {
         );
     }
 
-    private arr: T[] = [];
-    private ptr = 0;
-    private handler: PlainPoolHandler<T>;
-
     /**
      * 池内对象数量
      */
@@ -61,6 +57,10 @@ export class PlainPool<out T extends PoolItem = object> implements Disposable {
     get availableCount() {
         return this.size - this.ptr;
     }
+
+    private arr: T[] = [];
+    private ptr = 0;
+    private handler: PlainPoolHandler<T>;
 
     private constructor(handler: PlainPoolHandler<T>, initialSize: number) {
         this.handler = handler;
@@ -78,18 +78,18 @@ export class PlainPool<out T extends PoolItem = object> implements Disposable {
         }
     }
 
-    protected _growIfNeeded() {
-        if (this.ptr >= this.size) {
-            this.grow(Math.max(8, this.size >> 1));
-        }
-    }
-
     /**
      * 获取对象
      */
     get(): T {
         this._growIfNeeded();
         return this.arr[this.ptr++];
+    }
+
+    protected _growIfNeeded() {
+        if (this.ptr >= this.size) {
+            this.grow(Math.max(8, this.size >> 1));
+        }
     }
 
     /**
@@ -167,16 +167,6 @@ export class PlainPool<out T extends PoolItem = object> implements Disposable {
         return this.size;
     }
 
-    private _dispose(item: T) {
-        if (this.handler.dispose) {
-            this.handler.dispose(item);
-        } else {
-            if (isDisposable(item)) {
-                item[Symbol.dispose]();
-            }
-        }
-    }
-
     /**
      * 清空池内所有的对象
      *
@@ -188,6 +178,16 @@ export class PlainPool<out T extends PoolItem = object> implements Disposable {
             this._dispose(item);
         }
         this.arr.length = 0;
+    }
+
+    private _dispose(item: T) {
+        if (this.handler.dispose) {
+            this.handler.dispose(item);
+        } else {
+            if (isDisposable(item)) {
+                item[Symbol.dispose]();
+            }
+        }
     }
 
     /**

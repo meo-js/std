@@ -3,7 +3,6 @@ import type { fn } from "../function.js";
 import type { checked } from "../ts.js";
 
 type Event = { type: string };
-type Listener = { callback: fn<[event: Event]>; once: boolean };
 
 if (
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- checked.
@@ -107,11 +106,11 @@ if (
             return signal;
         }
 
-        private _event = new _Event<[event: Event]>();
-
         onabort: ((this: AbortSignal, ev: Event) => unknown) | null = null;
         aborted: boolean = false;
         reason: unknown;
+
+        private _event = new _Event<[event: Event]>();
 
         addEventListener(
             type: string,

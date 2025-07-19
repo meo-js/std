@@ -92,16 +92,6 @@ export class Pool<
         );
     }
 
-    private arr: (T | null)[] = [];
-    private _ctor: () => T;
-    private _reuse: Covariant<(item: T, ...args: Arguments) => void>;
-    private _recycle: Covariant<(item: T) => void>;
-    private _dispose: Covariant<(item: T) => void>;
-    private _expansion: (size: number) => number;
-    private get size() {
-        return this.capacity === -1 ? this.arr.length : this.capacity;
-    }
-
     /**
      * 设计容量
      *
@@ -113,6 +103,16 @@ export class Pool<
      * 可用对象数量
      */
     availableCount: number = 0;
+
+    private arr: (T | null)[] = [];
+    private _ctor: () => T;
+    private _reuse: Covariant<(item: T, ...args: Arguments) => void>;
+    private _recycle: Covariant<(item: T) => void>;
+    private _dispose: Covariant<(item: T) => void>;
+    private _expansion: (size: number) => number;
+    private get size() {
+        return this.capacity === -1 ? this.arr.length : this.capacity;
+    }
 
     private constructor(
         handler: PoolHandler<T, Arguments>,

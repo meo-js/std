@@ -2,6 +2,41 @@ import type { Utf8EncodeOptions } from "../text/options.js";
 import { Encoding } from "./enum.js";
 
 /**
+ * Base64 编码选项
+ */
+export type Base64EncodeOptions = StringOptions & Base64Options;
+
+/**
+ * Base64 解码选项
+ */
+export type Base64DecodeOptions = FatalOptions;
+
+/**
+ * Hex 编码选项
+ */
+export type HexEncodeOptions = StringOptions & HexOptions;
+
+/**
+ * Hex 解码选项
+ */
+export type HexDecodeOptions = FatalOptions;
+
+/**
+ * 字节数据编码选项
+ */
+export type EncodeOptions = StringOptions & Base64Options & HexOptions;
+
+/**
+ * 字节数据解码选项
+ */
+export type DecodeOptions = FatalOptions;
+
+/**
+ * 字节数据验证选项
+ */
+export type VerifyOptions = Base64VerifyOptions;
+
+/**
  * 字节数据编码无效数据处理选项
  */
 export interface FatalOptions {
@@ -78,38 +113,3 @@ export interface HexOptions {
      */
     pretty?: boolean;
 }
-
-/**
- * Base64 编码选项
- */
-export type Base64EncodeOptions = StringOptions & Base64Options;
-
-/**
- * Base64 解码选项
- */
-export type Base64DecodeOptions = FatalOptions;
-
-/**
- * Hex 编码选项
- */
-export type HexEncodeOptions = StringOptions & HexOptions;
-
-/**
- * Hex 解码选项
- */
-export type HexDecodeOptions = FatalOptions;
-
-/**
- * 字节数据编码选项
- */
-export type EncodeOptions = StringOptions & Base64Options & HexOptions;
-
-/**
- * 字节数据解码选项
- */
-export type DecodeOptions = FatalOptions;
-
-/**
- * 字节数据验证选项
- */
-export type VerifyOptions = Base64VerifyOptions;

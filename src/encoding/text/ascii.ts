@@ -20,48 +20,6 @@ import {
 export const MAX_CODE = 127;
 
 /**
- * 创建一个解码 Ascii 字节数据的管道
- */
-export function decodePipe(opts?: SingleByteDecodeOptions) {
-    return _decodePipe(MAX_CODE, opts);
-}
-
-/**
- * 创建一个编码字符码点为 Ascii 字节数据的管道
- */
-export function encodePipe(opts?: SingleByteEncodeOptions) {
-    return _encodePipe(MAX_CODE, opts);
-}
-
-/**
- * 创建一个验证字节数据是否为有效 Ascii 编码的管道
- */
-export function verifyPipe(allowReplacementChar?: boolean) {
-    return _verifyPipe(MAX_CODE, allowReplacementChar);
-}
-
-/**
- * 创建一个验证字符码点是否能编码为 Ascii 的管道
- */
-export function isWellFormedPipe(allowReplacementChar?: boolean) {
-    return _isWellFormedPipe(MAX_CODE, allowReplacementChar);
-}
-
-/**
- * 以 Ascii 解码字节数据为字符串
- *
- * @param bytes 字节数据
- * @param opts {@link SingleByteDecodeOptions}
- * @returns 字符串
- */
-export function decode(
-    bytes: BufferSource,
-    opts?: SingleByteDecodeOptions,
-): string {
-    return _decode(MAX_CODE, bytes, opts);
-}
-
-/**
  * 编码字符串为 Ascii 字节数据
  *
  * @param text 字符串
@@ -92,6 +50,20 @@ export function encodeInto(
 }
 
 /**
+ * 以 Ascii 解码字节数据为字符串
+ *
+ * @param bytes 字节数据
+ * @param opts {@link SingleByteDecodeOptions}
+ * @returns 字符串
+ */
+export function decode(
+    bytes: BufferSource,
+    opts?: SingleByteDecodeOptions,
+): string {
+    return _decode(MAX_CODE, bytes, opts);
+}
+
+/**
  * 验证是否为有效的 Ascii 字节数据
  *
  * @param bytes 字节数据
@@ -115,4 +87,32 @@ export function isWellFormed(
     allowReplacementChar?: boolean,
 ): boolean {
     return _isWellFormed(MAX_CODE, text, allowReplacementChar);
+}
+
+/**
+ * 创建一个编码字符码点为 Ascii 字节数据的管道
+ */
+export function encodePipe(opts?: SingleByteEncodeOptions) {
+    return _encodePipe(MAX_CODE, opts);
+}
+
+/**
+ * 创建一个解码 Ascii 字节数据的管道
+ */
+export function decodePipe(opts?: SingleByteDecodeOptions) {
+    return _decodePipe(MAX_CODE, opts);
+}
+
+/**
+ * 创建一个验证字节数据是否为有效 Ascii 编码的管道
+ */
+export function verifyPipe(allowReplacementChar?: boolean) {
+    return _verifyPipe(MAX_CODE, allowReplacementChar);
+}
+
+/**
+ * 创建一个验证字符码点是否能编码为 Ascii 的管道
+ */
+export function isWellFormedPipe(allowReplacementChar?: boolean) {
+    return _isWellFormedPipe(MAX_CODE, allowReplacementChar);
 }

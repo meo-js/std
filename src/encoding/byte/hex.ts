@@ -288,6 +288,124 @@ const decodeTable = new Uint8Array([
 const whitespaceRegex = /\s+/gu;
 const verifyRegex = /^[0-9a-fA-F]+$/u;
 
+/**
+ * 将字节数据编码为 Hex 字符串
+ *
+ * @param bytes 字节数据
+ * @param opts {@link HexEncodeOptions}
+ * @returns Hex 编码的字符串
+ */
+export function encode(
+    bytes: string | BufferSource,
+    opts?: HexEncodeOptions,
+): string {
+    const pretty = opts?.pretty ?? false;
+    if (isString(bytes)) {
+        return Pipe.run(
+            bytes,
+            flatCodePoints(),
+            utf8.encodePipe(opts?.utf8Options),
+            encodePipe(opts),
+            concatString(),
+        );
+    } else {
+        const data = asUint8Array(bytes);
+        return Pipe.run(
+            data,
+            flat(),
+            encodePipe(opts),
+            concatString(new Array(measureLength(data, pretty))),
+        );
+    }
+}
+
+/**
+ * 将 Hex 字符串解码为字节数据
+ *
+ * @param text  Hex 字符串
+ * @param opts {@link HexDecodeOptions}
+ * @returns 字节数据
+ */
+export function decode(text: string, opts?: HexDecodeOptions): Uint8Array {
+    const fatal = opts?.fatal ?? true;
+    return Pipe.run(
+        text,
+        flatCharCodes(),
+        decodePipe(opts),
+        toUint8Array(fatal ? new Uint8Array(measureSize(text)) : undefined),
+    );
+}
+
+/**
+ * 将 Hex 字符串解码到指定的缓冲区中
+ *
+ * @param text Hex 字符串
+ * @param out 输出缓冲区
+ * @param opts {@link HexDecodeOptions}
+ * @returns 返回一个对象，包含已读取的字符数量和写入缓冲区的字节数
+ */
+export function decodeInto(
+    text: string,
+    out: BufferSource,
+    opts?: HexDecodeOptions,
+): { read: number; written: number } {
+    return _decodeInto(text, out, decodePipe(opts), measureSize(text), 1);
+}
+
+/**
+ * @param text 字符串
+ * @returns 返回是否为有效的 Hex 字符串
+ */
+export function verify(text: string) {
+    text = text.replace(whitespaceRegex, "");
+
+    if (text.length % 2 !== 0) {
+        return false;
+    }
+
+    return verifyRegex.test(text);
+}
+
+/**
+ * 计算字节数据编码为 Hex 字符串的精确长度
+ */
+export function measureLength(bytes: BufferSource, pretty: boolean): number {
+    const data = asUint8Array(bytes);
+    const baseLength = data.length * 2;
+    return pretty ? baseLength + Math.max(0, data.length - 1) : baseLength;
+}
+
+/**
+ * 计算 Hex 字符串解码为字节数据的精确长度
+ *
+ * 注意：仅当解码时 `fatal` 为 `true` 且未抛出错误时，该函数计算的长度才绝对准确，否则返回的长度为最大长度。
+ */
+export function measureSize(text: string): number {
+    text = text.replace(whitespaceRegex, "");
+    return Math.floor(text.length / 2);
+}
+
+/**
+ * 创建一个编码字节数据为 Hex 字符串的管道
+ */
+export function encodePipe(opts?: HexEncodeOptions) {
+    return new Pipe(new EncodePipe(opts));
+}
+
+/**
+ * 创建一个解码 Hex 字符串为字节数据的管道
+ */
+export function decodePipe(opts?: HexDecodeOptions) {
+    return new Pipe(new DecodePipe(opts));
+}
+
+/**
+ * 创建一个验证 Hex 字符串有效性的管道
+ */
+export function verifyPipe() {
+    return new Pipe(new VerifyPipe());
+}
+
 class EncodePipe implements IPipe<number, string> {
     private pretty: boolean;
     private first = true;
@@ -429,122 +547,4 @@ class VerifyPipe implements IPipe<number, boolean> {
         this.hasPrev = false;
         this.result = true;
     }
-}
-
-/**
- * 创建一个编码字节数据为 Hex 字符串的管道
- */
-export function encodePipe(opts?: HexEncodeOptions) {
-    return new Pipe(new EncodePipe(opts));
-}
-
-/**
- * 创建一个解码 Hex 字符串为字节数据的管道
- */
-export function decodePipe(opts?: HexDecodeOptions) {
-    return new Pipe(new DecodePipe(opts));
-}
-
-/**
- * 创建一个验证 Hex 字符串有效性的管道
- */
-export function verifyPipe() {
-    return new Pipe(new VerifyPipe());
-}
-
-/**
- * 将字节数据编码为 Hex 字符串
- *
- * @param bytes 字节数据
- * @param opts {@link HexEncodeOptions}
- * @returns Hex 编码的字符串
- */
-export function encode(
-    bytes: string | BufferSource,
-    opts?: HexEncodeOptions,
-): string {
-    const pretty = opts?.pretty ?? false;
-    if (isString(bytes)) {
-        return Pipe.run(
-            bytes,
-            flatCodePoints(),
-            utf8.encodePipe(opts?.utf8Options),
-            encodePipe(opts),
-            concatString(),
-        );
-    } else {
-        const data = asUint8Array(bytes);
-        return Pipe.run(
-            data,
-            flat(),
-            encodePipe(opts),
-            concatString(new Array(measureLength(data, pretty))),
-        );
-    }
-}
-
-/**
- * 将 Hex 字符串解码为字节数据
- *
- * @param text  Hex 字符串
- * @param opts {@link HexDecodeOptions}
- * @returns 字节数据
- */
-export function decode(text: string, opts?: HexDecodeOptions): Uint8Array {
-    const fatal = opts?.fatal ?? true;
-    return Pipe.run(
-        text,
-        flatCharCodes(),
-        decodePipe(opts),
-        toUint8Array(fatal ? new Uint8Array(measureSize(text)) : undefined),
-    );
-}
-
-/**
- * 将 Hex 字符串解码到指定的缓冲区中
- *
- * @param text Hex 字符串
- * @param out 输出缓冲区
- * @param opts {@link HexDecodeOptions}
- * @returns 返回一个对象，包含已读取的字符数量和写入缓冲区的字节数
- */
-export function decodeInto(
-    text: string,
-    out: BufferSource,
-    opts?: HexDecodeOptions,
-): { read: number; written: number } {
-    return _decodeInto(text, out, decodePipe(opts), measureSize(text), 1);
-}
-
-/**
- * @param text 字符串
- * @returns 返回是否为有效的 Hex 字符串
- */
-export function verify(text: string) {
-    text = text.replace(whitespaceRegex, "");
-
-    if (text.length % 2 !== 0) {
-        return false;
-    }
-
-    return verifyRegex.test(text);
-}
-
-/**
- * 计算字节数据编码为 Hex 字符串的精确长度
- */
-export function measureLength(bytes: BufferSource, pretty: boolean): number {
-    const data = asUint8Array(bytes);
-    const baseLength = data.length * 2;
-    return pretty ? baseLength + Math.max(0, data.length - 1) : baseLength;
-}
-
-/**
- * 计算 Hex 字符串解码为字节数据的精确长度
- *
- * 注意：仅当解码时 `fatal` 为 `true` 且未抛出错误时，该函数计算的长度才绝对准确，否则返回的长度为最大长度。
- */
-export function measureSize(text: string): number {
-    text = text.replace(whitespaceRegex, "");
-    return Math.floor(text.length / 2);
 }

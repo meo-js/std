@@ -1,6 +1,11 @@
 import type { Poolable } from "../protocol/poolable.js";
 
 /**
+ * 池对象类型
+ */
+export type PoolItem = Poolable & Partial<Disposable>;
+
+/**
  * 池对象句柄
  */
 export class PoolItemHandle<out T extends PoolItem = object>
@@ -38,8 +43,3 @@ export class PoolItemHandle<out T extends PoolItem = object>
         this[Symbol.dispose]();
     }
 }
-
-/**
- * 池对象类型
- */
-export type PoolItem = Poolable & Partial<Disposable>;

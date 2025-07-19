@@ -60,9 +60,152 @@ const verifyAnyAndNoPadRegex =
     /^([A-Za-z0-9+/\-_]{4})*([A-Za-z0-9+/\-_]{2}|[A-Za-z0-9+/\-_]{3})?$/u;
 
 /**
+ * 将字节数据编码为 Base64 字符串
+ *
+ * @param bytes 字节数据
+ * @param opts {@link Base64EncodeOptions}
+ * @returns Base64 字符串
+ */
+export function encode(
+    bytes: string | BufferSource,
+    opts?: Base64EncodeOptions,
+): string {
+    return _encode(bytes, false, opts);
+}
+
+/**
+ * 将 Base64 字符串解码为字节数据
+ *
+ * @param text Base64 字符串
+ * @param opts {@link Base64DecodeOptions}
+ * @returns 字节数据
+ */
+export function decode(text: string, opts?: Base64DecodeOptions): Uint8Array {
+    const fatal = opts?.fatal ?? true;
+    return Pipe.run(
+        text,
+        flatCharCodes(),
+        new DecodePipe(opts),
+        toUint8Array(fatal ? new Uint8Array(measureSize(text)) : undefined),
+    );
+}
+
+/**
+ * 将 Base64 字符串解码到指定的缓冲区中
+ *
+ * @param text Base64 字符串
+ * @param out 输出缓冲区
+ * @param opts {@link Base64DecodeOptions}
+ * @returns 返回一个对象，包含已读取的字符数量和写入缓冲区的字节数
+ */
+export function decodeInto(
+    text: string,
+    out: BufferSource,
+    opts?: Base64DecodeOptions,
+): { read: number; written: number } {
+    return _decodeInto(text, out, decodePipe(opts), measureSize(text), 3);
+}
+
+/**
+ * @param text 字符串
+ * @param allowVariant 是否允许变体，默认为 `true`
+ * @param padding 是否检查填充符，默认为 `undefined`，表示不检查，`true` 则强制必要的填充符，`false` 则强制禁止填充符
+ * @returns 返回是否为有效的 Base64 字符串
+ */
+export function verify(
+    text: string,
+    allowVariant: boolean = true,
+    padding?: boolean,
+): boolean {
+    if (allowVariant) {
+        if (padding === true) {
+            return verifyAnyAndPadRegex.test(text);
+        } else if (padding === false) {
+            return verifyAnyAndNoPadRegex.test(text);
+        } else {
+            return verifyAnyRegex.test(text);
+        }
+    } else {
+        if (padding === true) {
+            return verifyPadRegex.test(text);
+        } else if (padding === false) {
+            return verifyNoPadRegex.test(text);
+        } else {
+            return verifyRegex.test(text);
+        }
+    }
+}
+
+/**
+ * 计算字节数据编码为 Base64 字符串的精确长度
+ */
+export function measureLength(bytes: BufferSource, padding: boolean): number {
+    const byteLength = asUint8Array(bytes).length;
+    if (padding) {
+        return Math.ceil(byteLength / 3) * 4;
+    } else {
+        const groupCount = Math.floor(byteLength / 3);
+        const remainder = byteLength % 3;
+        return groupCount * 4 + (remainder > 0 ? remainder + 1 : 0);
+    }
+}
+
+/**
+ * 计算 Base64 字符串解码为字节数据的精确长度
+ *
+ * 注意：仅当解码时 `fatal` 为 `true` 且未抛出错误时，该函数计算的长度才绝对准确，否则返回的长度为最大长度。
+ */
+export function measureSize(text: string): number {
+    const len = text.length;
+    if (len === 0) return 0;
+
+    let paddingCount = 0;
+    if (text.endsWith("==")) {
+        paddingCount = 2;
+    } else if (text.endsWith("=")) {
+        paddingCount = 1;
+    }
+
+    const base64Len = len - paddingCount;
+    const groupCount = Math.floor(base64Len / 4);
+    const remainder = base64Len % 4;
+
+    let result = groupCount * 3;
+
+    if (remainder === 2) {
+        result += 1;
+    } else if (remainder === 3) {
+        result += 2;
+    }
+
+    return result;
+}
+
+/**
+ * 创建一个编码字节数据为 Base64 字符串的管道
+ */
+export function encodePipe(opts?: Base64EncodeOptions) {
+    return new Pipe(new EncodePipe(false, opts));
+}
+
+/**
+ * 创建一个解码 Base64 字符串为字节数据的管道
+ */
+export function decodePipe(opts?: Base64DecodeOptions) {
+    return new Pipe(new DecodePipe(opts));
+}
+
+/**
+ * 创建一个验证 Base64 字符串有效性的管道
+ */
+export function verifyPipe(allowVariant: boolean = true, padding?: boolean) {
+    return new Pipe(new VerifyPipe(allowVariant, padding));
+}
+
+/**
  * @internal
  */
-export class _EncodePipe implements IPipe<number, string> {
+export class EncodePipe implements IPipe<number, string> {
     private table: string;
     private padding: boolean;
     private buffer = new Uint8Array(3);
@@ -267,6 +410,27 @@ class VerifyPipe implements IPipe<number, boolean> {
         return true;
     }
 
+    private isValidChar(codePoint: number): boolean {
+        if (
+            (codePoint >= 65 && codePoint <= 90) // A-Z
+            || (codePoint >= 97 && codePoint <= 122) // a-z
+            || (codePoint >= 48 && codePoint <= 57) // 0-9
+            || codePoint === 43 // +
+            || codePoint === 47 // /
+        ) {
+            return true;
+        }
+
+        if (this.allowVariant) {
+            return (
+                codePoint === 45 // -
+                || codePoint === 95 // _
+            );
+        } else {
+            return false;
+        }
+    }
+
     flush(next: Next<boolean>): boolean {
         const { result, position, padding, padCount } = this;
         this.reset();
@@ -315,53 +479,11 @@ class VerifyPipe implements IPipe<number, boolean> {
         this.reset();
     }
 
-    private isValidChar(codePoint: number): boolean {
-        if (
-            (codePoint >= 65 && codePoint <= 90) // A-Z
-            || (codePoint >= 97 && codePoint <= 122) // a-z
-            || (codePoint >= 48 && codePoint <= 57) // 0-9
-            || codePoint === 43 // +
-            || codePoint === 47 // /
-        ) {
-            return true;
-        }
-
-        if (this.allowVariant) {
-            return (
-                codePoint === 45 // -
-                || codePoint === 95 // _
-            );
-        } else {
-            return false;
-        }
-    }
-
     reset() {
         this.position = 0;
         this.padCount = 0;
         this.result = true;
     }
-}
-
-/**
- * 创建一个编码字节数据为 Base64 字符串的管道
- */
-export function encodePipe(opts?: Base64EncodeOptions) {
-    return new Pipe(new _EncodePipe(false, opts));
-}
-
-/**
- * 创建一个解码 Base64 字符串为字节数据的管道
- */
-export function decodePipe(opts?: Base64DecodeOptions) {
-    return new Pipe(new DecodePipe(opts));
-}
-
-/**
- * 创建一个验证 Base64 字符串有效性的管道
- */
-export function verifyPipe(allowVariant: boolean = true, padding?: boolean) {
-    return new Pipe(new VerifyPipe(allowVariant, padding));
 }
 
 /**
@@ -378,7 +500,7 @@ export function _encode(
             bytes,
             flatCodePoints(),
             utf8.encodePipe(opts?.utf8Options),
-            new _EncodePipe(urlSafe, opts),
+            new EncodePipe(urlSafe, opts),
             concatString(),
         );
     } else {
@@ -386,130 +508,8 @@ export function _encode(
         return Pipe.run(
             data,
             flat(),
-            new _EncodePipe(urlSafe, opts),
+            new EncodePipe(urlSafe, opts),
             concatString(new Array(measureLength(data, padding))),
         );
     }
-}
-
-/**
- * 将字节数据编码为 Base64 字符串
- *
- * @param bytes 字节数据
- * @param opts {@link Base64EncodeOptions}
- * @returns Base64 字符串
- */
-export function encode(
-    bytes: string | BufferSource,
-    opts?: Base64EncodeOptions,
-): string {
-    return _encode(bytes, false, opts);
-}
-
-/**
- * 将 Base64 字符串解码为字节数据
- *
- * @param text Base64 字符串
- * @param opts {@link Base64DecodeOptions}
- * @returns 字节数据
- */
-export function decode(text: string, opts?: Base64DecodeOptions): Uint8Array {
-    const fatal = opts?.fatal ?? true;
-    return Pipe.run(
-        text,
-        flatCharCodes(),
-        new DecodePipe(opts),
-        toUint8Array(fatal ? new Uint8Array(measureSize(text)) : undefined),
-    );
-}
-
-/**
- * 将 Base64 字符串解码到指定的缓冲区中
- *
- * @param text Base64 字符串
- * @param out 输出缓冲区
- * @param opts {@link Base64DecodeOptions}
- * @returns 返回一个对象，包含已读取的字符数量和写入缓冲区的字节数
- */
-export function decodeInto(
-    text: string,
-    out: BufferSource,
-    opts?: Base64DecodeOptions,
-): { read: number; written: number } {
-    return _decodeInto(text, out, decodePipe(opts), measureSize(text), 3);
-}
-
-/**
- * @param text 字符串
- * @param allowVariant 是否允许变体，默认为 `true`
- * @param padding 是否检查填充符，默认为 `undefined`，表示不检查，`true` 则强制必要的填充符，`false` 则强制禁止填充符
- * @returns 返回是否为有效的 Base64 字符串
- */
-export function verify(
-    text: string,
-    allowVariant: boolean = true,
-    padding?: boolean,
-): boolean {
-    if (allowVariant) {
-        if (padding === true) {
-            return verifyAnyAndPadRegex.test(text);
-        } else if (padding === false) {
-            return verifyAnyAndNoPadRegex.test(text);
-        } else {
-            return verifyAnyRegex.test(text);
-        }
-    } else {
-        if (padding === true) {
-            return verifyPadRegex.test(text);
-        } else if (padding === false) {
-            return verifyNoPadRegex.test(text);
-        } else {
-            return verifyRegex.test(text);
-        }
-    }
-}
-
-/**
- * 计算字节数据编码为 Base64 字符串的精确长度
- */
-export function measureLength(bytes: BufferSource, padding: boolean): number {
-    const byteLength = asUint8Array(bytes).length;
-    if (padding) {
-        return Math.ceil(byteLength / 3) * 4;
-    } else {
-        const groupCount = Math.floor(byteLength / 3);
-        const remainder = byteLength % 3;
-        return groupCount * 4 + (remainder > 0 ? remainder + 1 : 0);
-    }
-}
-
-/**
- * 计算 Base64 字符串解码为字节数据的精确长度
- *
- * 注意：仅当解码时 `fatal` 为 `true` 且未抛出错误时，该函数计算的长度才绝对准确，否则返回的长度为最大长度。
- */
-export function measureSize(text: string): number {
-    const len = text.length;
-    if (len === 0) return 0;
-
-    let paddingCount = 0;
-    if (text.endsWith("==")) {
-        paddingCount = 2;
-    } else if (text.endsWith("=")) {
-        paddingCount = 1;
-    }
-
-    const base64Len = len - paddingCount;
-    const groupCount = Math.floor(base64Len / 4);
-    const remainder = base64Len % 4;
-
-    let result = groupCount * 3;
-
-    if (remainder === 2) {
-        result += 1;
-    } else if (remainder === 3) {
-        result += 2;
-    }
-
-    return result;
 }

@@ -2,6 +2,144 @@ import { toIterable } from "../iterator.js";
 import { Pipe, type IPipe, type Next } from "../pipe.js";
 import { isArray } from "../predicate.js";
 
+/**
+ * 创建对每个值进行转换的管道
+ */
+export function map<In, Out>(
+    callbackFn: (value: In, index: number) => Out,
+): Pipe<In, Out> {
+    return new Pipe(new Map(callbackFn));
+}
+
+/**
+ * 创建跳过开头指定数量元素的管道
+ */
+export function drop<T>(limit: number): Pipe<T, T> {
+    return new Pipe(new Drop(limit));
+}
+
+/**
+ * 创建测试所有元素是否通过测试函数的管道
+ */
+export function every<T>(
+    predicate: (value: T, index: number) => boolean,
+): Pipe<T, boolean, boolean> {
+    return new Pipe(new Every(predicate));
+}
+
+/**
+ * 创建过滤元素的管道
+ */
+export function filter<T>(
+    predicate: (value: T, index: number) => boolean,
+): Pipe<T, T> {
+    return new Pipe(new Filter(predicate));
+}
+
+/**
+ * 创建查找第一个通过测试函数的元素的管道
+ */
+export function find<T>(
+    predicate: (value: T, index: number) => boolean,
+): Pipe<T, T | undefined, T | undefined> {
+    return new Pipe(new Find(predicate));
+}
+
+/**
+ * 创建将输入迭代器扁平化的管道
+ */
+export function flat<T>(): Pipe<Iterable<T>, T> {
+    return new Pipe(_flat as IPipe<Iterable<T>, T>);
+}
+
+/**
+ * 创建逐个传输输入迭代器值和索引的管道
+ */
+export function enumerate<T>(): Pipe<Iterable<T>, [index: number, value: T]> {
+    return new Pipe(new Enumerate<T>());
+}
+
+/**
+ * 创建映射并扁平化结果的管道
+ */
+export function flatMap<In, Out>(
+    callbackFn: (value: In, index: number) => Iterable<Out>,
+): Pipe<In, Out> {
+    return new Pipe(new FlatMap(callbackFn));
+}
+
+/**
+ * 创建对每个元素执行函数的管道
+ */
+export function forEach<T>(
+    callbackFn: (value: T, index: number) => void | boolean,
+    thisArg?: unknown,
+): Pipe<T, never, void> {
+    return new Pipe(new ForEach(callbackFn, thisArg));
+}
+
+/**
+ * 创建归约操作的管道
+ */
+export function reduce<T>(
+    callbackFn: (accumulator: T, currentValue: T, index: number) => T,
+): Pipe<T, never, T | undefined>;
+export function reduce<T, U>(
+    callbackFn: (accumulator: U, currentValue: T, index: number) => U,
+    initialValue: U,
+): Pipe<T, never, U>;
+export function reduce<T, U>(
+    callbackFn: (accumulator: T | U, currentValue: T, index: number) => T | U,
+    initialValue?: U,
+): Pipe<T, T | U | undefined, T | U | undefined> {
+    return new Pipe(new Reduce(callbackFn, initialValue));
+}
+
+/**
+ * 创建测试是否至少有一个元素通过测试函数的管道
+ */
+export function some<T>(
+    predicate: (value: T, index: number) => boolean,
+): Pipe<T, boolean, boolean> {
+    return new Pipe(new Some(predicate));
+}
+
+/**
+ * 创建获取前指定数量元素的管道
+ */
+export function take<T>(limit: number): Pipe<T, T> {
+    return new Pipe(new Take(limit));
+}
+
+/**
+ * 创建将元素收集到 {@link Array} 的管道
+ */
+export function toArray<T>(out?: T[]): Pipe<T, T[], T[]> {
+    if (isArray(out)) {
+        return new Pipe(new ToArrayWithOut(out));
+    } else {
+        return new Pipe(new ToArray());
+    }
+}
+
+/**
+ * 创建将元素收集到 {@link Array} 的管道
+ */
+export function toArrayWithCount<T>(
+    out: T[],
+): Pipe<T, { buffer: T[]; written: number }, { buffer: T[]; written: number }> {
+    return new Pipe(new ToArrayWithCount(out));
+}
+
+/**
+ * 创建捕获和处理错误的管道
+ *
+ * @param catchFn 处理错误的回调函数，允许返回一个错误，该错误将代替传入的 `error` 被下一个管道捕获，管链中最后一个返回的错误会被抛出，返回 `undefined` 会当作无返回处理
+ */
+export function caught<T>(catchFn: (error: unknown, index: number) => unknown) {
+    return new Pipe(new Caught<T>(catchFn));
+}
+
 class Map<In, Out> implements IPipe<In, Out> {
     private index = 0;
 
@@ -445,141 +583,3 @@ const _flat: IPipe<Iterable<unknown>, unknown> = {
         return true;
     },
 };
-
-/**
- * 创建对每个值进行转换的管道
- */
-export function map<In, Out>(
-    callbackFn: (value: In, index: number) => Out,
-): Pipe<In, Out> {
-    return new Pipe(new Map(callbackFn));
-}
-
-/**
- * 创建跳过开头指定数量元素的管道
- */
-export function drop<T>(limit: number): Pipe<T, T> {
-    return new Pipe(new Drop(limit));
-}
-
-/**
- * 创建测试所有元素是否通过测试函数的管道
- */
-export function every<T>(
-    predicate: (value: T, index: number) => boolean,
-): Pipe<T, boolean, boolean> {
-    return new Pipe(new Every(predicate));
-}
-
-/**
- * 创建过滤元素的管道
- */
-export function filter<T>(
-    predicate: (value: T, index: number) => boolean,
-): Pipe<T, T> {
-    return new Pipe(new Filter(predicate));
-}
-
-/**
- * 创建查找第一个通过测试函数的元素的管道
- */
-export function find<T>(
-    predicate: (value: T, index: number) => boolean,
-): Pipe<T, T | undefined, T | undefined> {
-    return new Pipe(new Find(predicate));
-}
-
-/**
- * 创建将输入迭代器扁平化的管道
- */
-export function flat<T>(): Pipe<Iterable<T>, T> {
-    return new Pipe(_flat as IPipe<Iterable<T>, T>);
-}
-
-/**
- * 创建逐个传输输入迭代器值和索引的管道
- */
-export function enumerate<T>(): Pipe<Iterable<T>, [index: number, value: T]> {
-    return new Pipe(new Enumerate<T>());
-}
-
-/**
- * 创建映射并扁平化结果的管道
- */
-export function flatMap<In, Out>(
-    callbackFn: (value: In, index: number) => Iterable<Out>,
-): Pipe<In, Out> {
-    return new Pipe(new FlatMap(callbackFn));
-}
-
-/**
- * 创建对每个元素执行函数的管道
- */
-export function forEach<T>(
-    callbackFn: (value: T, index: number) => void | boolean,
-    thisArg?: unknown,
-): Pipe<T, never, void> {
-    return new Pipe(new ForEach(callbackFn, thisArg));
-}
-
-/**
- * 创建归约操作的管道
- */
-export function reduce<T>(
-    callbackFn: (accumulator: T, currentValue: T, index: number) => T,
-): Pipe<T, never, T | undefined>;
-export function reduce<T, U>(
-    callbackFn: (accumulator: U, currentValue: T, index: number) => U,
-    initialValue: U,
-): Pipe<T, never, U>;
-export function reduce<T, U>(
-    callbackFn: (accumulator: T | U, currentValue: T, index: number) => T | U,
-    initialValue?: U,
-): Pipe<T, T | U | undefined, T | U | undefined> {
-    return new Pipe(new Reduce(callbackFn, initialValue));
-}
-
-/**
- * 创建测试是否至少有一个元素通过测试函数的管道
- */
-export function some<T>(
-    predicate: (value: T, index: number) => boolean,
-): Pipe<T, boolean, boolean> {
-    return new Pipe(new Some(predicate));
-}
-
-/**
- * 创建获取前指定数量元素的管道
- */
-export function take<T>(limit: number): Pipe<T, T> {
-    return new Pipe(new Take(limit));
-}
-
-/**
- * 创建将元素收集到 {@link Array} 的管道
- */
-export function toArray<T>(out?: T[]): Pipe<T, T[], T[]> {
-    if (isArray(out)) {
-        return new Pipe(new ToArrayWithOut(out));
-    } else {
-        return new Pipe(new ToArray());
-    }
-}
-
-/**
- * 创建将元素收集到 {@link Array} 的管道
- */
-export function toArrayWithCount<T>(
-    out: T[],
-): Pipe<T, { buffer: T[]; written: number }, { buffer: T[]; written: number }> {
-    return new Pipe(new ToArrayWithCount(out));
-}
-
-/**
- * 创建捕获和处理错误的管道
- *
- * @param catchFn 处理错误的回调函数，允许返回一个错误，该错误将代替传入的 `error` 被下一个管道捕获，管链中最后一个返回的错误会被抛出，返回 `undefined` 会当作无返回处理
- */
-export function caught<T>(catchFn: (error: unknown, index: number) => unknown) {
-    return new Pipe(new Caught<T>(catchFn));
-}

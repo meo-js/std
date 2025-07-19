@@ -9,15 +9,6 @@ import type { Accessor, Getter, Setter } from "./protocol/accessor.js";
 import type { uncertain } from "./ts.js";
 
 /**
- * 类字段属性装饰器的返回类型
- */
-export type ClassFieldDecoratorResult<
-    This = void,
-    T = uncertain,
-    R = unknown,
-> = (this: This, value: T) => R;
-
-/**
  * 装饰器
  *
  * 所有装饰器接收两个参数：
@@ -41,6 +32,15 @@ export type Decorator =
     | Decorator.ClassSetter
     | Decorator.ClassField
     | Decorator.ClassAccessor;
+
+/**
+ * 类字段属性装饰器的返回类型
+ */
+export type ClassFieldDecoratorResult<
+    This = void,
+    T = uncertain,
+    R = unknown,
+> = (this: This, value: T) => R;
 
 export declare namespace Decorator {
     /**

@@ -529,7 +529,7 @@ export function toCharCodes<T extends number[] | TypedArray>(
     out: T = [] as checked,
 ): number {
     for (let i = 0; i < str.length; i++) {
-        out[i++] = str.charCodeAt(i);
+        out[i] = str.charCodeAt(i);
     }
     return str.length;
 }

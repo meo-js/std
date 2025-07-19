@@ -122,46 +122,6 @@ export type IsInteger<T extends Numeric> = tf.IsInteger<T>;
 export type IsFloat<T extends Numeric> = tf.IsFloat<T>;
 
 /**
- * {@link Number.POSITIVE_INFINITY}
- */
-export const INF = Number.POSITIVE_INFINITY;
-
-/**
- * {@link Number.NEGATIVE_INFINITY}
- */
-export const NINF = Number.NEGATIVE_INFINITY;
-
-/**
- * {@link Number.MAX_SAFE_INTEGER}
- */
-export const MAX_INT = Number.MAX_SAFE_INTEGER;
-
-/**
- * {@link Number.MIN_SAFE_INTEGER}
- */
-export const MIN_INT = Number.MIN_SAFE_INTEGER;
-
-/**
- * {@link Number.MAX_VALUE}
- */
-export const MAX_VAL = Number.MAX_VALUE;
-
-/**
- * {@link Number.MIN_VALUE}
- */
-export const MIN_VAL = Number.MIN_VALUE;
-
-/**
- * {@link Number.EPSILON}
- */
-export const EPSILON = Number.EPSILON;
-
-/**
- * {@link Number.NaN}
- */
-export const NAN = Number.NaN;
-
-/**
  * 数值二进制编/解码选项
  */
 export interface NumericBinaryOptions {
@@ -200,6 +160,46 @@ export interface ToUint8ArrayOptions extends NumericBinaryOptions {
      */
     bit?: number;
 }
+
+/**
+ * {@link Number.POSITIVE_INFINITY}
+ */
+export const INF = Number.POSITIVE_INFINITY;
+
+/**
+ * {@link Number.NEGATIVE_INFINITY}
+ */
+export const NINF = Number.NEGATIVE_INFINITY;
+
+/**
+ * {@link Number.MAX_SAFE_INTEGER}
+ */
+export const MAX_INT = Number.MAX_SAFE_INTEGER;
+
+/**
+ * {@link Number.MIN_SAFE_INTEGER}
+ */
+export const MIN_INT = Number.MIN_SAFE_INTEGER;
+
+/**
+ * {@link Number.MAX_VALUE}
+ */
+export const MAX_VAL = Number.MAX_VALUE;
+
+/**
+ * {@link Number.MIN_VALUE}
+ */
+export const MIN_VAL = Number.MIN_VALUE;
+
+/**
+ * {@link Number.EPSILON}
+ */
+export const EPSILON = Number.EPSILON;
+
+/**
+ * {@link Number.NaN}
+ */
+export const NAN = Number.NaN;
 
 /**
  * 检测值是否为整数
@@ -374,31 +374,6 @@ export function clog2(value: Numeric): Numeric {
 }
 
 /**
- * @param value 必须 >= 0
- * @returns 返回 {@link value} 的二进制位长度，如果是 `0`，则返回 `1`
- */
-function _bitLengthUnsigned(value: bigint): bigint {
-    if (value === BigInt(0)) return BigInt(1);
-
-    let bits = BigInt(0);
-
-    // 先逐步右移，直到剩余的值小于 STEP 位，减少循环次数以提高效率
-    const STEP = BigInt(32);
-    while (value >> STEP) {
-        value >>= STEP;
-        bits += STEP;
-    }
-
-    // 最后逐 bit 统计剩余高位
-    while (value) {
-        value >>= BigInt(1);
-        bits++;
-    }
-
-    return bits;
-}
-
-/**
  * 传入一个整数，返回足以存储该值的最小二进制位数
  *
  * @param value 数值
@@ -430,6 +405,31 @@ export function bitLength(value: Numeric, signed: boolean = true): number {
 }
 
 /**
+ * @param value 必须 >= 0
+ * @returns 返回 {@link value} 的二进制位长度，如果是 `0`，则返回 `1`
+ */
+function _bitLengthUnsigned(value: bigint): bigint {
+    if (value === BigInt(0)) return BigInt(1);
+
+    let bits = BigInt(0);
+
+    // 先逐步右移，直到剩余的值小于 STEP 位，减少循环次数以提高效率
+    const STEP = BigInt(32);
+    while (value >> STEP) {
+        value >>= STEP;
+        bits += STEP;
+    }
+
+    // 最后逐 bit 统计剩余高位
+    while (value) {
+        value >>= BigInt(1);
+        bits++;
+    }
+
+    return bits;
+}
+
+/**
  * 返回指定位数的最大整数值
  *
  * @param bits 位数
@@ -455,8 +455,91 @@ export function minIntOfBits(bits: number, signed: boolean = true): bigint {
     return signed ? -(BigInt(1) << (b - BigInt(1))) : BigInt(0);
 }
 
-function _asUintNumber(bits: number, value: Numeric): number {
-    return isNumber(value) ? value : Number(BigInt.asUintN(bits, value));
+/**
+ * 将数值转为 {@link Uint8Array}
+ *
+ * @param value 数值
+ * @param opts {@link ToUint8ArrayOptions}
+ */
+export function toUint8Array(
+    value: Numeric,
+    opts?: ToUint8ArrayOptions,
+): Uint8Array;
+export function toUint8Array(
+    value: Numeric,
+    out: Uint8Array,
+    opts?: ToUint8ArrayOptions,
+): Uint8Array;
+export function toUint8Array(
+    value: Numeric,
+    arg2?: Uint8Array | ToUint8ArrayOptions,
+    opts?: ToUint8ArrayOptions,
+): Uint8Array {
+    if (!isUint8Array(arg2)) {
+        opts = arg2;
+    }
+
+    const {
+        bit,
+        littleEndian = PLATFORM_ENDIAN !== Endian.Big,
+        signed = true,
+    } = opts ?? {};
+
+    if (!signed && value < 0) {
+        throwUnsignedWithNegative("toUint8Array(signed = false)");
+    }
+
+    let len = 0;
+    let out: Uint8Array;
+    const hasOut = isUint8Array(arg2);
+
+    if (hasOut) {
+        out = arg2;
+        len = bit != null ? Math.ceil(bit / 8) : out.length;
+    } else {
+        len = Math.ceil((bit ?? bitLength(value, signed)) / 8);
+        out = new Uint8Array(len);
+    }
+
+    if (value === 0) {
+        if (hasOut) {
+            out.fill(0);
+        }
+        return out;
+    }
+
+    if (isNumber(value)) {
+        value = Math.trunc(value);
+    }
+
+    if (_fastToUint8Array(value, len, littleEndian, out)) {
+        return out;
+    }
+
+    return _bigIntToUint8Array(BigInt(value), len, littleEndian, out);
+}
+
+/**
+ * 将 {@link Uint8Array} 转为数值
+ *
+ * @param bytes 字节数组
+ * @param opts {@link FromUint8ArrayOptions}
+ */
+export function fromUint8Array(
+    bytes: Uint8Array,
+    opts: FromUint8ArrayOptions = {},
+): Numeric {
+    const { littleEndian = PLATFORM_ENDIAN !== Endian.Big, signed = true } =
+        opts;
+
+    if (bytes.length === 0) return 0;
+
+    const result = _fastFromUint8Array(bytes, littleEndian, signed);
+    if (result !== null) {
+        return result;
+    }
+
+    return _bigIntfromUint8Array(bytes, littleEndian, signed);
 }
 
 function _fastToUint8Array(
@@ -585,89 +668,6 @@ function _bigIntfromUint8Array(
     return value;
 }
 
-/**
- * 将数值转为 {@link Uint8Array}
- *
- * @param value 数值
- * @param opts {@link ToUint8ArrayOptions}
- */
-export function toUint8Array(
-    value: Numeric,
-    opts?: ToUint8ArrayOptions,
-): Uint8Array;
-export function toUint8Array(
-    value: Numeric,
-    out: Uint8Array,
-    opts?: ToUint8ArrayOptions,
-): Uint8Array;
-export function toUint8Array(
-    value: Numeric,
-    arg2?: Uint8Array | ToUint8ArrayOptions,
-    opts?: ToUint8ArrayOptions,
-): Uint8Array {
-    if (!isUint8Array(arg2)) {
-        opts = arg2;
-    }
-
-    const {
-        bit,
-        littleEndian = PLATFORM_ENDIAN !== Endian.Big,
-        signed = true,
-    } = opts ?? {};
-
-    if (!signed && value < 0) {
-        throwUnsignedWithNegative("toUint8Array(signed = false)");
-    }
-
-    let len = 0;
-    let out: Uint8Array;
-    const hasOut = isUint8Array(arg2);
-
-    if (hasOut) {
-        out = arg2;
-        len = bit != null ? Math.ceil(bit / 8) : out.length;
-    } else {
-        len = Math.ceil((bit ?? bitLength(value, signed)) / 8);
-        out = new Uint8Array(len);
-    }
-
-    if (value === 0) {
-        if (hasOut) {
-            out.fill(0);
-        }
-        return out;
-    }
-
-    if (isNumber(value)) {
-        value = Math.trunc(value);
-    }
-
-    if (_fastToUint8Array(value, len, littleEndian, out)) {
-        return out;
-    }
-
-    return _bigIntToUint8Array(BigInt(value), len, littleEndian, out);
-}
-
-/**
- * 将 {@link Uint8Array} 转为数值
- *
- * @param bytes 字节数组
- * @param opts {@link FromUint8ArrayOptions}
- */
-export function fromUint8Array(
-    bytes: Uint8Array,
-    opts: FromUint8ArrayOptions = {},
-): Numeric {
-    const { littleEndian = PLATFORM_ENDIAN !== Endian.Big, signed = true } =
-        opts;
-
-    if (bytes.length === 0) return 0;
-
-    const result = _fastFromUint8Array(bytes, littleEndian, signed);
-    if (result !== null) {
-        return result;
-    }
-
-    return _bigIntfromUint8Array(bytes, littleEndian, signed);
+function _asUintNumber(bits: number, value: Numeric): number {
+    return isNumber(value) ? value : Number(BigInt.asUintN(bits, value));
 }

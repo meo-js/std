@@ -1,6 +1,11 @@
 import type { Encoding } from "./enum.js";
 
 /**
+ * 编码分析结果
+ */
+export type AnalyseResult = AnalyseResultItem[];
+
+/**
  * 编码分析结果项
  */
 export interface AnalyseResultItem {
@@ -19,8 +24,3 @@ export interface AnalyseResultItem {
      */
     lang?: string;
 }
-
-/**
- * 编码分析结果
- */
-export type AnalyseResult = AnalyseResultItem[];

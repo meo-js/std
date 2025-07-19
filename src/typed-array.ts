@@ -21,6 +21,15 @@ import {
 } from "./predicate.js";
 
 /**
+ * 字节序枚举
+ */
+export enum Endian {
+    Platform = "platform",
+    Little = "le",
+    Big = "be",
+}
+
+/**
  * 类型化数组
  */
 export type TypedArray<TArrayBuffer extends ArrayBufferLike = ArrayBufferLike> =
@@ -72,15 +81,6 @@ export type ArrayBufferViewConstructorInstanceOf<
     T extends ArrayBufferViewConstructor = ArrayBufferViewConstructor,
     TArrayBuffer extends ArrayBufferLike = ArrayBufferLike,
 > = T extends Uint8ArrayConstructor ? Uint8Array<TArrayBuffer> : never;
-
-/**
- * 字节序枚举
- */
-export enum Endian {
-    Platform = "platform",
-    Little = "le",
-    Big = "be",
-}
 
 /**
  * {@link BufferSource} 信息

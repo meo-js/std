@@ -16,27 +16,6 @@ const verifyRegex =
     /^([A-Za-z0-9\-_]{4})*([A-Za-z0-9\-_]{2}(==)?|[A-Za-z0-9\-_]{3}(=)?)?$/u;
 
 /**
- * 创建一个编码字节数据为 Base64 Url 字符串的管道
- */
-export function encodePipe(opts?: Base64EncodeOptions) {
-    return new Pipe(new base64._EncodePipe(true, opts));
-}
-
-/**
- * 创建一个解码 Base64 Url 字符串为字节数据的管道
- */
-export function decodePipe(opts?: Base64DecodeOptions) {
-    return base64.decodePipe(opts);
-}
-
-/**
- * 创建一个验证 Base64 Url 字符串有效性的管道
- */
-export function verifyPipe(allowVariant: boolean = true, padding?: boolean) {
-    return base64.verifyPipe(allowVariant, padding);
-}
-
-/**
  * 将字节数据编码为 Base64 Url 字符串
  *
  * @param bytes 字节数据
@@ -121,4 +100,25 @@ export function measureLength(bytes: BufferSource, padding: boolean): number {
  */
 export function measureSize(text: string): number {
     return base64.measureSize(text);
+}
+
+/**
+ * 创建一个编码字节数据为 Base64 Url 字符串的管道
+ */
+export function encodePipe(opts?: Base64EncodeOptions) {
+    return new Pipe(new base64.EncodePipe(true, opts));
+}
+
+/**
+ * 创建一个解码 Base64 Url 字符串为字节数据的管道
+ */
+export function decodePipe(opts?: Base64DecodeOptions) {
+    return base64.decodePipe(opts);
+}
+
+/**
+ * 创建一个验证 Base64 Url 字符串有效性的管道
+ */
+export function verifyPipe(allowVariant: boolean = true, padding?: boolean) {
+    return base64.verifyPipe(allowVariant, padding);
 }

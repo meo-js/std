@@ -133,18 +133,6 @@ export class SafeIterArray<T> implements Iterable<T> {
         }
     }
 
-    /**
-     * 清空数组
-     */
-    clear() {
-        if (this.locked) {
-            this.arr.fill(undefined);
-            this.dirty = true;
-        } else {
-            this.arr.length = 0;
-        }
-    }
-
     private delayRemove(i: number) {
         this.arr[i] = undefined;
         this.dirty = true;
@@ -177,6 +165,18 @@ export class SafeIterArray<T> implements Iterable<T> {
             if (emptyIndex !== -1) {
                 list.length = emptyIndex;
             }
+        }
+    }
+
+    /**
+     * 清空数组
+     */
+    clear() {
+        if (this.locked) {
+            this.arr.fill(undefined);
+            this.dirty = true;
+        } else {
+            this.arr.length = 0;
         }
     }
 

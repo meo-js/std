@@ -437,6 +437,219 @@ export namespace Bytes {
     }
 }
 
+class StringBytes implements BytesImpl {
+    /**
+     * @inheritdoc
+     */
+    get BYTES_PER_ELEMENT(): number {
+        return 2;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    get length(): number {
+        return this.data.length;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    get byteLength(): number {
+        return this.length * this.BYTES_PER_ELEMENT;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    get endian(): Endian {
+        return PLATFORM_ENDIAN;
+    }
+
+    private data: string;
+
+    constructor(data: string) {
+        this.data = data;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    forEach(
+        callbackfn: (value: number, index: number) => void | boolean,
+        thisArg?: unknown,
+    ): void {
+        forEachString(this.data, callbackfn, thisArg);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    at(index: number): number {
+        return this.data.charCodeAt(index);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    set(index: number, value: number): void {
+        this.data =
+            this.data.slice(0, index)
+            + String.fromCharCode(value)
+            + this.data.slice(index + 1);
+    }
+}
+
+class StringWithUtf8Bytes implements BytesImpl {
+    /**
+     * @inheritdoc
+     */
+    get BYTES_PER_ELEMENT(): number {
+        return 1;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    get length(): number {
+        if (isString(this.data)) {
+            this.convertToBuffer();
+        }
+        return (this.data as Uint8Array).length;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    get byteLength(): number {
+        return this.length * this.BYTES_PER_ELEMENT;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    get endian(): Endian {
+        return PLATFORM_ENDIAN;
+    }
+
+    private data: string | Uint8Array;
+    private bom: boolean = false;
+    private fatal: boolean = false;
+
+    constructor(data: string, bom: boolean, fatal: boolean) {
+        this.data = data;
+        this.bom = bom;
+        this.fatal = fatal;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    forEach(
+        callbackfn: (value: number, index: number) => void | boolean,
+        thisArg?: unknown,
+    ): void {
+        if (isString(this.data)) {
+            forEachStringWithUtf8(
+                this.data,
+                this.bom,
+                this.fatal,
+                callbackfn,
+                thisArg,
+            );
+        } else {
+            forEachTypedArray(this.data, callbackfn as checked, thisArg);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    at(index: number): number {
+        if (isString(this.data)) {
+            this.convertToBuffer();
+        }
+        return (this.data as Uint8Array)[index];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    set(index: number, value: number): void {
+        if (isString(this.data)) {
+            this.convertToBuffer();
+        }
+        (this.data as Uint8Array)[index] = value;
+    }
+
+    private convertToBuffer() {
+        this.data = utf8.encode(this.data as string, {
+            bom: this.bom,
+            fatal: this.fatal,
+        });
+    }
+}
+
+class TypedArrayBytes<T extends TypedArray> implements BytesImpl {
+    /**
+     * @inheritdoc
+     */
+    get BYTES_PER_ELEMENT(): number {
+        return this.data.BYTES_PER_ELEMENT;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    get length(): number {
+        return this.data.length;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    get byteLength(): number {
+        return this.data.byteLength;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    get endian(): Endian {
+        return PLATFORM_ENDIAN;
+    }
+
+    private data: T;
+
+    constructor(data: T) {
+        this.data = data;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    forEach(
+        callbackfn: (value: number | bigint, index: number) => void | boolean,
+        thisArg?: unknown,
+    ): void {
+        forEachTypedArray(this.data, callbackfn, thisArg);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    at(index: number): number | bigint {
+        return this.data[index];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    set(index: number, value: number | bigint): void {
+        this.data[index] = value;
+    }
+}
+
 function forEachStringWithUtf8(
     text: string,
     bom: boolean,
@@ -500,219 +713,6 @@ function forEachDataView(
     }
 }
 
-class StringBytes implements BytesImpl {
-    private data: string;
-
-    /**
-     * @inheritdoc
-     */
-    get BYTES_PER_ELEMENT(): number {
-        return 2;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    get length(): number {
-        return this.data.length;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    get byteLength(): number {
-        return this.length * this.BYTES_PER_ELEMENT;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    get endian(): Endian {
-        return PLATFORM_ENDIAN;
-    }
-
-    constructor(data: string) {
-        this.data = data;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    forEach(
-        callbackfn: (value: number, index: number) => void | boolean,
-        thisArg?: unknown,
-    ): void {
-        forEachString(this.data, callbackfn, thisArg);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    at(index: number): number {
-        return this.data.charCodeAt(index);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    set(index: number, value: number): void {
-        this.data =
-            this.data.slice(0, index)
-            + String.fromCharCode(value)
-            + this.data.slice(index + 1);
-    }
-}
-
-class StringWithUtf8Bytes implements BytesImpl {
-    private data: string | Uint8Array;
-    private bom: boolean = false;
-    private fatal: boolean = false;
-
-    /**
-     * @inheritdoc
-     */
-    get BYTES_PER_ELEMENT(): number {
-        return 1;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    get length(): number {
-        if (isString(this.data)) {
-            this.convertToBuffer();
-        }
-        return (this.data as Uint8Array).length;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    get byteLength(): number {
-        return this.length * this.BYTES_PER_ELEMENT;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    get endian(): Endian {
-        return PLATFORM_ENDIAN;
-    }
-
-    constructor(data: string, bom: boolean, fatal: boolean) {
-        this.data = data;
-        this.bom = bom;
-        this.fatal = fatal;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    forEach(
-        callbackfn: (value: number, index: number) => void | boolean,
-        thisArg?: unknown,
-    ): void {
-        if (isString(this.data)) {
-            forEachStringWithUtf8(
-                this.data,
-                this.bom,
-                this.fatal,
-                callbackfn,
-                thisArg,
-            );
-        } else {
-            forEachTypedArray(this.data, callbackfn as checked, thisArg);
-        }
-    }
-
-    private convertToBuffer() {
-        this.data = utf8.encode(this.data as string, {
-            bom: this.bom,
-            fatal: this.fatal,
-        });
-    }
-
-    /**
-     * @inheritdoc
-     */
-    at(index: number): number {
-        if (isString(this.data)) {
-            this.convertToBuffer();
-        }
-        return (this.data as Uint8Array)[index];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    set(index: number, value: number): void {
-        if (isString(this.data)) {
-            this.convertToBuffer();
-        }
-        (this.data as Uint8Array)[index] = value;
-    }
-}
-
-class TypedArrayBytes<T extends TypedArray> implements BytesImpl {
-    private data: T;
-
-    /**
-     * @inheritdoc
-     */
-    get BYTES_PER_ELEMENT(): number {
-        return this.data.BYTES_PER_ELEMENT;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    get length(): number {
-        return this.data.length;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    get byteLength(): number {
-        return this.data.byteLength;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    get endian(): Endian {
-        return PLATFORM_ENDIAN;
-    }
-
-    constructor(data: T) {
-        this.data = data;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    forEach(
-        callbackfn: (value: number | bigint, index: number) => void | boolean,
-        thisArg?: unknown,
-    ): void {
-        forEachTypedArray(this.data, callbackfn, thisArg);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    at(index: number): number | bigint {
-        return this.data[index];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    set(index: number, value: number | bigint): void {
-        this.data[index] = value;
-    }
-}
-
 const {
     // eslint-disable-next-line @typescript-eslint/unbound-method -- checked.
     getBigInt64,
@@ -766,10 +766,6 @@ function createDataViewClass(
     set: DataViewFunction,
 ) {
     return class DataViewBytes implements BytesImpl {
-        private data: TypedArray;
-        private view: DataView;
-        private little: boolean;
-
         /**
          * @inheritdoc
          */
@@ -797,6 +793,10 @@ function createDataViewClass(
         get endian(): Endian {
             return this.little ? Endian.Little : Endian.Big;
         }
+
+        private data: TypedArray;
+        private view: DataView;
+        private little: boolean;
 
         constructor(data: TypedArray, little: boolean) {
             this.data = data;

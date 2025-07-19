@@ -26,16 +26,6 @@ import type {
     TypedArray,
 } from "./typed-array.js";
 
-const GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
-    // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
-    function* () {},
-) as object;
-
-const ASYNC_GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
-    // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
-    async function* () {},
-) as object;
-
 /**
  * 是否为 `unknown` 类型
  */
@@ -65,6 +55,16 @@ export type IsUndefined<T> = T extends undefined ? true : false;
  * 是否为 {@link none} 类型
  */
 export type IsNone<T> = T extends null | undefined ? true : false;
+
+const GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
+    // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
+    function* () {},
+) as object;
+
+const ASYNC_GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
+    // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
+    async function* () {},
+) as object;
 
 /**
  * 检测值是否为 `null`

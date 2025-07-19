@@ -16,124 +16,6 @@ const P4_128 = 2716044179;
 const C1_X64: [number, number] = [0x87c37b91, 0x114253d5];
 const C2_X64: [number, number] = [0x4cf5ad43, 0x2745937f];
 
-function fmix32(h: number): number {
-    h ^= h >>> 16;
-    h = Math.imul(h, 2246822507);
-    h ^= h >>> 13;
-    h = Math.imul(h, 3266489909);
-    h ^= h >>> 16;
-    return h;
-}
-
-function x64Add(m: [number, number], n: [number, number]): [number, number] {
-    const mParts = [m[0] >>> 16, m[0] & 0xffff, m[1] >>> 16, m[1] & 0xffff];
-    const nParts = [n[0] >>> 16, n[0] & 0xffff, n[1] >>> 16, n[1] & 0xffff];
-    const result = [0, 0, 0, 0];
-
-    result[3] += mParts[3] + nParts[3];
-    result[2] += result[3] >>> 16;
-    result[3] &= 0xffff;
-
-    result[2] += mParts[2] + nParts[2];
-    result[1] += result[2] >>> 16;
-    result[2] &= 0xffff;
-
-    result[1] += mParts[1] + nParts[1];
-    result[0] += result[1] >>> 16;
-    result[1] &= 0xffff;
-
-    result[0] += mParts[0] + nParts[0];
-    result[0] &= 0xffff;
-
-    return [(result[0] << 16) | result[1], (result[2] << 16) | result[3]];
-}
-
-function x64Multiply(
-    m: [number, number],
-    n: [number, number],
-): [number, number] {
-    const mParts = [m[0] >>> 16, m[0] & 0xffff, m[1] >>> 16, m[1] & 0xffff];
-    const nParts = [n[0] >>> 16, n[0] & 0xffff, n[1] >>> 16, n[1] & 0xffff];
-    const result = [0, 0, 0, 0];
-
-    result[3] += mParts[3] * nParts[3];
-    result[2] += result[3] >>> 16;
-    result[3] &= 0xffff;
-
-    result[2] += mParts[2] * nParts[3];
-    result[1] += result[2] >>> 16;
-    result[2] &= 0xffff;
-
-    result[2] += mParts[3] * nParts[2];
-    result[1] += result[2] >>> 16;
-    result[2] &= 0xffff;
-
-    result[1] += mParts[1] * nParts[3];
-    result[0] += result[1] >>> 16;
-    result[1] &= 0xffff;
-
-    result[1] += mParts[2] * nParts[2];
-    result[0] += result[1] >>> 16;
-    result[1] &= 0xffff;
-
-    result[1] += mParts[3] * nParts[1];
-    result[0] += result[1] >>> 16;
-    result[1] &= 0xffff;
-
-    result[0] +=
-        mParts[0] * nParts[3]
-        + mParts[1] * nParts[2]
-        + mParts[2] * nParts[1]
-        + mParts[3] * nParts[0];
-    result[0] &= 0xffff;
-
-    return [(result[0] << 16) | result[1], (result[2] << 16) | result[3]];
-}
-
-function x64Rotl(m: [number, number], n: number): [number, number] {
-    n %= 64;
-
-    if (n === 32) {
-        return [m[1], m[0]];
-    } else if (n < 32) {
-        return [
-            (m[0] << n) | (m[1] >>> (32 - n)),
-            (m[1] << n) | (m[0] >>> (32 - n)),
-        ];
-    } else {
-        n -= 32;
-        return [
-            (m[1] << n) | (m[0] >>> (32 - n)),
-            (m[0] << n) | (m[1] >>> (32 - n)),
-        ];
-    }
-}
-
-function x64LeftShift(m: [number, number], n: number): [number, number] {
-    n %= 64;
-
-    if (n === 0) {
-        return m;
-    } else if (n < 32) {
-        return [(m[0] << n) | (m[1] >>> (32 - n)), m[1] << n];
-    } else {
-        return [m[1] << (n - 32), 0];
-    }
-}
-
-function x64Xor(m: [number, number], n: [number, number]): [number, number] {
-    return [m[0] ^ n[0], m[1] ^ n[1]];
-}
-
-function x64Fmix(h: [number, number]): [number, number] {
-    h = x64Xor(h, [0, h[0] >>> 1]);
-    h = x64Multiply(h, [0xff51afd7, 0xed558ccd]);
-    h = x64Xor(h, [0, h[0] >>> 1]);
-    h = x64Multiply(h, [0xc4ceb9fe, 0x1a85ec53]);
-    h = x64Xor(h, [0, h[0] >>> 1]);
-    return h;
-}
-
 /**
  * MurmurHash3 32 位非加密哈希函数
  *
@@ -542,4 +424,122 @@ export function murmurhash3_x64_128(
     array[3] = h2[1] >>> 0;
 
     return array;
+}
+
+function fmix32(h: number): number {
+    h ^= h >>> 16;
+    h = Math.imul(h, 2246822507);
+    h ^= h >>> 13;
+    h = Math.imul(h, 3266489909);
+    h ^= h >>> 16;
+    return h;
+}
+
+function x64Add(m: [number, number], n: [number, number]): [number, number] {
+    const mParts = [m[0] >>> 16, m[0] & 0xffff, m[1] >>> 16, m[1] & 0xffff];
+    const nParts = [n[0] >>> 16, n[0] & 0xffff, n[1] >>> 16, n[1] & 0xffff];
+    const result = [0, 0, 0, 0];
+
+    result[3] += mParts[3] + nParts[3];
+    result[2] += result[3] >>> 16;
+    result[3] &= 0xffff;
+
+    result[2] += mParts[2] + nParts[2];
+    result[1] += result[2] >>> 16;
+    result[2] &= 0xffff;
+
+    result[1] += mParts[1] + nParts[1];
+    result[0] += result[1] >>> 16;
+    result[1] &= 0xffff;
+
+    result[0] += mParts[0] + nParts[0];
+    result[0] &= 0xffff;
+
+    return [(result[0] << 16) | result[1], (result[2] << 16) | result[3]];
+}
+
+function x64Multiply(
+    m: [number, number],
+    n: [number, number],
+): [number, number] {
+    const mParts = [m[0] >>> 16, m[0] & 0xffff, m[1] >>> 16, m[1] & 0xffff];
+    const nParts = [n[0] >>> 16, n[0] & 0xffff, n[1] >>> 16, n[1] & 0xffff];
+    const result = [0, 0, 0, 0];
+
+    result[3] += mParts[3] * nParts[3];
+    result[2] += result[3] >>> 16;
+    result[3] &= 0xffff;
+
+    result[2] += mParts[2] * nParts[3];
+    result[1] += result[2] >>> 16;
+    result[2] &= 0xffff;
+
+    result[2] += mParts[3] * nParts[2];
+    result[1] += result[2] >>> 16;
+    result[2] &= 0xffff;
+
+    result[1] += mParts[1] * nParts[3];
+    result[0] += result[1] >>> 16;
+    result[1] &= 0xffff;
+
+    result[1] += mParts[2] * nParts[2];
+    result[0] += result[1] >>> 16;
+    result[1] &= 0xffff;
+
+    result[1] += mParts[3] * nParts[1];
+    result[0] += result[1] >>> 16;
+    result[1] &= 0xffff;
+
+    result[0] +=
+        mParts[0] * nParts[3]
+        + mParts[1] * nParts[2]
+        + mParts[2] * nParts[1]
+        + mParts[3] * nParts[0];
+    result[0] &= 0xffff;
+
+    return [(result[0] << 16) | result[1], (result[2] << 16) | result[3]];
+}
+
+function x64Rotl(m: [number, number], n: number): [number, number] {
+    n %= 64;
+
+    if (n === 32) {
+        return [m[1], m[0]];
+    } else if (n < 32) {
+        return [
+            (m[0] << n) | (m[1] >>> (32 - n)),
+            (m[1] << n) | (m[0] >>> (32 - n)),
+        ];
+    } else {
+        n -= 32;
+        return [
+            (m[1] << n) | (m[0] >>> (32 - n)),
+            (m[0] << n) | (m[1] >>> (32 - n)),
+        ];
+    }
+}
+
+function x64LeftShift(m: [number, number], n: number): [number, number] {
+    n %= 64;
+
+    if (n === 0) {
+        return m;
+    } else if (n < 32) {
+        return [(m[0] << n) | (m[1] >>> (32 - n)), m[1] << n];
+    } else {
+        return [m[1] << (n - 32), 0];
+    }
+}
+
+function x64Xor(m: [number, number], n: [number, number]): [number, number] {
+    return [m[0] ^ n[0], m[1] ^ n[1]];
+}
+
+function x64Fmix(h: [number, number]): [number, number] {
+    h = x64Xor(h, [0, h[0] >>> 1]);
+    h = x64Multiply(h, [0xff51afd7, 0xed558ccd]);
+    h = x64Xor(h, [0, h[0] >>> 1]);
+    h = x64Multiply(h, [0xc4ceb9fe, 0x1a85ec53]);
+    h = x64Xor(h, [0, h[0] >>> 1]);
+    return h;
 }

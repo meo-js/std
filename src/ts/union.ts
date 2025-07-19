@@ -6,27 +6,6 @@
 import type * as tf from "type-fest";
 
 /**
- * Skip evaluating `U` if `T` is `unknown`.
- */
-type EvalIfNotUnknown<T, U> = unknown extends T ? never : U;
-
-/**
- * Resolve mapped types and show the derived keys and their types when hovering in
- * VS Code, instead of just showing the names those mapped types are defined with.
- */
-type Prettify<T> = {
-    [K in keyof T]: T[K];
-} & {};
-
-/**
- * Get the keys of T without any keys of U.
- */
-// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- checked.
-type Without<T, U> = {
-    [P in Exclude<keyof T, keyof U>]?: never;
-};
-
-/**
  * 与 `A | B` 联合操作符作用一致，但比内置操作符更加严格
  *
  * @see [ts-xor](https://github.com/maninak/ts-xor)
@@ -80,3 +59,24 @@ export type ToUnion<T> = tf.TupleToUnion<T>;
  * ```
  */
 export type ToArray<T> = tf.UnionToTuple<T>;
+
+/**
+ * Skip evaluating `U` if `T` is `unknown`.
+ */
+type EvalIfNotUnknown<T, U> = unknown extends T ? never : U;
+
+/**
+ * Resolve mapped types and show the derived keys and their types when hovering in
+ * VS Code, instead of just showing the names those mapped types are defined with.
+ */
+type Prettify<T> = {
+    [K in keyof T]: T[K];
+} & {};
+
+/**
+ * Get the keys of T without any keys of U.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- checked.
+type Without<T, U> = {
+    [P in Exclude<keyof T, keyof U>]?: never;
+};

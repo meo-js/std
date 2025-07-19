@@ -1,39 +1,5 @@
 import { recycle, reuse } from "../protocol/symbols.js";
 
-interface Base<out T> {
-    /**
-     * 用于创建新对象的构造函数
-     */
-    ctor(): T;
-
-    /**
-     * 释放池对象时回调该函数
-     *
-     * 若不提供该函数，默认会尝试调用对象上的 {@link Symbol.dispose} 方法
-     */
-    dispose?(item: T): void;
-}
-
-interface Reuse<out T, in Arguments extends readonly unknown[]> {
-    /**
-     * 复用池对象时回调该函数
-     *
-     * 若不提供该函数，默认会尝试调用对象上的 {@link reuse Symbol.reuse} 方法
-     *
-     * @param item 池对象
-     */
-    reuse?(item: T, ...args: Arguments): void;
-
-    /**
-     * 回收池对象时回调该函数
-     *
-     * 若不提供该函数，默认会尝试调用对象上的 {@link recycle Symbol.recycle} 方法
-     *
-     * @param item 池对象
-     */
-    recycle?(item: T): void;
-}
-
 /**
  * 对象池选项
  */
@@ -73,3 +39,37 @@ export interface PoolHandler<out T, in Arguments extends readonly unknown[]>
     extends Base<T>,
         Reuse<T, Arguments>,
         PoolOptions {}
+
+interface Base<out T> {
+    /**
+     * 用于创建新对象的构造函数
+     */
+    ctor(): T;
+
+    /**
+     * 释放池对象时回调该函数
+     *
+     * 若不提供该函数，默认会尝试调用对象上的 {@link Symbol.dispose} 方法
+     */
+    dispose?(item: T): void;
+}
+
+interface Reuse<out T, in Arguments extends readonly unknown[]> {
+    /**
+     * 复用池对象时回调该函数
+     *
+     * 若不提供该函数，默认会尝试调用对象上的 {@link reuse Symbol.reuse} 方法
+     *
+     * @param item 池对象
+     */
+    reuse?(item: T, ...args: Arguments): void;
+
+    /**
+     * 回收池对象时回调该函数
+     *
+     * 若不提供该函数，默认会尝试调用对象上的 {@link recycle Symbol.recycle} 方法
+     *
+     * @param item 池对象
+     */
+    recycle?(item: T): void;
+}

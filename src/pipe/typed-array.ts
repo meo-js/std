@@ -6,6 +6,36 @@
 import { Pipe, type IPipe, type Next } from "../pipe.js";
 import type { checked } from "../ts.js";
 
+/**
+ * 创建将数值收集到 {@link Uint8Array} 的管道
+ */
+export function toUint8Array<
+    TArrayBuffer extends ArrayBufferLike = ArrayBuffer,
+>(
+    out?: Uint8Array<TArrayBuffer>,
+): Pipe<number, Uint8Array<TArrayBuffer>, Uint8Array<TArrayBuffer>> {
+    if (out instanceof Uint8Array) {
+        return new Pipe(new ToUint8ArrayWithOut(out));
+    } else {
+        return new Pipe(new ToUint8Array()) as checked;
+    }
+}
+
+/**
+ * 创建将数值收集到 {@link Uint8Array} 的管道
+ */
+export function toUint8ArrayWithCount<
+    TArrayBuffer extends ArrayBufferLike = ArrayBuffer,
+>(
+    out: Uint8Array<TArrayBuffer>,
+): Pipe<
+    number,
+    { buffer: Uint8Array<TArrayBuffer>; written: number },
+    { buffer: Uint8Array<TArrayBuffer>; written: number }
+> {
+    return new Pipe(new ToUint8ArrayWithCount(out));
+}
+
 class ToUint8Array
     implements IPipe<number, Uint8Array<ArrayBuffer>, Uint8Array<ArrayBuffer>>
 {
@@ -85,34 +115,4 @@ class ToUint8ArrayWithCount<
     catch(error: unknown): void {
         this.index = 0;
     }
-}
-
-/**
- * 创建将数值收集到 {@link Uint8Array} 的管道
- */
-export function toUint8Array<
-    TArrayBuffer extends ArrayBufferLike = ArrayBuffer,
->(
-    out?: Uint8Array<TArrayBuffer>,
-): Pipe<number, Uint8Array<TArrayBuffer>, Uint8Array<TArrayBuffer>> {
-    if (out instanceof Uint8Array) {
-        return new Pipe(new ToUint8ArrayWithOut(out));
-    } else {
-        return new Pipe(new ToUint8Array()) as checked;
-    }
-}
-
-/**
- * 创建将数值收集到 {@link Uint8Array} 的管道
- */
-export function toUint8ArrayWithCount<
-    TArrayBuffer extends ArrayBufferLike = ArrayBuffer,
->(
-    out: Uint8Array<TArrayBuffer>,
-): Pipe<
-    number,
-    { buffer: Uint8Array<TArrayBuffer>; written: number },
-    { buffer: Uint8Array<TArrayBuffer>; written: number }
-> {
-    return new Pipe(new ToUint8ArrayWithCount(out));
 }

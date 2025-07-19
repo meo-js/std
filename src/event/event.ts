@@ -8,6 +8,9 @@ import { SafeIterArray } from "../internal/safe-iter-array.js";
 import { Observable } from "../polyfill/observable.js";
 import { EventListener } from "./listener.js";
 
+let _callbackForRemove: unknown = null;
+let _thisArgForRemove: unknown = null;
+
 /**
  * 事件类
  */
@@ -219,9 +222,6 @@ export class Event<Arguments extends readonly unknown[] = []>
         });
     }
 }
-
-let _callbackForRemove: unknown = null;
-let _thisArgForRemove: unknown = null;
 
 function call<Arguments extends readonly unknown[]>(
     this: Arguments,

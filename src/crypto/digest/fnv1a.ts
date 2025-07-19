@@ -39,6 +39,62 @@ const FNV_OFFSETS = HAS_BIGINT
     : undefined!;
 
 /**
+ * FNV-1a 非加密哈希函数
+ *
+ * @param input 字符串或字节数据，若传入字符串将使用 {@link utf8.encode} 以默认选项编码为 UTF-8 字节数据后计算哈希
+ * @param size 指定哈希大小，默认为 `32`
+ * @returns 若 {@link size} 为 `32`，则返回 32 位整数，否则返回相应位数的 `bigint`。
+ */
+export function fnv1a<T extends 32 | 64 | 128 | 256 | 512 | 1024>(
+    input: string | BufferSource,
+    size: T = 32 as T,
+): T extends 32 ? number : bigint {
+    const data = isString(input) ? utf8.encode(input) : asUint8Array(input);
+    const len = data.length;
+
+    if (size === 32) {
+        let hash = FNV_OFFSETS32;
+        for (let i = 0; i < len; i++) {
+            hash ^= data[i];
+            hash = Math.imul(hash, FNV_PRIMES32);
+        }
+        return (hash >>> 0) as checked;
+    } else {
+        if (!HAS_BIGINT) {
+            throwBigIntNotSupported("fnv1a() with size > 32");
+        }
+
+        const fnvPrime = FNV_PRIMES[size as 64];
+        let hash = FNV_OFFSETS[size as 64];
+
+        for (let i = 0; i < len; i++) {
+            hash ^= BigInt(data[i]);
+            hash = BigInt.asUintN(size, hash * fnvPrime);
+        }
+
+        return hash as checked;
+    }
+}
+
+/**
+ * 创建一个计算 FNV-1a 哈希的管道
+ *
+ * @param size 指定哈希大小，默认为 `32`
+ * @returns 返回 FNV-1a 哈希管道
+ *
+ * @see {@link fnv1a}
+ */
+export function fnv1aPipe<T extends 32 | 64 | 128 | 256 | 512 | 1024>(
+    size?: T,
+): T extends 32 ? Pipe<number, number, number> : Pipe<number, bigint, bigint> {
+    if (size === undefined || size === 32) {
+        return new Pipe(new Fnv1a32Pipe()) as checked;
+    } else {
+        return new Pipe(new Fnv1aBigIntPipe(size as 64)) as checked;
+    }
+}
+
+/**
  * FNV-1a 32位哈希管道实现
  */
 class Fnv1a32Pipe implements IPipe<number, number, number> {
@@ -108,61 +164,5 @@ class Fnv1aBigIntPipe implements IPipe<number, bigint, bigint> {
 
     reset() {
         this.hash = FNV_OFFSETS[this.size];
-    }
-}
-
-/**
- * 创建一个计算 FNV-1a 哈希的管道
- *
- * @param size 指定哈希大小，默认为 `32`
- * @returns 返回 FNV-1a 哈希管道
- *
- * @see {@link fnv1a}
- */
-export function fnv1aPipe<T extends 32 | 64 | 128 | 256 | 512 | 1024>(
-    size?: T,
-): T extends 32 ? Pipe<number, number, number> : Pipe<number, bigint, bigint> {
-    if (size === undefined || size === 32) {
-        return new Pipe(new Fnv1a32Pipe()) as checked;
-    } else {
-        return new Pipe(new Fnv1aBigIntPipe(size as 64)) as checked;
-    }
-}
-
-/**
- * FNV-1a 非加密哈希函数
- *
- * @param input 字符串或字节数据，若传入字符串将使用 {@link utf8.encode} 以默认选项编码为 UTF-8 字节数据后计算哈希
- * @param size 指定哈希大小，默认为 `32`
- * @returns 若 {@link size} 为 `32`，则返回 32 位整数，否则返回相应位数的 `bigint`。
- */
-export function fnv1a<T extends 32 | 64 | 128 | 256 | 512 | 1024>(
-    input: string | BufferSource,
-    size: T = 32 as T,
-): T extends 32 ? number : bigint {
-    const data = isString(input) ? utf8.encode(input) : asUint8Array(input);
-    const len = data.length;
-
-    if (size === 32) {
-        let hash = FNV_OFFSETS32;
-        for (let i = 0; i < len; i++) {
-            hash ^= data[i];
-            hash = Math.imul(hash, FNV_PRIMES32);
-        }
-        return (hash >>> 0) as checked;
-    } else {
-        if (!HAS_BIGINT) {
-            throwBigIntNotSupported("fnv1a() with size > 32");
-        }
-
-        const fnvPrime = FNV_PRIMES[size as 64];
-        let hash = FNV_OFFSETS[size as 64];
-
-        for (let i = 0; i < len; i++) {
-            hash ^= BigInt(data[i]);
-            hash = BigInt.asUintN(size, hash * fnvPrime);
-        }
-
-        return hash as checked;
     }
 }

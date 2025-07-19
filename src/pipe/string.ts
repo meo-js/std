@@ -7,6 +7,66 @@ import { Pipe, type IPipe, type Next } from "../pipe.js";
 import { isArray } from "../predicate.js";
 import { needsSurrogatePair } from "../string.js";
 
+/**
+ * 创建将字符串的字符逐个转换为 UTF-16 编码单元值的管道
+ */
+export function flatCharCodes() {
+    return new Pipe(_flatCharCodes);
+}
+
+/**
+ * 创建将字符串的字符逐个转换为 Unicode 码点值的管道
+ */
+export function flatCodePoints() {
+    return new Pipe(_flatCodePoints);
+}
+
+/**
+ * 创建将字符串的字符逐个转换为带索引的 UTF-16 编码单元值的管道
+ */
+export function enumerateCharCodes() {
+    return new Pipe(new EnumerateCharCodes());
+}
+
+/**
+ * 创建将字符串的字符逐个转换为带索引的 Unicode 码点值的管道
+ */
+export function enumerateCodePoints() {
+    return new Pipe(new EnumerateCodePoints());
+}
+
+/**
+ * 创建将UTF-16 编码单元值转换为字符串的管道
+ */
+export function charCodeToString() {
+    return new Pipe(_charCodeToString);
+}
+
+/**
+ * 创建将 Unicode 码点值转换为字符串的管道
+ */
+export function codePointToString() {
+    return new Pipe(_codePointToString);
+}
+
+/**
+ * 创建将每个字符串连接为一个字符串的管道
+ */
+export function concatString(out?: string[]): Pipe<string, string, string> {
+    if (isArray(out)) {
+        return new Pipe(new ConcatStringWithOut(out));
+    } else {
+        return new Pipe(new ConcatString());
+    }
+}
+
+/**
+ * 创建将每个数组连接成字符串的管道
+ */
+export function joinString(separator?: string) {
+    return new Pipe(new JoinString(separator));
+}
+
 const _flatCharCodes: IPipe<string, number> = {
     transform(input, next) {
         for (let i = 0; i < input.length; i++) {
@@ -162,64 +222,4 @@ class JoinString implements IPipe<string[], string, string> {
     catch(): void {
         this.str = "";
     }
-}
-
-/**
- * 创建将字符串的字符逐个转换为 UTF-16 编码单元值的管道
- */
-export function flatCharCodes() {
-    return new Pipe(_flatCharCodes);
-}
-
-/**
- * 创建将字符串的字符逐个转换为 Unicode 码点值的管道
- */
-export function flatCodePoints() {
-    return new Pipe(_flatCodePoints);
-}
-
-/**
- * 创建将字符串的字符逐个转换为带索引的 UTF-16 编码单元值的管道
- */
-export function enumerateCharCodes() {
-    return new Pipe(new EnumerateCharCodes());
-}
-
-/**
- * 创建将字符串的字符逐个转换为带索引的 Unicode 码点值的管道
- */
-export function enumerateCodePoints() {
-    return new Pipe(new EnumerateCodePoints());
-}
-
-/**
- * 创建将UTF-16 编码单元值转换为字符串的管道
- */
-export function charCodeToString() {
-    return new Pipe(_charCodeToString);
-}
-
-/**
- * 创建将 Unicode 码点值转换为字符串的管道
- */
-export function codePointToString() {
-    return new Pipe(_codePointToString);
-}
-
-/**
- * 创建将每个字符串连接为一个字符串的管道
- */
-export function concatString(out?: string[]): Pipe<string, string, string> {
-    if (isArray(out)) {
-        return new Pipe(new ConcatStringWithOut(out));
-    } else {
-        return new Pipe(new ConcatString());
-    }
-}
-
-/**
- * 创建将每个数组连接成字符串的管道
- */
-export function joinString(separator?: string) {
-    return new Pipe(new JoinString(separator));
 }

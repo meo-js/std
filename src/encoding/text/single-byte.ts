@@ -19,29 +19,104 @@ import type {
     SingleByteEncodeOptions,
 } from "./options.js";
 
-class DecodePipe implements IPipe<number, string> {
-    private fatal: boolean;
-    private fallback: decodeFallback.DecodeFallback;
+export function _encode(
+    maxCode: number,
+    text: string,
+    opts?: SingleByteEncodeOptions,
+): Uint8Array {
+    return Pipe.run(
+        text,
+        flatCharCodes(),
+        catchError(),
+        _encodePipe(maxCode, opts),
+        toUint8Array(new Uint8Array(text.length)),
+    );
+}
 
-    constructor(
-        private maxCode: number,
-        opts?: SingleByteDecodeOptions,
-    ) {
-        this.fatal = opts?.fatal ?? false;
-        this.fallback = opts?.fallback ?? decodeFallback.replace;
+export function _encodeInto(
+    maxCode: number,
+    text: string,
+    out: BufferSource,
+    opts?: SingleByteEncodeOptions,
+): { read: number; written: number } {
+    const buffer = asUint8Array(out);
+
+    const read = Math.min(text.length, buffer.length);
+    const encoder = catchError<number>()
+        .pipe(_encodePipe(maxCode, opts))
+        .pipe(toUint8ArrayWithCount(buffer));
+
+    for (let i = 0; i < read; i++) {
+        const code = text.charCodeAt(i);
+        encoder.push(code);
     }
 
-    transform(byte: number, next: Next<string>): boolean {
-        if (byte > this.maxCode) {
-            if (this.fatal) {
-                throwInvalidChar(byte);
-            } else {
-                return next(this.fallback(byte, false));
-            }
-        } else {
-            return next(String.fromCharCode(byte));
-        }
-    }
+    // 编码器自身需确保不会在刷新阶段推送字节，所以仅调用无需处理
+    const written = encoder.flush().written;
+
+    return {
+        read,
+        written,
+    };
+}
+
+export function _decode(
+    maxCode: number,
+    bytes: BufferSource,
+    opts?: SingleByteDecodeOptions,
+): string {
+    const buffer = asUint8Array(bytes);
+    return Pipe.run(
+        buffer,
+        flat(),
+        catchError(),
+        _decodePipe(maxCode, opts),
+        concatString(new Array(buffer.length)),
+    );
+}
+
+export function _verify(
+    maxCode: number,
+    bytes: BufferSource,
+    allowReplacementChar?: boolean,
+): boolean {
+    const buffer = asUint8Array(bytes);
+    return Pipe.run(buffer, flat(), _verifyPipe(maxCode, allowReplacementChar));
+}
+
+export function _isWellFormed(
+    maxCode: number,
+    text: string,
+    allowReplacementChar?: boolean,
+): boolean {
+    return Pipe.run(
+        text,
+        flatCharCodes(),
+        _verifyPipe(maxCode, allowReplacementChar),
+    );
+}
+
+export function _encodePipe(
+    maxCode: number,
+    opts?: SingleByteEncodeOptions,
+): Pipe<number, number> {
+    return new Pipe(new EncodePipe(maxCode, opts));
+}
+
+export function _decodePipe(maxCode: number, opts?: SingleByteDecodeOptions) {
+    return new Pipe(new DecodePipe(maxCode, opts));
+}
+
+export function _verifyPipe(maxCode: number, allowReplacementChar?: boolean) {
+    return new Pipe(new VerifyPipe(maxCode, allowReplacementChar));
+}
+
+export function _isWellFormedPipe(
+    maxCode: number,
+    allowReplacementChar?: boolean,
+) {
+    // 与 verify 的验证逻辑通用，所以直接返回 VerifyPipe
+    return new Pipe(new VerifyPipe(maxCode, allowReplacementChar));
 }
 
 class EncodePipe implements IPipe<number, number> {
@@ -63,6 +138,31 @@ class EncodePipe implements IPipe<number, number> {
             }
         } else {
             return next(codePoint);
+        }
+    }
+}
+
+class DecodePipe implements IPipe<number, string> {
+    private fatal: boolean;
+    private fallback: decodeFallback.DecodeFallback;
+
+    constructor(
+        private maxCode: number,
+        opts?: SingleByteDecodeOptions,
+    ) {
+        this.fatal = opts?.fatal ?? false;
+        this.fallback = opts?.fallback ?? decodeFallback.replace;
+    }
+
+    transform(byte: number, next: Next<string>): boolean {
+        if (byte > this.maxCode) {
+            if (this.fatal) {
+                throwInvalidChar(byte);
+            } else {
+                return next(this.fallback(byte, false));
+            }
+        } else {
+            return next(String.fromCharCode(byte));
         }
     }
 }
@@ -103,104 +203,4 @@ class VerifyPipe implements IPipe<number, boolean, boolean> {
     catch(error: unknown): void {
         this.result = true;
     }
-}
-
-export function _decodePipe(maxCode: number, opts?: SingleByteDecodeOptions) {
-    return new Pipe(new DecodePipe(maxCode, opts));
-}
-
-export function _encodePipe(
-    maxCode: number,
-    opts?: SingleByteEncodeOptions,
-): Pipe<number, number> {
-    return new Pipe(new EncodePipe(maxCode, opts));
-}
-
-export function _verifyPipe(maxCode: number, allowReplacementChar?: boolean) {
-    return new Pipe(new VerifyPipe(maxCode, allowReplacementChar));
-}
-
-export function _isWellFormedPipe(
-    maxCode: number,
-    allowReplacementChar?: boolean,
-) {
-    // 与 verify 的验证逻辑通用，所以直接返回 VerifyPipe
-    return new Pipe(new VerifyPipe(maxCode, allowReplacementChar));
-}
-
-export function _decode(
-    maxCode: number,
-    bytes: BufferSource,
-    opts?: SingleByteDecodeOptions,
-): string {
-    const buffer = asUint8Array(bytes);
-    return Pipe.run(
-        buffer,
-        flat(),
-        catchError(),
-        _decodePipe(maxCode, opts),
-        concatString(new Array(buffer.length)),
-    );
-}
-
-export function _encode(
-    maxCode: number,
-    text: string,
-    opts?: SingleByteEncodeOptions,
-): Uint8Array {
-    return Pipe.run(
-        text,
-        flatCharCodes(),
-        catchError(),
-        _encodePipe(maxCode, opts),
-        toUint8Array(new Uint8Array(text.length)),
-    );
-}
-
-export function _verify(
-    maxCode: number,
-    bytes: BufferSource,
-    allowReplacementChar?: boolean,
-): boolean {
-    const buffer = asUint8Array(bytes);
-    return Pipe.run(buffer, flat(), _verifyPipe(maxCode, allowReplacementChar));
-}
-
-export function _isWellFormed(
-    maxCode: number,
-    text: string,
-    allowReplacementChar?: boolean,
-): boolean {
-    return Pipe.run(
-        text,
-        flatCharCodes(),
-        _verifyPipe(maxCode, allowReplacementChar),
-    );
-}
-
-export function _encodeInto(
-    maxCode: number,
-    text: string,
-    out: BufferSource,
-    opts?: SingleByteEncodeOptions,
-): { read: number; written: number } {
-    const buffer = asUint8Array(out);
-
-    const read = Math.min(text.length, buffer.length);
-    const encoder = catchError<number>()
-        .pipe(_encodePipe(maxCode, opts))
-        .pipe(toUint8ArrayWithCount(buffer));
-
-    for (let i = 0; i < read; i++) {
-        const code = text.charCodeAt(i);
-        encoder.push(code);
-    }
-
-    // 编码器自身需确保不会在刷新阶段推送字节，所以仅调用无需处理
-    const written = encoder.flush().written;
-
-    return {
-        read,
-        written,
-    };
 }

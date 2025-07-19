@@ -22,41 +22,6 @@ export class Events<T extends EventMap = EventMap> {
         this.autoClean = autoClean;
     }
 
-    private getEvent<Tag extends TagOf<T>>(
-        tag: Tag,
-    ): Event<ArgumentsOf<T, Tag>> | undefined {
-        return this.map.get(tag) as checked;
-    }
-
-    private obtainEvent<Tag extends TagOf<T>>(
-        tag: Tag,
-    ): Event<ArgumentsOf<T, Tag>> {
-        let event = this.map.get(tag);
-        if (event == null) {
-            event = new Event<ArgumentsOf<T, TagOf<T>>>();
-            this.map.set(tag, event);
-        }
-        return event as checked;
-    }
-
-    private deleteEvent<Tag extends TagOf<T>>(tag: Tag) {
-        this.map.delete(tag);
-    }
-
-    private removeListenerFromEvent(
-        tag: TagOf<T>,
-        event: Event<ArgumentsOf<T, TagOf<T>>>,
-        listener: EventListener<ArgumentsOf<T, TagOf<T>>>,
-    ) {
-        const result = event.removeListener(listener as checked);
-
-        if (this.autoClean && event.listenerCount === 0) {
-            this.deleteEvent(tag);
-        }
-
-        return result;
-    }
-
     /**
      * 添加监听器
      */
@@ -280,6 +245,41 @@ export class Events<T extends EventMap = EventMap> {
                 this.deleteEvent(tag);
             }
         }
+    }
+
+    private getEvent<Tag extends TagOf<T>>(
+        tag: Tag,
+    ): Event<ArgumentsOf<T, Tag>> | undefined {
+        return this.map.get(tag) as checked;
+    }
+
+    private obtainEvent<Tag extends TagOf<T>>(
+        tag: Tag,
+    ): Event<ArgumentsOf<T, Tag>> {
+        let event = this.map.get(tag);
+        if (event == null) {
+            event = new Event<ArgumentsOf<T, TagOf<T>>>();
+            this.map.set(tag, event);
+        }
+        return event as checked;
+    }
+
+    private deleteEvent<Tag extends TagOf<T>>(tag: Tag) {
+        this.map.delete(tag);
+    }
+
+    private removeListenerFromEvent(
+        tag: TagOf<T>,
+        event: Event<ArgumentsOf<T, TagOf<T>>>,
+        listener: EventListener<ArgumentsOf<T, TagOf<T>>>,
+    ) {
+        const result = event.removeListener(listener as checked);
+
+        if (this.autoClean && event.listenerCount === 0) {
+            this.deleteEvent(tag);
+        }
+
+        return result;
     }
 }
 

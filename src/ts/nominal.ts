@@ -4,34 +4,6 @@
  * @module
  */
 
-declare const tag: unique symbol;
-
-interface TagContainer<Token> {
-    readonly [tag]: Token;
-}
-
-interface OptionalTagContainer<Token> {
-    readonly [tag]?: Token;
-}
-
-interface Tag<Token extends PropertyKey = PropertyKey, Metadata = never>
-    extends TagContainer<Record<Token, Metadata>> {}
-
-interface OptionalTag<Token extends PropertyKey = PropertyKey, Metadata = never>
-    extends OptionalTagContainer<Record<Token, Metadata>> {}
-
-type RemoveAllTags<T> = T extends Tag
-    ? {
-          [ThisTag in keyof T[typeof tag]]: T extends Tagged<
-              infer Type,
-              ThisTag,
-              T[typeof tag][ThisTag]
-          >
-              ? RemoveAllTags<Type>
-              : never;
-      }[keyof T[typeof tag]]
-    : T;
-
 /**
  * 名义类型
  */
@@ -64,3 +36,31 @@ export type Weaken<T> =
  * 解开名义类型，转换为原始类型
  */
 export type Unwrap<T> = RemoveAllTags<T>;
+
+declare const tag: unique symbol;
+
+interface TagContainer<Token> {
+    readonly [tag]: Token;
+}
+
+interface OptionalTagContainer<Token> {
+    readonly [tag]?: Token;
+}
+
+interface Tag<Token extends PropertyKey = PropertyKey, Metadata = never>
+    extends TagContainer<Record<Token, Metadata>> {}
+
+interface OptionalTag<Token extends PropertyKey = PropertyKey, Metadata = never>
+    extends OptionalTagContainer<Record<Token, Metadata>> {}
+
+type RemoveAllTags<T> = T extends Tag
+    ? {
+          [ThisTag in keyof T[typeof tag]]: T extends Tagged<
+              infer Type,
+              ThisTag,
+              T[typeof tag][ThisTag]
+          >
+              ? RemoveAllTags<Type>
+              : never;
+      }[keyof T[typeof tag]]
+    : T;
