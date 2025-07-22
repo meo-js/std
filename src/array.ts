@@ -5,7 +5,7 @@
  */
 import type * as sts from "string-ts";
 import type * as tf from "type-fest";
-import { is } from "./equal.js";
+import { is } from "./equally/equal.js";
 import type { INF, Sub } from "./math.js";
 import type { IsNever } from "./predicate.js";
 import type { Rng } from "./protocol.js";
