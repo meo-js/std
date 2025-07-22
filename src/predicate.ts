@@ -18,6 +18,10 @@ import type { Jsonifiable } from "./json.js";
 import type { Numeric } from "./math.js";
 import type { PlainObject, RecordObject } from "./object.js";
 import type { Primitive } from "./primitive.js";
+import type { ValueLike } from "./protocol.js";
+import type { Equatable } from "./protocol/equatable.js";
+import type { Streamable } from "./protocol/streamable.js";
+import { equal, stream } from "./protocol/symbols.js";
 import type { TemporalObject } from "./temporal/shared.js";
 import type { none } from "./ts.js";
 import type {
@@ -1047,4 +1051,29 @@ export function isBigInt64Array(value: unknown): value is BigInt64Array {
  */
 export function isBigUint64Array(value: unknown): value is BigUint64Array {
     return value instanceof BigUint64Array;
+}
+
+/**
+ * 检测值是否为 {@link ValueLike}
+ */
+export function isValueLike<T = unknown>(
+    value: unknown,
+): value is ValueLike<T> {
+    return isObjectLike(value) && <keyof ValueLike>"value" in value;
+}
+
+/**
+ * 检测值是否为 {@link Equatable}
+ */
+export function isEquatable(value: unknown): value is Equatable {
+    return isObjectLike(value) && isFunction((<Equatable>value)[equal]);
+}
+
+/**
+ * 检测值是否为 {@link Streamable}
+ */
+export function isStreamable<I = unknown, O = I>(
+    value: unknown,
+): value is Streamable<I, O> {
+    return isObjectLike(value) && isFunction((<Streamable>value)[stream]);
 }

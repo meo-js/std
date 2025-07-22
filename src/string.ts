@@ -383,7 +383,7 @@ export function reverse(str: string, opts?: { unicode?: boolean }) {
 }
 
 export function getWords(str: string, opts?: { unicode?: boolean }) {
-    // TODO
+    // TODO 单词？字？
 }
 
 /**
