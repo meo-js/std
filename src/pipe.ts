@@ -9,6 +9,8 @@ import type { checked, Covariant, uncertain } from "./ts.js";
 // #export * from "!sub-modules"
 // #region Generated exports
 export * from "./pipe/common.js";
+export * from "./pipe/string.js";
+export * from "./pipe/typed-array.js";
 // #endregion
 
 // TODO 文档中提醒：
@@ -236,7 +238,32 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
         i: PipeLike<In9, In10>,
         j: PipeLike<In10, Out, Final>,
     ): NoInfer<Final>;
-    static run(input: unknown, root: PipeLike, ...pipes: PipeLike[]): unknown;
+    static run<
+        In,
+        In2 = void,
+        In3 = void,
+        In4 = void,
+        In5 = void,
+        In6 = void,
+        In7 = void,
+        In8 = void,
+        In9 = void,
+        In10 = void,
+        Out = void,
+    >(
+        input: In,
+        a: PipeLike<In, In2>,
+        b: PipeLike<In2, In3>,
+        c: PipeLike<In3, In4>,
+        d: PipeLike<In4, In5>,
+        e: PipeLike<In5, In6>,
+        f: PipeLike<In6, In7>,
+        g: PipeLike<In7, In8>,
+        h: PipeLike<In8, In9>,
+        i: PipeLike<In9, In10>,
+        j: PipeLike<In10, Out, unknown>,
+        ...pipes: PipeLike[]
+    ): unknown;
     static run(input: unknown, root: PipeLike, ...pipes: PipeLike[]): unknown {
         const pipe: Pipe<unknown, unknown, unknown> = this.chain(root, pipes);
         pipe.push(input);
@@ -549,10 +576,31 @@ export function pipe<
     i: PipeLike<In9, In10>,
     j: PipeLike<In10, Out, Final>,
 ): NoInfer<Final>;
-export function pipe(
-    first: PipeLike,
+export function pipe<
+    In,
+    In2 = void,
+    In3 = void,
+    In4 = void,
+    In5 = void,
+    In6 = void,
+    In7 = void,
+    In8 = void,
+    In9 = void,
+    In10 = void,
+    Out = void,
+>(
+    a: PipeLike<In, In2>,
+    b: PipeLike<In2, In3>,
+    c: PipeLike<In3, In4>,
+    d: PipeLike<In4, In5>,
+    e: PipeLike<In5, In6>,
+    f: PipeLike<In6, In7>,
+    g: PipeLike<In7, In8>,
+    h: PipeLike<In8, In9>,
+    i: PipeLike<In9, In10>,
+    j: PipeLike<In10, Out, unknown>,
     ...pipes: PipeLike[]
-): Pipe<uncertain, unknown, unknown>;
+): unknown;
 export function pipe(first: PipeLike, ...pipes: PipeLike[]): Pipe {
     return _chain(first, pipes);
 }
