@@ -38,7 +38,7 @@ export function cyrb53(input: string | BufferSource, seed = 0): number {
  * @see {@link cyrb53}
  */
 export function cyrb53Pipe(seed?: number) {
-    return new Pipe(new Cyrb53Pipe(seed));
+    return Pipe.create(new Cyrb53Pipe(seed));
 }
 
 /**

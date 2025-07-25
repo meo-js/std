@@ -101,5 +101,5 @@ export class ResizableBufferPipe implements IPipe<number, ResizableBuffer> {
 }
 
 export function toResizableBuffer(initialSize: number) {
-    return new Pipe(new ResizableBufferPipe(initialSize));
+    return Pipe.create(new ResizableBufferPipe(initialSize));
 }

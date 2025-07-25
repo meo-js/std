@@ -88,9 +88,9 @@ export function fnv1aPipe<T extends 32 | 64 | 128 | 256 | 512 | 1024>(
     size?: T,
 ): T extends 32 ? Pipe<number, number, number> : Pipe<number, bigint, bigint> {
     if (size === undefined || size === 32) {
-        return new Pipe(new Fnv1a32Pipe()) as checked;
+        return Pipe.create(new Fnv1a32Pipe()) as checked;
     } else {
-        return new Pipe(new Fnv1aBigIntPipe(size as 64)) as checked;
+        return Pipe.create(new Fnv1aBigIntPipe(size as 64)) as checked;
     }
 }
 

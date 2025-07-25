@@ -228,21 +228,21 @@ export function measureUnitLength(
  * 创建一个编码字符码点为 UTF-8 字节数据的管道
  */
 export function encodePipe(opts?: Utf8EncodeOptions) {
-    return new Pipe(new EncodePipe(opts));
+    return Pipe.create(new EncodePipe(opts));
 }
 
 /**
  * 创建一个解码 UTF-8 字节数据的管道
  */
 export function decodePipe(opts?: Utf8DecodeOptions) {
-    return new Pipe(new DecodePipe(opts));
+    return Pipe.create(new DecodePipe(opts));
 }
 
 /**
  * 创建一个验证字节数据是否为有效 UTF-8 编码的管道
  */
 export function verifyPipe(allowReplacementChar?: boolean) {
-    return new Pipe(
+    return Pipe.create(
         new VerifyPipe(decodePipe({ fatal: true }), allowReplacementChar),
     );
 }
@@ -251,7 +251,7 @@ export function verifyPipe(allowReplacementChar?: boolean) {
  * 创建一个验证字符串码点是否能编码为 UTF-8 的管道
  */
 export function isWellFormedPipe(allowReplacementChar?: boolean) {
-    return new Pipe(new IsWellFormedPipe(allowReplacementChar));
+    return Pipe.create(new IsWellFormedPipe(allowReplacementChar));
 }
 
 class EncodePipe implements IPipe<number, number> {

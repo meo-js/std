@@ -18,6 +18,9 @@ export * from "./pipe/common.js";
 // - 若 next 返回 false，即使是 flush 也不应该再返回数据
 const noop = () => true;
 
+// internal methods
+let _chain: (first: PipeLike, pipes: PipeLike[]) => Pipe;
+
 /**
  * 管道接口
  */
@@ -235,179 +238,49 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
     ): NoInfer<Final>;
     static run(input: unknown, root: PipeLike, ...pipes: PipeLike[]): unknown;
     static run(input: unknown, root: PipeLike, ...pipes: PipeLike[]): unknown {
-        const pipe = this.chain(root, ...pipes);
+        const pipe: Pipe<unknown, unknown, unknown> = this.chain(root, pipes);
         pipe.push(input);
         return pipe.flush();
     }
 
     /**
-     * 传入值与管道并立即执行
+     * 创建一个管道
      */
-    static chain<In, Out = void, Final = void>(
-        a: PipeLike<In, Out, Final>,
-    ): NoInfer<Final>;
-    static chain<In, In2 = void, Out = void, Final = void>(
-        a: PipeLike<In, In2>,
-        b: PipeLike<In2, Out, Final>,
-    ): NoInfer<Final>;
-    static chain<In, In2 = void, In3 = void, Out = void, Final = void>(
-        a: PipeLike<In, In2>,
-        b: PipeLike<In2, In3>,
-        c: PipeLike<In3, Out, Final>,
-    ): NoInfer<Final>;
-    static chain<
-        In,
-        In2 = void,
-        In3 = void,
-        In4 = void,
-        Out = void,
-        Final = void,
-    >(
-        a: PipeLike<In, In2>,
-        b: PipeLike<In2, In3>,
-        c: PipeLike<In3, In4>,
-        d: PipeLike<In4, Out, Final>,
-    ): NoInfer<Final>;
-    static chain<
-        In,
-        In2 = void,
-        In3 = void,
-        In4 = void,
-        In5 = void,
-        Out = void,
-        Final = void,
-    >(
-        a: PipeLike<In, In2>,
-        b: PipeLike<In2, In3>,
-        c: PipeLike<In3, In4>,
-        d: PipeLike<In4, In5>,
-        e: PipeLike<In5, Out, Final>,
-    ): NoInfer<Final>;
-    static chain<
-        In,
-        In2 = void,
-        In3 = void,
-        In4 = void,
-        In5 = void,
-        In6 = void,
-        Out = void,
-        Final = void,
-    >(
-        a: PipeLike<In, In2>,
-        b: PipeLike<In2, In3>,
-        c: PipeLike<In3, In4>,
-        d: PipeLike<In4, In5>,
-        e: PipeLike<In5, In6>,
-        f: PipeLike<In6, Out, Final>,
-    ): NoInfer<Final>;
-    static chain<
-        In,
-        In2 = void,
-        In3 = void,
-        In4 = void,
-        In5 = void,
-        In6 = void,
-        In7 = void,
-        Out = void,
-        Final = void,
-    >(
-        a: PipeLike<In, In2>,
-        b: PipeLike<In2, In3>,
-        c: PipeLike<In3, In4>,
-        d: PipeLike<In4, In5>,
-        e: PipeLike<In5, In6>,
-        f: PipeLike<In6, In7>,
-        g: PipeLike<In7, Out, Final>,
-    ): NoInfer<Final>;
-    static chain<
-        In,
-        In2 = void,
-        In3 = void,
-        In4 = void,
-        In5 = void,
-        In6 = void,
-        In7 = void,
-        In8 = void,
-        Out = void,
-        Final = void,
-    >(
-        a: PipeLike<In, In2>,
-        b: PipeLike<In2, In3>,
-        c: PipeLike<In3, In4>,
-        d: PipeLike<In4, In5>,
-        e: PipeLike<In5, In6>,
-        f: PipeLike<In6, In7>,
-        g: PipeLike<In7, In8>,
-        h: PipeLike<In8, Out, Final>,
-    ): NoInfer<Final>;
-    static chain<
-        In,
-        In2 = void,
-        In3 = void,
-        In4 = void,
-        In5 = void,
-        In6 = void,
-        In7 = void,
-        In8 = void,
-        In9 = void,
-        Out = void,
-        Final = void,
-    >(
-        a: PipeLike<In, In2>,
-        b: PipeLike<In2, In3>,
-        c: PipeLike<In3, In4>,
-        d: PipeLike<In4, In5>,
-        e: PipeLike<In5, In6>,
-        f: PipeLike<In6, In7>,
-        g: PipeLike<In7, In8>,
-        h: PipeLike<In8, In9>,
-        i: PipeLike<In9, Out, Final>,
-    ): NoInfer<Final>;
-    static chain<
-        In,
-        In2 = void,
-        In3 = void,
-        In4 = void,
-        In5 = void,
-        In6 = void,
-        In7 = void,
-        In8 = void,
-        In9 = void,
-        In10 = void,
-        Out = void,
-        Final = void,
-    >(
-        a: PipeLike<In, In2>,
-        b: PipeLike<In2, In3>,
-        c: PipeLike<In3, In4>,
-        d: PipeLike<In4, In5>,
-        e: PipeLike<In5, In6>,
-        f: PipeLike<In6, In7>,
-        g: PipeLike<In7, In8>,
-        h: PipeLike<In8, In9>,
-        i: PipeLike<In9, In10>,
-        j: PipeLike<In10, Out, Final>,
-    ): NoInfer<Final>;
-    static chain(
-        first: PipeLike,
-        ...pipes: PipeLike[]
-    ): Pipe<uncertain, unknown, unknown>;
-    static chain(first: PipeLike, ...pipes: PipeLike[]): Pipe {
-        const root = pipe(first);
-        let prev = root;
-        for (const __pipe of pipes) {
-            const _pipe = pipe(__pipe);
-            prev._pipe(_pipe);
-            prev = _pipe;
+    static create<In = uncertain, Out = void, Final = void>(
+        pipe: PipeLike<In, Out, Final>,
+    ): Pipe<In, Out, Final> {
+        return pipe instanceof Pipe
+            ? pipe
+            : new Pipe(
+                  isFunction(pipe)
+                      ? {
+                            transform: pipe,
+                        }
+                      : pipe,
+              );
+    }
+
+    private static chain(first: PipeLike, pipes: PipeLike[]): Pipe {
+        const _first = Pipe.create(first);
+        let current = _first;
+        for (let i = 0; i < pipes.length; i++) {
+            const pipe = Pipe.create(pipes[i]);
+            current._pipe(pipe);
+            current = pipe;
         }
-        return root;
+        return _first;
+    }
+
+    static {
+        // eslint-disable-next-line @typescript-eslint/unbound-method -- checked.
+        _chain = this.chain;
     }
 
     private nextPipe: Pipe<Out, uncertain> | null = null;
     private next: Covariant<Next<Out>> = noop;
-    private selfPush: Next<In> = this._push.bind(this);
+    private boundPush: Next<In> = this._push.bind(this);
 
-    constructor(private handler: IPipe<In, Out, Final>) {}
+    private constructor(private handler: IPipe<In, Out, Final>) {}
 
     private _pipe<NewOut = void, NewFinal = void>(
         to: Pipe<Out, NewOut, NewFinal>,
@@ -416,7 +289,7 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
             this.nextPipe._pipe(to);
         } else {
             const next = (this.nextPipe = to);
-            this.next = next.selfPush;
+            this.next = next.boundPush;
         }
         return this as checked;
     }
@@ -429,7 +302,7 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
     pipe<NewOut = void, NewFinal = void>(
         to: PipeLike<Out, NewOut, NewFinal>,
     ): Pipe<In, NewOut, NewFinal> {
-        return this._pipe(pipe(to));
+        return this._pipe(Pipe.create(to));
     }
 
     /**
@@ -529,18 +402,157 @@ export class Pipe<In = uncertain, Out = unknown, Final = void> {
 }
 
 /**
- * 创建一个管道
+ * 连接多个管道连接成管道链
  */
-export function pipe<In = uncertain, Out = void, Final = void>(
-    pipe: PipeLike<In, Out, Final>,
-): Pipe<In, Out, Final> {
-    return pipe instanceof Pipe
-        ? pipe
-        : new Pipe(
-              isFunction(pipe)
-                  ? {
-                        transform: pipe,
-                    }
-                  : pipe,
-          );
+export function pipe<In, Out = void, Final = void>(
+    a: PipeLike<In, Out, Final>,
+): NoInfer<Final>;
+export function pipe<In, In2 = void, Out = void, Final = void>(
+    a: PipeLike<In, In2>,
+    b: PipeLike<In2, Out, Final>,
+): NoInfer<Final>;
+export function pipe<In, In2 = void, In3 = void, Out = void, Final = void>(
+    a: PipeLike<In, In2>,
+    b: PipeLike<In2, In3>,
+    c: PipeLike<In3, Out, Final>,
+): NoInfer<Final>;
+export function pipe<
+    In,
+    In2 = void,
+    In3 = void,
+    In4 = void,
+    Out = void,
+    Final = void,
+>(
+    a: PipeLike<In, In2>,
+    b: PipeLike<In2, In3>,
+    c: PipeLike<In3, In4>,
+    d: PipeLike<In4, Out, Final>,
+): NoInfer<Final>;
+export function pipe<
+    In,
+    In2 = void,
+    In3 = void,
+    In4 = void,
+    In5 = void,
+    Out = void,
+    Final = void,
+>(
+    a: PipeLike<In, In2>,
+    b: PipeLike<In2, In3>,
+    c: PipeLike<In3, In4>,
+    d: PipeLike<In4, In5>,
+    e: PipeLike<In5, Out, Final>,
+): NoInfer<Final>;
+export function pipe<
+    In,
+    In2 = void,
+    In3 = void,
+    In4 = void,
+    In5 = void,
+    In6 = void,
+    Out = void,
+    Final = void,
+>(
+    a: PipeLike<In, In2>,
+    b: PipeLike<In2, In3>,
+    c: PipeLike<In3, In4>,
+    d: PipeLike<In4, In5>,
+    e: PipeLike<In5, In6>,
+    f: PipeLike<In6, Out, Final>,
+): NoInfer<Final>;
+export function pipe<
+    In,
+    In2 = void,
+    In3 = void,
+    In4 = void,
+    In5 = void,
+    In6 = void,
+    In7 = void,
+    Out = void,
+    Final = void,
+>(
+    a: PipeLike<In, In2>,
+    b: PipeLike<In2, In3>,
+    c: PipeLike<In3, In4>,
+    d: PipeLike<In4, In5>,
+    e: PipeLike<In5, In6>,
+    f: PipeLike<In6, In7>,
+    g: PipeLike<In7, Out, Final>,
+): NoInfer<Final>;
+export function pipe<
+    In,
+    In2 = void,
+    In3 = void,
+    In4 = void,
+    In5 = void,
+    In6 = void,
+    In7 = void,
+    In8 = void,
+    Out = void,
+    Final = void,
+>(
+    a: PipeLike<In, In2>,
+    b: PipeLike<In2, In3>,
+    c: PipeLike<In3, In4>,
+    d: PipeLike<In4, In5>,
+    e: PipeLike<In5, In6>,
+    f: PipeLike<In6, In7>,
+    g: PipeLike<In7, In8>,
+    h: PipeLike<In8, Out, Final>,
+): NoInfer<Final>;
+export function pipe<
+    In,
+    In2 = void,
+    In3 = void,
+    In4 = void,
+    In5 = void,
+    In6 = void,
+    In7 = void,
+    In8 = void,
+    In9 = void,
+    Out = void,
+    Final = void,
+>(
+    a: PipeLike<In, In2>,
+    b: PipeLike<In2, In3>,
+    c: PipeLike<In3, In4>,
+    d: PipeLike<In4, In5>,
+    e: PipeLike<In5, In6>,
+    f: PipeLike<In6, In7>,
+    g: PipeLike<In7, In8>,
+    h: PipeLike<In8, In9>,
+    i: PipeLike<In9, Out, Final>,
+): NoInfer<Final>;
+export function pipe<
+    In,
+    In2 = void,
+    In3 = void,
+    In4 = void,
+    In5 = void,
+    In6 = void,
+    In7 = void,
+    In8 = void,
+    In9 = void,
+    In10 = void,
+    Out = void,
+    Final = void,
+>(
+    a: PipeLike<In, In2>,
+    b: PipeLike<In2, In3>,
+    c: PipeLike<In3, In4>,
+    d: PipeLike<In4, In5>,
+    e: PipeLike<In5, In6>,
+    f: PipeLike<In6, In7>,
+    g: PipeLike<In7, In8>,
+    h: PipeLike<In8, In9>,
+    i: PipeLike<In9, In10>,
+    j: PipeLike<In10, Out, Final>,
+): NoInfer<Final>;
+export function pipe(
+    first: PipeLike,
+    ...pipes: PipeLike[]
+): Pipe<uncertain, unknown, unknown>;
+export function pipe(first: PipeLike, ...pipes: PipeLike[]): Pipe {
+    return _chain(first, pipes);
 }

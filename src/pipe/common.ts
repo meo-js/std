@@ -8,14 +8,14 @@ import { isArray } from "../predicate.js";
 export function map<In, Out>(
     callbackFn: (value: In, index: number) => Out,
 ): Pipe<In, Out> {
-    return new Pipe(new Map(callbackFn));
+    return Pipe.create(new Map(callbackFn));
 }
 
 /**
  * 创建跳过开头指定数量元素的管道
  */
 export function drop<T>(limit: number): Pipe<T, T> {
-    return new Pipe(new Drop(limit));
+    return Pipe.create(new Drop(limit));
 }
 
 /**
@@ -24,7 +24,7 @@ export function drop<T>(limit: number): Pipe<T, T> {
 export function every<T>(
     predicate: (value: T, index: number) => boolean,
 ): Pipe<T, boolean, boolean> {
-    return new Pipe(new Every(predicate));
+    return Pipe.create(new Every(predicate));
 }
 
 /**
@@ -33,7 +33,7 @@ export function every<T>(
 export function filter<T>(
     predicate: (value: T, index: number) => boolean,
 ): Pipe<T, T> {
-    return new Pipe(new Filter(predicate));
+    return Pipe.create(new Filter(predicate));
 }
 
 /**
@@ -42,21 +42,21 @@ export function filter<T>(
 export function find<T>(
     predicate: (value: T, index: number) => boolean,
 ): Pipe<T, T | undefined, T | undefined> {
-    return new Pipe(new Find(predicate));
+    return Pipe.create(new Find(predicate));
 }
 
 /**
  * 创建将输入迭代器扁平化的管道
  */
 export function flat<T>(): Pipe<Iterable<T>, T> {
-    return new Pipe(_flat as IPipe<Iterable<T>, T>);
+    return Pipe.create(_flat as IPipe<Iterable<T>, T>);
 }
 
 /**
  * 创建逐个传输输入迭代器值和索引的管道
  */
 export function enumerate<T>(): Pipe<Iterable<T>, [index: number, value: T]> {
-    return new Pipe(new Enumerate<T>());
+    return Pipe.create(new Enumerate<T>());
 }
 
 /**
@@ -65,7 +65,7 @@ export function enumerate<T>(): Pipe<Iterable<T>, [index: number, value: T]> {
 export function flatMap<In, Out>(
     callbackFn: (value: In, index: number) => Iterable<Out>,
 ): Pipe<In, Out> {
-    return new Pipe(new FlatMap(callbackFn));
+    return Pipe.create(new FlatMap(callbackFn));
 }
 
 /**
@@ -75,7 +75,7 @@ export function forEach<T>(
     callbackFn: (value: T, index: number) => void | boolean,
     thisArg?: unknown,
 ): Pipe<T, never, void> {
-    return new Pipe(new ForEach(callbackFn, thisArg));
+    return Pipe.create(new ForEach(callbackFn, thisArg));
 }
 
 /**
@@ -92,7 +92,7 @@ export function reduce<T, U>(
     callbackFn: (accumulator: T | U, currentValue: T, index: number) => T | U,
     initialValue?: U,
 ): Pipe<T, T | U | undefined, T | U | undefined> {
-    return new Pipe(new Reduce(callbackFn, initialValue));
+    return Pipe.create(new Reduce(callbackFn, initialValue));
 }
 
 /**
@@ -101,14 +101,14 @@ export function reduce<T, U>(
 export function some<T>(
     predicate: (value: T, index: number) => boolean,
 ): Pipe<T, boolean, boolean> {
-    return new Pipe(new Some(predicate));
+    return Pipe.create(new Some(predicate));
 }
 
 /**
  * 创建获取前指定数量元素的管道
  */
 export function take<T>(limit: number): Pipe<T, T> {
-    return new Pipe(new Take(limit));
+    return Pipe.create(new Take(limit));
 }
 
 /**
@@ -116,9 +116,9 @@ export function take<T>(limit: number): Pipe<T, T> {
  */
 export function toArray<T>(out?: T[]): Pipe<T, T[], T[]> {
     if (isArray(out)) {
-        return new Pipe(new ToArrayWithOut(out));
+        return Pipe.create(new ToArrayWithOut(out));
     } else {
-        return new Pipe(new ToArray());
+        return Pipe.create(new ToArray());
     }
 }
 
@@ -128,7 +128,7 @@ export function toArray<T>(out?: T[]): Pipe<T, T[], T[]> {
 export function toArrayWithCount<T>(
     out: T[],
 ): Pipe<T, { buffer: T[]; written: number }, { buffer: T[]; written: number }> {
-    return new Pipe(new ToArrayWithCount(out));
+    return Pipe.create(new ToArrayWithCount(out));
 }
 
 /**
@@ -137,7 +137,7 @@ export function toArrayWithCount<T>(
  * @param catchFn 处理错误的回调函数，允许返回一个错误，该错误将代替传入的 `error` 被下一个管道捕获，管链中最后一个返回的错误会被抛出，返回 `undefined` 会当作无返回处理
  */
 export function caught<T>(catchFn: (error: unknown, index: number) => unknown) {
-    return new Pipe(new Caught<T>(catchFn));
+    return Pipe.create(new Caught<T>(catchFn));
 }
 
 class Map<In, Out> implements IPipe<In, Out> {

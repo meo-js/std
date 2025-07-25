@@ -15,9 +15,9 @@ export function toUint8Array<
     out?: Uint8Array<TArrayBuffer>,
 ): Pipe<number, Uint8Array<TArrayBuffer>, Uint8Array<TArrayBuffer>> {
     if (out instanceof Uint8Array) {
-        return new Pipe(new ToUint8ArrayWithOut(out));
+        return Pipe.create(new ToUint8ArrayWithOut(out));
     } else {
-        return new Pipe(new ToUint8Array()) as checked;
+        return Pipe.create(new ToUint8Array()) as checked;
     }
 }
 
@@ -33,7 +33,7 @@ export function toUint8ArrayWithCount<
     { buffer: Uint8Array<TArrayBuffer>; written: number },
     { buffer: Uint8Array<TArrayBuffer>; written: number }
 > {
-    return new Pipe(new ToUint8ArrayWithCount(out));
+    return Pipe.create(new ToUint8ArrayWithCount(out));
 }
 
 class ToUint8Array

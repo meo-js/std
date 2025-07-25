@@ -100,15 +100,15 @@ export function _encodePipe(
     maxCode: number,
     opts?: SingleByteEncodeOptions,
 ): Pipe<number, number> {
-    return new Pipe(new EncodePipe(maxCode, opts));
+    return Pipe.create(new EncodePipe(maxCode, opts));
 }
 
 export function _decodePipe(maxCode: number, opts?: SingleByteDecodeOptions) {
-    return new Pipe(new DecodePipe(maxCode, opts));
+    return Pipe.create(new DecodePipe(maxCode, opts));
 }
 
 export function _verifyPipe(maxCode: number, allowReplacementChar?: boolean) {
-    return new Pipe(new VerifyPipe(maxCode, allowReplacementChar));
+    return Pipe.create(new VerifyPipe(maxCode, allowReplacementChar));
 }
 
 export function _isWellFormedPipe(
@@ -116,7 +116,7 @@ export function _isWellFormedPipe(
     allowReplacementChar?: boolean,
 ) {
     // 与 verify 的验证逻辑通用，所以直接返回 VerifyPipe
-    return new Pipe(new VerifyPipe(maxCode, allowReplacementChar));
+    return Pipe.create(new VerifyPipe(maxCode, allowReplacementChar));
 }
 
 class EncodePipe implements IPipe<number, number> {

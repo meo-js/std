@@ -114,7 +114,7 @@ export class Pool<
         return this.capacity === -1 ? this.arr.length : this.capacity;
     }
 
-    private constructor(
+    protected constructor(
         handler: PoolHandler<T, Arguments>,
         initialSize: number,
     ) {

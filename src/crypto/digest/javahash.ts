@@ -32,7 +32,7 @@ export function javahash(input: string | BufferSource): number {
  * @see {@link javahash}
  */
 export function javahashPipe() {
-    return new Pipe(new JavaHashPipe());
+    return Pipe.create(new JavaHashPipe());
 }
 
 /**

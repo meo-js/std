@@ -389,21 +389,21 @@ export function measureSize(text: string): number {
  * 创建一个编码字节数据为 Hex 字符串的管道
  */
 export function encodePipe(opts?: HexEncodeOptions) {
-    return new Pipe(new EncodePipe(opts));
+    return Pipe.create(new EncodePipe(opts));
 }
 
 /**
  * 创建一个解码 Hex 字符串为字节数据的管道
  */
 export function decodePipe(opts?: HexDecodeOptions) {
-    return new Pipe(new DecodePipe(opts));
+    return Pipe.create(new DecodePipe(opts));
 }
 
 /**
  * 创建一个验证 Hex 字符串有效性的管道
  */
 export function verifyPipe() {
-    return new Pipe(new VerifyPipe());
+    return Pipe.create(new VerifyPipe());
 }
 
 class EncodePipe implements IPipe<number, string> {

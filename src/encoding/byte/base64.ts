@@ -85,7 +85,7 @@ export function decode(text: string, opts?: Base64DecodeOptions): Uint8Array {
     return Pipe.run(
         text,
         flatCharCodes(),
-        new DecodePipe(opts),
+        Pipe.create(new DecodePipe(opts)),
         toUint8Array(fatal ? new Uint8Array(measureSize(text)) : undefined),
     );
 }
@@ -185,21 +185,21 @@ export function measureSize(text: string): number {
  * 创建一个编码字节数据为 Base64 字符串的管道
  */
 export function encodePipe(opts?: Base64EncodeOptions) {
-    return new Pipe(new EncodePipe(false, opts));
+    return Pipe.create(new EncodePipe(false, opts));
 }
 
 /**
  * 创建一个解码 Base64 字符串为字节数据的管道
  */
 export function decodePipe(opts?: Base64DecodeOptions) {
-    return new Pipe(new DecodePipe(opts));
+    return Pipe.create(new DecodePipe(opts));
 }
 
 /**
  * 创建一个验证 Base64 字符串有效性的管道
  */
 export function verifyPipe(allowVariant: boolean = true, padding?: boolean) {
-    return new Pipe(new VerifyPipe(allowVariant, padding));
+    return Pipe.create(new VerifyPipe(allowVariant, padding));
 }
 
 /**
@@ -500,7 +500,7 @@ export function _encode(
             bytes,
             flatCodePoints(),
             utf8.encodePipe(opts?.utf8Options),
-            new EncodePipe(urlSafe, opts),
+            Pipe.create(new EncodePipe(urlSafe, opts)),
             concatString(),
         );
     } else {
@@ -508,7 +508,7 @@ export function _encode(
         return Pipe.run(
             data,
             flat(),
-            new EncodePipe(urlSafe, opts),
+            Pipe.create(new EncodePipe(urlSafe, opts)),
             concatString(new Array(measureLength(data, padding))),
         );
     }

@@ -62,7 +62,7 @@ export class PlainPool<out T extends PoolItem = object> implements Disposable {
     private ptr = 0;
     private handler: PlainPoolHandler<T>;
 
-    private constructor(handler: PlainPoolHandler<T>, initialSize: number) {
+    protected constructor(handler: PlainPoolHandler<T>, initialSize: number) {
         this.handler = handler;
         this.grow(initialSize);
     }

@@ -106,7 +106,7 @@ export function measureSize(text: string): number {
  * 创建一个编码字节数据为 Base64 Url 字符串的管道
  */
 export function encodePipe(opts?: Base64EncodeOptions) {
-    return new Pipe(new base64.EncodePipe(true, opts));
+    return Pipe.create(new base64.EncodePipe(true, opts));
 }
 
 /**

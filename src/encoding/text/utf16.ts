@@ -205,21 +205,21 @@ export function measureUnitLength(uint16: number, fatal: boolean): -1 | 1 | 2 {
  * 创建一个编码字符码点为 UTF-16 字节数据的管道
  */
 export function encodePipe(opts?: Utf16EncodeOptions) {
-    return new Pipe(new EncodePipe(opts));
+    return Pipe.create(new EncodePipe(opts));
 }
 
 /**
  * 创建一个解码 UTF-16 字节数据的管道
  */
 export function decodePipe(opts?: Utf16DecodeOptions) {
-    return new Pipe(new DecodePipe(opts));
+    return Pipe.create(new DecodePipe(opts));
 }
 
 /**
  * 创建一个验证字节数据是否为有效 UTF-16 编码的管道
  */
 export function verifyPipe(allowReplacementChar?: boolean, endian?: Endian) {
-    return new Pipe(
+    return Pipe.create(
         new VerifyPipe(
             decodePipe({ fatal: true, endian }),
             allowReplacementChar,
@@ -231,7 +231,7 @@ export function verifyPipe(allowReplacementChar?: boolean, endian?: Endian) {
  * 创建一个验证字符串码点是否能编码为 UTF-16 的管道
  */
 export function isWellFormedPipe(allowReplacementChar?: boolean) {
-    return new Pipe(new IsWellFormedPipe(allowReplacementChar));
+    return Pipe.create(new IsWellFormedPipe(allowReplacementChar));
 }
 
 function toEndianFlag(endian: Endian, final: boolean): number {
