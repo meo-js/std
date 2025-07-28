@@ -1,6 +1,6 @@
 import { utf8 } from "../../encoding/text.js";
 import { HAS_BIGINT } from "../../env.js";
-import { throwBigIntNotSupported } from "../../internal/error.js";
+import { assertBigIntNotSupported } from "../../internal/error.js";
 import { Pipe, type IPipe, type Next } from "../../pipe.js";
 import { isString } from "../../predicate.js";
 import type { checked } from "../../ts.js";
@@ -60,9 +60,7 @@ export function fnv1a<T extends 32 | 64 | 128 | 256 | 512 | 1024>(
         }
         return (hash >>> 0) as checked;
     } else {
-        if (!HAS_BIGINT) {
-            throwBigIntNotSupported("fnv1a() with size > 32");
-        }
+        assertBigIntNotSupported("fnv1a() with size > 32");
 
         const fnvPrime = FNV_PRIMES[size as 64];
         let hash = FNV_OFFSETS[size as 64];
@@ -136,9 +134,7 @@ class Fnv1aBigIntPipe implements IPipe<number, bigint, bigint> {
     private size: 64 | 128 | 256 | 512 | 1024;
 
     constructor(size: 64 | 128 | 256 | 512 | 1024) {
-        if (!HAS_BIGINT) {
-            throwBigIntNotSupported("fnv1aPipe() with size > 32");
-        }
+        assertBigIntNotSupported("fnv1aPipe() with size > 32");
         this.size = size;
         this.fnvPrime = FNV_PRIMES[size];
         this.reset();

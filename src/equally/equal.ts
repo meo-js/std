@@ -1,7 +1,13 @@
 import type { WeakCollection } from "../collection.js";
 import { HAS_SHARED_ARRAYBUFFER } from "../env.js";
+import { eq } from "../math.js";
 import { getOwnProperties, hasOwnProperty } from "../object.js";
-import { isArrayBuffer, isFunction, isObject } from "../predicate.js";
+import {
+    isArrayBuffer,
+    isFunction,
+    isNumeric,
+    isObject,
+} from "../predicate.js";
 import type { Primitive } from "../primitive.js";
 import { Symbol, type Equatable } from "../protocol.js";
 import type { checked } from "../ts.js";
@@ -52,7 +58,7 @@ let root = true;
 /**
  * 判断两个值是否相等
  *
- * 该函数与 {@link Object.is} 相似，但在处理 `0` 和 `-0` 时会将它们视为相等。
+ * 该函数与 {@link Object.is} 相似，但对于两个数值会使用 {@link eq} 函数进行比较。
  *
  * @param a 第一个值
  * @param b 第二个值
@@ -64,10 +70,14 @@ let root = true;
  * is(1, '1'); // false
  * is(NaN, NaN); // true
  * is(0, -0); // true
+ * is(100, 100n); // true
  * ```
  */
 export function is(a: unknown, b: unknown): boolean {
-    return Object.is(a === 0 ? 0 : a, b === 0 ? 0 : b);
+    if (isNumeric(a) && isNumeric(b)) {
+        return eq(a, b);
+    }
+    return Object.is(a, b);
 }
 
 // TODO: 测试用例必须包括以下两项，NodeJS deepStrictEqual 和 es-toolkit 都无法通过第一项
@@ -97,7 +107,7 @@ export function is(a: unknown, b: unknown): boolean {
  * - {@link WeakCollection} 和 {@link WeakRef} 使用 `===` 进行比较。
  * - {@link RegExp} 会比较 {@link RegExp.source source}、{@link RegExp.flags flags} 和 {@link RegExp.lastIndex lastIndex} 属性。
  * - {@link ArrayBufferLike}、 {@link DataView} 会转换成 {@link TypedArray} 进行比较。
- * - {@link TypedArray} 会遍历所有元素并使用 {@link is} 进行比较，如果任意一方的 {@link TypedArray.buffer buffer} 已分离则不相等。
+ * - {@link TypedArray} 会遍历所有元素进行比较，如果任意一方的 {@link TypedArray.buffer buffer} 已分离则不相等。
  * - {@link Array} 会比较所有元素。
  * - {@link Map} 会比较所有键值对。
  * - {@link Set} 会比较所有元素。
@@ -252,7 +262,7 @@ function isCompared(a: object, b: object) {
 
 function equalTypedArray(a: TypedArray, b: TypedArray) {
     for (let i = 0; i < a.length; i++) {
-        if (!is(a[i], b[i])) {
+        if (a[i] !== b[i]) {
             return false;
         }
     }
