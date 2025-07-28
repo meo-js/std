@@ -3,7 +3,7 @@
  *
  * @module
  */
-import { assertUnsignedWithNegative } from "../internal/error.js";
+import { assertPositive } from "../internal/error.js";
 import { isBigInt } from "../predicate.js";
 import { Rounding } from "./float.js";
 import type { Numeric } from "./general.js";
@@ -174,7 +174,7 @@ function _div(a: bigint, b: bigint, isCeil: boolean) {
 export function ilog2(value: number): number;
 export function ilog2(value: bigint): bigint;
 export function ilog2(value: Numeric): Numeric {
-    assertUnsignedWithNegative(value, true);
+    assertPositive(value, true);
 
     if (isBigInt(value)) {
         return bitLengthPositive(value) - BigInt(1);
@@ -191,7 +191,7 @@ export function ilog2(value: Numeric): Numeric {
 export function flog2(value: number): number;
 export function flog2(value: bigint): bigint;
 export function flog2(value: Numeric): Numeric {
-    assertUnsignedWithNegative(value, true);
+    assertPositive(value, true);
 
     if (isBigInt(value)) {
         return bitLengthPositive(value) - BigInt(1);
@@ -208,7 +208,7 @@ export function flog2(value: Numeric): Numeric {
 export function clog2(value: number): number;
 export function clog2(value: bigint): bigint;
 export function clog2(value: Numeric): Numeric {
-    assertUnsignedWithNegative(value, true);
+    assertPositive(value, true);
 
     if (isBigInt(value)) {
         const k = ilog2(value);
@@ -226,7 +226,7 @@ export function clog2(value: Numeric): Numeric {
 export function log2(value: number): number;
 export function log2(value: bigint): bigint;
 export function log2(value: Numeric): Numeric {
-    assertUnsignedWithNegative(value, true);
+    assertPositive(value, true);
 
     if (isBigInt(value)) {
         const k = ilog2(value);

@@ -1,6 +1,6 @@
 import type * as tf from "type-fest";
 import { PLATFORM_ENDIAN } from "../env.js";
-import { assertUnsignedWithNegative } from "../internal/error.js";
+import { assertPositive } from "../internal/error.js";
 import { isBigInt, isNumber, isUint8Array } from "../predicate.js";
 import type { And, Not } from "../ts/logical.js";
 import { asDataView, Endian } from "../typed-array.js";
@@ -220,14 +220,9 @@ export function isInteger(value: unknown): boolean {
  * - 如果值为 {@link Number}，则相当于调用 {@link Number.isFinite} 并检查 {@link Math.floor} 后的值是否不相等。
  */
 export function isFloat(value: unknown): boolean {
-    if (isBigInt(value)) {
-        return false;
-    } else if (isNumber(value)) {
-        const int = Math.floor(value);
-        return isFinite(int) && int !== value;
-    } else {
-        return false;
-    }
+    return (
+        isBigInt(value) || (Number.isFinite(value) && !Number.isInteger(value))
+    );
 }
 
 /**
@@ -245,10 +240,21 @@ export function isFinite(value: unknown): boolean {
 }
 
 /**
- * 检测值是否为无限数值
+ * 检测值是否为无限数
  */
 export function isInfinity(value: unknown): boolean {
     return value === INF || value === NINF;
+}
+
+/**
+ * 检测值是否为 {@link Number.NaN}
+ */
+export function isNaN(value: unknown): boolean {
+    if (isBigInt(value)) {
+        return false;
+    } else {
+        return Number.isNaN(value);
+    }
 }
 
 /**
@@ -374,21 +380,23 @@ export function lt(a: Numeric, b: Numeric): boolean {
  * @param signed 是否考虑二进制补码，默认为 `true`
  */
 export function bitLength(value: Numeric, signed: boolean = true): number {
-    const v = typeof value === "bigint" ? value : BigInt(value);
-
     if (!signed) {
-        assertUnsignedWithNegative(v, false);
-        return v === BigInt(0) ? 1 : Number(bitLengthPositive(v));
+        assertPositive(value, false);
     }
 
-    if (v === BigInt(0) || v === BigInt(-1)) return 1;
+    if (isBigInt(value)) {
+        if (value === BigInt(0) || value === BigInt(-1)) return 1;
 
-    if (v > BigInt(0)) {
-        // 正数：最高位必须是 0，故需再加 1 个符号位
-        return Number(bitLengthPositive(v) + 1n);
+        return Number(
+            bitLengthPositive(value > 0 ? value : ~value)
+                + BigInt(signed ? 1 : 0),
+        );
     } else {
-        // 负数：利用两补码性质，~x = -x - 1 是非负
-        return Number(bitLengthPositive(~v) + 1n);
+        if (value === 0 || value === -1) return 1;
+
+        return (
+            Math.floor(Math.log2(value > 0 ? value : ~value)) + (signed ? 2 : 1)
+        );
     }
 }
 
@@ -455,7 +463,7 @@ export function toUint8Array(
     }
 
     if (!signed) {
-        assertUnsignedWithNegative(value, false);
+        assertPositive(value, false);
     }
 
     let len = 0;
