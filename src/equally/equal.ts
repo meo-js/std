@@ -45,7 +45,7 @@ export interface EqualOptions {
     comparator?: Comparator;
 
     /**
-     * 是否忽略两者的原型（`prototype`）是否引用相等
+     * 是否忽略两者的原型（`prototype`）是否相等
      *
      * @default false
      */

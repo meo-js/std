@@ -7,6 +7,7 @@
  *
  * @module
  */
+// 部分 polyfill 的导入顺序很重要，请勿随意调整
 // --- ECMAScript 2020 ---
 import "core-js/proposals/global-this.js";
 import "core-js/proposals/promise-all-settled.js";
@@ -38,11 +39,14 @@ declare global {
 // --- ECMAScript Next ---
 import "core-js/proposals/decorator-metadata-v2.js";
 import "core-js/proposals/explicit-resource-management.js";
+import "temporal-polyfill";
 // --- Web API ---
 import "core-js/web/queue-microtask.js";
-import "core-js/web/structured-clone.js";
-import "./polyfill/abort-controller.js";
-import "./polyfill/observable.js";
 import "./polyfill/report-error.js";
+import "./polyfill/abort-controller.js";
+import "core-js/web/structured-clone.js";
+import "./polyfill/observable.js";
 import "./polyfill/web-streams.js";
+// --- Unstable Export ---
+export { Temporal } from "temporal-polyfill";
 export * from "./polyfill/observable.js";
