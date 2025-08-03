@@ -1,25 +1,16 @@
 import { Temporal } from "temporal-polyfill";
-import { fdiv } from "../math.js";
+import { fdiv } from "../math/bigint.js";
 import type { RequireLeastOneKey } from "../object.js";
 import { isBigInt, isString } from "../predicate.js";
-import type { MapOf, Mutable, uncertain, WeakTagged } from "../ts.js";
-
-declare const timestampTag: unique symbol;
-declare const bigIntTimestampTag: unique symbol;
-declare const calendarIdTag: unique symbol;
-declare const timeZoneIdTag: unique symbol;
-declare const rfc9557TextTag: unique symbol;
-declare const durationTextTag: unique symbol;
-
-/**
- * Unix 时间戳
- */
-export type Timestamp = WeakTagged<number, typeof timestampTag>;
-
-/**
- * Unix 时间戳
- */
-export type BigIntTimestamp = WeakTagged<bigint, typeof bigIntTimestampTag>;
+import type { MapOf, Mutable, WeakTagged } from "../ts.js";
+import type {
+    toDate,
+    toDateTime,
+    toDuration,
+    toInstant,
+    toTime,
+    toZonedDateTime,
+} from "./format.js";
 
 /**
  * Unix 时间戳单位
@@ -131,13 +122,24 @@ export enum OverflowPolicy {
     Reject = "reject",
 }
 
+declare const timestampTag: unique symbol;
+declare const bigIntTimestampTag: unique symbol;
+declare const calendarIdTag: unique symbol;
+declare const timeZoneIdTag: unique symbol;
+declare const dateTimeTextTag: unique symbol;
+declare const durationTextTag: unique symbol;
+declare const temporalTextTag: unique symbol;
+declare const temporalTemplateTag: unique symbol;
+
 /**
- * 时态信息类型
+ * Unix 时间戳
  */
-export enum TemporalInfoType {
-    Instant = "instant",
-    DateTime = "datetime",
-}
+export type Timestamp = WeakTagged<number, typeof timestampTag>;
+
+/**
+ * Unix 时间戳
+ */
+export type BigIntTimestamp = WeakTagged<bigint, typeof bigIntTimestampTag>;
 
 /**
  * 可用于构造年份的对象
@@ -157,7 +159,7 @@ export type EraYearLike = {
 /**
  * 可用于构造年份的对象
  *
- * 必须提供 `era` + `eraYear` 或 `year`，如果提供了所有参数则它们必须是一致的。
+ * 允许 {@link EraYearLike} 和 {@link YearLike}，如果包含两者，则它们表示的年份必须是一致的。
  */
 export type AnyYearLike =
     // FIXME: 若直接引用 YearLike 和 EraYearLike，TypeScript 报错提示不正确
@@ -192,7 +194,7 @@ export type MonthCodeLike = {
 /**
  * 可用于构造月份的对象
  *
- * 必须提供 `month` 或 `monthCode`，如果提供了所有参数则它们必须是一致的。
+ * 允许 {@link MonthLike} 和 {@link MonthCodeLike}，如果包含两者，则它们表示的年份必须是一致的。
  */
 export type AnyMonthLike =
     // FIXME: 若直接引用 MonthLike 和 MonthCodeLike，TypeScript 报错提示不正确
@@ -207,6 +209,13 @@ export type AnyMonthLike =
     | {
           readonly month: number;
       };
+
+/**
+ * 可用于构造周数的对象
+ */
+export type WeekLike = {
+    readonly week: number;
+};
 
 /**
  * 可用于构造月份天数的对象
@@ -258,9 +267,33 @@ export type NanosecondLike = {
 };
 
 /**
- * 可用于构造瞬时的对象
+ * 可用于构造日期的对象
+ *
+ * 不允许 {@link EraYearLike} 和 {@link MonthCodeLike} 的属性。
  */
-export type InstantLike = Timestamp | BigIntTimestamp | Temporal.Instant | Date;
+export type DateLike = YearLike & MonthLike & DayLike;
+
+/**
+ * 可用于构造日期的对象
+ *
+ * 允许 {@link EraYearLike} 和 {@link MonthCodeLike} 的属性。
+ */
+export type AnyDateLike = AnyYearLike & AnyMonthLike & DayLike;
+
+/**
+ * 可用于构造时间的对象
+ */
+export type TimeLike = HourLike
+    & MinuteLike
+    & SecondLike
+    & MillisecondLike
+    & MicrosecondLike
+    & NanosecondLike;
+
+/**
+ * 可用于构造日期时间的对象
+ */
+export type DateTimeLike = DateLike & TimeLike;
 
 /**
  * 可用于构造持续时间的对象
@@ -281,12 +314,12 @@ export type DurationLike = {
 /**
  * 可用于构造 UTC 偏移量的对象
  *
- * 格式与 RFC 9557 偏移量相同，但带有可选的秒和子秒成分（`±HH:mm:ss.sssssssss`），但不允许使用 `Z`。
+ * 格式与 RFC 9557 偏移量相同，但可以带有可选的秒和子秒成分（`±HH:mm:ss.sssssssss`）。
  *
  * @see [RFC 9557](https://datatracker.ietf.org/doc/html/rfc9557)
  */
 export type UTCOffsetLike = {
-    readonly offset: Rfc9557Text;
+    readonly offset: DateTimeText;
 };
 
 /**
@@ -305,7 +338,7 @@ export type CalendarId = WeakTagged<string, typeof calendarIdTag>;
 /**
  * 带有日历标识符的对象
  */
-export type CalendarSource =
+export type CalendarObject =
     | Temporal.ZonedDateTime
     | Temporal.PlainDateTime
     | Temporal.PlainDate
@@ -320,9 +353,16 @@ export type CalendarLike = {
 };
 
 /**
+ * 可用于构造日历标识符的对象
+ */
+export type CalendarObjectLike = {
+    readonly calendar: CalendarId;
+};
+
+/**
  * 可作为日历标识符使用的类型
  */
-export type CalendarIdLike = CalendarId | CalendarSource;
+export type CalendarIdLike = CalendarId | CalendarObject;
 
 /**
  * RFC 9557 标准的时区标识符
@@ -347,9 +387,14 @@ export type CalendarIdLike = CalendarId | CalendarSource;
 export type TimeZoneId = WeakTagged<string, typeof timeZoneIdTag>;
 
 /**
+ * 可作为时区标识符使用的类型
+ */
+export type TimeZoneIdLike = TimeZoneId | TimeZoneObject;
+
+/**
  * 带有时区标识符的对象
  */
-export type TimeZoneSource = Temporal.ZonedDateTime;
+export type TimeZoneObject = Temporal.ZonedDateTime;
 
 /**
  * 可用于构造时区标识符的对象
@@ -359,9 +404,87 @@ export type TimeZoneLike = {
 };
 
 /**
- * 可作为时区标识符使用的类型
+ * {@link toInstant} 函数的输入类型
+ *
+ * 未特别说明的情况下，{@link Timestamp} 的单位是毫秒，{@link BigIntTimestamp} 的单位是纳秒。
  */
-export type TimeZoneIdLike = TimeZoneId | TimeZoneSource;
+export type InstantInput = Timestamp | BigIntTimestamp;
+
+/**
+ * 可用于构造瞬时的对象
+ */
+export type InstantObject = Temporal.Instant | Temporal.ZonedDateTime | Date;
+
+/**
+ * {@link toDuration} 函数的输入类型
+ */
+export type DurationInput =
+    | number
+    | bigint
+    | RequireLeastOneKey<DurationLike>
+    | RequireLeastOneKey<DateTimeLike & WeekLike>;
+
+/**
+ * 可用于构造持续时间的对象
+ */
+export type DurationObject = TemporalObject | Date;
+
+/**
+ * {@link toDate} 函数的输入类型
+ */
+export type DateInput = AnyDateLike & Partial<CalendarLike>;
+
+/**
+ * 可用于构造日期的 {@link Temporal} 对象
+ */
+export type DateObject =
+    | Temporal.Instant
+    | Temporal.PlainDate
+    | Temporal.PlainDateTime
+    | Temporal.ZonedDateTime
+    | Date;
+
+/**
+ * {@link toTime} 函数的输入类型
+ */
+export type TimeInput = RequireLeastOneKey<TimeLike>;
+
+/**
+ * 可用于构造时间的 {@link Temporal} 对象
+ */
+export type TimeObject =
+    | Temporal.Instant
+    | Temporal.PlainTime
+    | Temporal.PlainDateTime
+    | Temporal.ZonedDateTime
+    | Date;
+
+/**
+ * {@link toDateTime} 函数的输入类型
+ */
+export type DateTimeInput = DateInput & Partial<TimeLike>;
+
+/**
+ * 可用于构造日期时间的 {@link Temporal} 对象
+ */
+export type DateTimeObject =
+    | Temporal.Instant
+    | Temporal.PlainDate
+    | Temporal.PlainDateTime
+    | Temporal.ZonedDateTime
+    | Date;
+
+/**
+ * {@link toZonedDateTime} 函数的输入类型
+ */
+export type ZonedDateTimeInput = DateTimeInput
+    & TimeZoneLike
+    & Partial<UTCOffsetLike>;
+
+/**
+ * 可用于构造时区感知的日期时间的 {@link Temporal} 对象
+ */
+export type ZonedDateTimeObject = Temporal.ZonedDateTime;
 
 /**
  * 可作为时间戳附加信息的对象
@@ -371,101 +494,7 @@ export type TimeZoneIdLike = TimeZoneId | TimeZoneSource;
 export type AdditionalInfo = CalendarLike & TimeZoneLike;
 
 /**
- * 可用于构造日期的对象
- */
-export type DateLike = YearLike & MonthLike & DayLike;
-
-/**
- * 可用于构造日期的对象
- */
-export type AnyDateLike = AnyYearLike & AnyMonthLike & DayLike;
-
-/**
- * 可用于构造时间的对象
- */
-export type TimeLike = HourLike
-    & MinuteLike
-    & SecondLike
-    & MillisecondLike
-    & MicrosecondLike
-    & NanosecondLike;
-
-/**
- * 可用于构造日期时间的对象
- */
-export type DateTimeLike = DateLike & TimeLike;
-
-/**
- * 输入构造日期的对象
- *
- * @see {@link AnyDateLike}
- * @see {@link CalendarLike}
- */
-export type DateInput = AnyDateLike & Partial<CalendarLike>;
-
-/**
- * 可用于构造日期的 {@link Temporal} 对象
- */
-export type DateTemporal =
-    | Temporal.PlainDate
-    | Temporal.PlainDateTime
-    | Temporal.ZonedDateTime;
-
-/**
- * 输入构造时间的对象
- *
- * @see {@link TimeLike}
- */
-export type TimeInput = RequireLeastOneKey<TimeLike>;
-
-/**
- * 可用于构造时间的 {@link Temporal} 对象
- */
-export type TimeTemporal =
-    | Temporal.PlainTime
-    | Temporal.PlainDateTime
-    | Temporal.ZonedDateTime;
-
-/**
- * 输入构造日期时间的对象
- *
- * @see {@link DateInput}
- * @see {@link TimeLike}
- */
-export type DateTimeInput = DateInput & Partial<TimeLike>;
-
-/**
- * 可用于构造日期时间的 {@link Temporal} 对象
- */
-export type DateTimeTemporal =
-    | Temporal.PlainDate
-    | Temporal.PlainDateTime
-    | Temporal.ZonedDateTime;
-
-/**
- * 可用于构造瞬时及时区感知的日期时间的对象
- */
-export type InstantLikeWithTimeZone = {
-    instant: InstantLike;
-} & TimeZoneLike;
-
-/**
- * 输入构造时区感知的日期时间的对象
- *
- * @see {@link DateInput}
- * @see {@link TimeLike}
- */
-export type ZonedDateTimeInput = DateTimeInput
-    & TimeZoneLike
-    & Partial<UTCOffsetLike>;
-
-/**
- * 可用于构造时区感知的日期时间的 {@link Temporal} 对象
- */
-export type ZonedDateTimeTemporal = Temporal.ZonedDateTime;
-
-/**
- * 输入时间戳附加信息
+ * 时间戳附加信息的输入类型
  *
  * @see {@link AdditionalInfo}
  */
@@ -522,82 +551,6 @@ export type ZonedAssignmentOptions = Partial<
 >;
 
 /**
- * 日期时间信息
- */
-export type DateTimeInfo = Mutable<
-    DateTimeLike
-        & EraYearLike
-        & MonthCodeLike & { calendar: CalendarId } & {
-            timeZone: TimeZoneId;
-        } & UTCOffsetLike
->;
-
-/**
- * 构造日期时间信息的对象
- */
-export type DateTimeInfoLike = DateTimeLike
-    & EraYearLike
-    & MonthCodeLike
-    & TimeZoneLike
-    & CalendarLike
-    & UTCOffsetLike;
-
-/**
- * 输入构造日期时间信息的对象
- */
-export type DateTimeInfoInput = Partial<DateTimeInfoLike>;
-
-/**
- * 持续时间信息
- */
-export type DurationInfo = Mutable<DurationLike>;
-
-/**
- * 输入构造持续时间的对象
- */
-export type DurationInput =
-    | RequireLeastOneKey<DurationLike>
-    | RequireLeastOneKey<DateTimeLike>;
-
-/**
- * TODO
- */
-export interface TemporalFormatter {
-    formatDateTime(input: uncertain, ...args: uncertain): string;
-    parseDateTime(input: string, ...args: uncertain): unknown;
-    formatDuration(input: uncertain, ...args: uncertain): string;
-    parseDuration(input: string, ...args: uncertain): unknown;
-}
-
-/**
- * 日期时间文本模板
- *
- * 基于 Unicode Technical Standard #35 定义的模板格式。
- *
- * @see [Unicode Technical Standard #35 - Date Format Patterns](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Format_Patterns)
- */
-export type UTSDateTemplate = string;
-
-/**
- * 时态文本支持的格式
- */
-export type TemporalTextFormatter<T = unknown> = {
-    format(input: T): string;
-    parse(text: string): T;
-};
-
-/**
- * 时态文本输入
- */
-export type TemporalTextInput<T = unknown> = {
-    text: string;
-    formatter: TemporalTextFormatter<T> | UTSDateTemplate;
-};
-
-// TODO 需要一个比较时区标识符的函数
-// TODO 获取所有可用的时区、日历标识符
-
-/**
  * RFC 9557 日期时间字符串
  *
  * @see [RFC 9557](https://datatracker.ietf.org/doc/html/rfc9557)
@@ -609,7 +562,7 @@ export type TemporalTextInput<T = unknown> = {
  * // "2019-12-23T12:00:00-02:00[America/Sao_Paulo]"
  * ```
  */
-export type Rfc9557Text = WeakTagged<string, typeof rfc9557TextTag>;
+export type DateTimeText = WeakTagged<string, typeof dateTimeTextTag>;
 
 /**
  * ISO 8601 持续时间字符串
@@ -628,7 +581,21 @@ export type Rfc9557Text = WeakTagged<string, typeof rfc9557TextTag>;
 export type DurationText = WeakTagged<string, typeof durationTextTag>;
 
 /**
- * 类时间对象
+ * 能够被 {@link TemporalTemplate} 解析的字符串
+ */
+export type TemporalText = WeakTagged<string, typeof temporalTextTag>;
+
+/**
+ * 时态文本模板
+ *
+ * 基于 Unicode Technical Standard #35（tr35 LDML）定义的模板格式。
+ *
+ * @see [Unicode Technical Standard #35 - Date Format Patterns](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Format_Patterns)
+ */
+export type TemporalTemplate = WeakTagged<string, typeof temporalTemplateTag>;
+
+/**
+ * 内置时态对象
  */
 export type TemporalObject =
     | Temporal.Instant
@@ -639,6 +606,86 @@ export type TemporalObject =
     | Temporal.ZonedDateTime
     | Temporal.PlainMonthDay
     | Temporal.PlainYearMonth;
+
+/**
+ * 时态信息
+ *
+ * 时态信息中的日期时间属性表示的是挂钟时间。
+ */
+// TODO: 测试用例：必须能够传入所有 toXXX 和 format 接口
+export interface TemporalInfo
+    extends Mutable<DateTimeLike>,
+        Mutable<EraYearLike>,
+        Mutable<MonthCodeLike>,
+        Mutable<WeekLike>,
+        Mutable<TimeZoneLike>,
+        Mutable<CalendarLike>,
+        Mutable<UTCOffsetLike> {}
+
+/**
+ * 时态信息的输入类型
+ */
+export type TemporalInfoInput =
+    | DateTimeText
+    | DurationText
+    | Timestamp
+    | BigIntTimestamp
+    | Partial<TemporalInfo>
+    | Partial<DurationLike>
+    | TemporalObject
+    | Date;
+
+/**
+ * 格式化选项
+ */
+export interface FormatOptions extends Intl.DateTimeFormatOptions {
+    /**
+     * 本地化配置
+     *
+     * 传入 `false` 或默认情况下输出 RFC 9557 或 ISO 8601 字符串。
+     *
+     * 传入 `true` 或其它值则输出本地化字符串。
+     *
+     * @default false
+     *
+     * @see [MDN - Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#locales)
+     */
+    locales?: boolean | Intl.LocalesArgument;
+}
+
+// TODO 需要一个比较时区标识符的函数
+// TODO 获取所有可用的时区、日历标识符
+
+/**
+ * @internal
+ */
+export function isDurationText(text: string): text is DurationText {
+    return (
+        text.startsWith("P")
+        || text.startsWith("p")
+        // ±P<duration>
+        || text[1] === "P"
+        || text[1] === "p"
+    );
+}
+
+/**
+ * @internal
+ */
+export function isDurationLike(value: object): value is Partial<DurationLike> {
+    return (
+        <keyof DurationLike>"years" in value
+        || <keyof DurationLike>"months" in value
+        || <keyof DurationLike>"weeks" in value
+        || <keyof DurationLike>"days" in value
+        || <keyof DurationLike>"hours" in value
+        || <keyof DurationLike>"minutes" in value
+        || <keyof DurationLike>"seconds" in value
+        || <keyof DurationLike>"milliseconds" in value
+        || <keyof DurationLike>"microseconds" in value
+        || <keyof DurationLike>"nanoseconds" in value
+    );
+}
 
 /**
  * @internal
@@ -693,12 +740,129 @@ export function toCalendarId<T extends CalendarIdLike | undefined>(
 /**
  * @internal
  */
-export function isTemporalTextInput(
-    input: Partial<TemporalTextInput>,
-): input is TemporalTextInput {
-    return (
-        typeof input.text === "string"
-        && (typeof input.formatter === "string"
-            || typeof input.formatter === "function")
-    );
+export function withCalendar<
+    T extends
+        | Temporal.ZonedDateTime
+        | Temporal.PlainDate
+        | Temporal.PlainDateTime,
+>(dateTime: T, calendar?: CalendarIdLike): T {
+    return calendar ? (dateTime.withCalendar(calendar) as T) : dateTime;
+}
+
+/**
+ * @internal
+ */
+export const _tempTemporalInfo = createTemporalInfo();
+
+// TODO: 疑似没用，并且 number 和 bigint 有两种处理方法
+// /**
+//  * @internal
+//  */
+// export function toTemporalObject(input: FormatInput): TemporalObject {
+//     switch (typeof input) {
+//         case "number":
+//             return Temporal.Instant.fromEpochMilliseconds(input);
+
+//         case "bigint":
+//             return Temporal.Instant.fromEpochNanoseconds(input);
+
+//         case "object": {
+//             if (isTemporalObject(input)) {
+//                 return input;
+//             }
+
+//             if (isDate(input)) {
+//                 return toTemporalInstant.call(input);
+//             }
+
+//             if (isTemporalTextRecord(input)) {
+//                 resetTemporalInfo(_tempTemporalInfo);
+//                 getTemplate(input.template).parse(
+//                     input.text,
+//                     _tempTemporalInfo,
+//                 );
+//                 return infoToTemporalObject(_tempTemporalInfo);
+//             }
+
+//             return infoToTemporalObject(input);
+//         }
+
+//         default:
+//             throw new TypeError(`Unsupported input type: ${typeof input}`);
+//     }
+// }
+
+// /**
+//  * 将信息尽量转换为最详细、精确的 Temporal 对象
+//  *
+//  * @internal
+//  */
+// export function infoToTemporalObject(
+//     info: Partial<TemporalInfo> | Partial<DurationLike>,
+// ): TemporalObject {
+//     if (isDurationLike(info)) {
+//         return Temporal.Duration.from(info);
+//     }
+
+//     // | Temporal.Instant
+//     // | Temporal.Duration
+//     // | Temporal.PlainDate
+//     // | Temporal.PlainTime
+//     // | Temporal.PlainDateTime
+//     // | Temporal.ZonedDateTime
+//     // | Temporal.PlainMonthDay
+//     // | Temporal.PlainYearMonth;
+
+//     const hasYear = info.year != null || info.eraYear != null;
+//     const hasMonth = info.month != null || info.monthCode != null;
+//     const hasDay = info.day != null;
+// }
+
+/**
+ * @internal
+ */
+export function createTemporalInfo(): Partial<TemporalInfo> {
+    return {
+        era: undefined,
+        eraYear: undefined,
+        year: undefined,
+        month: undefined,
+        monthCode: undefined,
+        week: undefined,
+        day: undefined,
+        hour: undefined,
+        minute: undefined,
+        second: undefined,
+        millisecond: undefined,
+        microsecond: undefined,
+        nanosecond: undefined,
+        offset: undefined,
+        timeZone: undefined,
+        calendar: undefined,
+    };
+}
+
+/**
+ * @internal
+ */
+export function resetTemporalInfo(
+    info: Partial<TemporalInfo>,
+): Partial<TemporalInfo> {
+    info.era = undefined;
+    info.eraYear = undefined;
+    info.year = undefined;
+    info.month = undefined;
+    info.monthCode = undefined;
+    info.week = undefined;
+    info.day = undefined;
+    info.hour = undefined;
+    info.minute = undefined;
+    info.second = undefined;
+    info.millisecond = undefined;
+    info.microsecond = undefined;
+    info.nanosecond = undefined;
+    info.offset = undefined;
+    info.timeZone = undefined;
+    info.calendar = undefined;
+    return info;
 }

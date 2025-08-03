@@ -1,9 +1,10 @@
 import { Temporal } from "temporal-polyfill";
-import { HAS_BIGINT } from "../env.js";
-import { fdiv } from "../math.js";
+import { assertBigIntSupported } from "../internal/error.js";
+import { fdiv } from "../math/bigint.js";
 import { isString, isZonedDateTime } from "../predicate.js";
 import {
     TimestampUnit,
+    withCalendar,
     type AdditionalInfoInput,
     type BigIntTimestamp,
     type Timestamp,
@@ -38,9 +39,6 @@ export function unix(
 
         case TimestampUnit.Nanosecond:
             return ns();
-
-        default:
-            throwUnsupported(unit, false);
     }
 }
 
@@ -68,12 +66,9 @@ export function ms(): Timestamp {
  * 等同于 {@link unix}({@link TimestampUnit.Microsecond}) 的简写。
  */
 export function us(): BigIntTimestamp {
-    if (HAS_BIGINT) {
-        // 不能直接返回 ns / 1e3n，因为 BigInt 除法会截断而不是向下取整
-        return fdiv(Temporal.Now.instant().epochNanoseconds, BigInt(1e3));
-    } else {
-        throwUnsupported(TimestampUnit.Microsecond, false);
-    }
+    assertBigIntSupported("now.us()");
+    // 不能直接返回 ns / 1e3n，因为 BigInt 除法会截断而不是向下取整
+    return fdiv(Temporal.Now.instant().epochNanoseconds, BigInt(1e3));
 }
 
 /**
@@ -82,11 +77,8 @@ export function us(): BigIntTimestamp {
  * 等同于 {@link unix}({@link TimestampUnit.Nanosecond}) 的简写。
  */
 export function ns(): BigIntTimestamp {
-    if (HAS_BIGINT) {
-        return Temporal.Now.instant().epochNanoseconds;
-    } else {
-        throwUnsupported(TimestampUnit.Nanosecond, true);
-    }
+    assertBigIntSupported("now.ns()");
+    return Temporal.Now.instant().epochNanoseconds;
 }
 
 /**
@@ -154,11 +146,7 @@ function _createDateLike<
             calendar = addtl.calendar;
         }
     }
-    let date = fn(timeZone);
-    if (calendar != null) {
-        date = date.withCalendar(calendar);
-    }
-    return date as ReturnType<T>;
+    return withCalendar(fn(timeZone), calendar) as ReturnType<T>;
 }
 
 /**
@@ -178,9 +166,3 @@ export function timeZoneId() {
 }
 
 // TODO 获取当前日历
-
-function throwUnsupported(thing: string, bigint: boolean): never {
-    throw new TypeError(
-        `${thing} is not supported${bigint ? `, because environment does not support BigInt.` : "."}`,
-    );
-}

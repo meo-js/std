@@ -3,6 +3,7 @@
  *
  * @internal
  */
+import type { TemporalInfo } from "../../shared.js";
 // from https://github.com/js-temporal/temporal-polyfill/blob/main/lib/regex.ts
 
 const fraction = /(\d+)(?:[.,](\d{1,9}))?/u;
@@ -16,19 +17,6 @@ const duration = new RegExp(
     `^([+-])?P${durationDate.source}(?:T(?!$)${durationTime.source})?$`,
     "iu",
 );
-
-export type ParseResult = {
-    years: number;
-    months: number;
-    weeks: number;
-    days: number;
-    hours: number;
-    minutes: number;
-    seconds: number;
-    milliseconds: number;
-    microseconds: number;
-    nanoseconds: number;
-};
 
 function rejectDuration(
     y: number,
@@ -81,7 +69,7 @@ function rejectDuration(
         + remainderSec;
     if (!Number.isSafeInteger(totalSec)) {
         throw new RangeError(
-            "total of duration time units cannot exceed 9007199254740991.999999999 s.",
+            "Total of duration time units can't exceed 9007199254740991.999999999s.",
         );
     }
 }
@@ -107,12 +95,12 @@ function truncatingDivModByPowerOf10(xParam: number, p: number) {
 
 function rejectDifferentSign(prop: number, sign: -1 | 0 | 1): -1 | 0 | 1 {
     if (prop === Infinity || prop === -Infinity)
-        throw new RangeError("infinite values not allowed as duration fields.");
+        throw new RangeError("Infinite values not allowed as duration fields.");
     if (prop !== 0) {
         const _prop = prop < 0 ? -1 : 1;
         if (sign !== 0 && _prop !== sign)
             throw new RangeError(
-                "mixed-sign values not allowed as duration fields.",
+                "Mixed-sign values not allowed as duration fields.",
             );
         return _prop;
     }
@@ -120,40 +108,28 @@ function rejectDifferentSign(prop: number, sign: -1 | 0 | 1): -1 | 0 | 1 {
 }
 
 function throwDurationError(text: string): never {
-    throw new RangeError(`invalid duration: ${text}.`);
+    throw new RangeError(`Invalid ISO 8601 duration string: ${text}.`);
 }
 
 function throwFractionalError(): never {
-    throw new RangeError("only the smallest unit can be fractional.");
+    throw new RangeError("Only the smallest unit can be fractional.");
 }
 
 function toIntegerWithTruncation(value: unknown): number {
     const number = Number(value);
     if (number === 0) return 0;
     if (Number.isNaN(number) || number === Infinity || number === -Infinity) {
-        throw new RangeError("invalid number value.");
+        throw new RangeError("Invalid number value.");
     }
     const integer = Math.trunc(number);
     if (integer === 0) return 0; // ℝ(value) in spec text; converts -0 to 0
     return integer;
 }
 
-export function createParseResult(): ParseResult {
-    return {
-        years: 0,
-        months: 0,
-        weeks: 0,
-        days: 0,
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-        milliseconds: 0,
-        microseconds: 0,
-        nanoseconds: 0,
-    };
-}
-
-export function parse(text: string, out: ParseResult): ParseResult {
+export function parse(
+    text: string,
+    out: Partial<TemporalInfo>,
+): Partial<TemporalInfo> {
     const match = duration.exec(text);
     if (!match) {
         throwDurationError(text);
@@ -249,16 +225,19 @@ export function parse(text: string, out: ParseResult): ParseResult {
         nanoseconds,
     );
 
-    out.years = years;
-    out.months = months;
-    out.weeks = weeks;
-    out.days = days;
-    out.hours = hours;
-    out.minutes = minutes;
-    out.seconds = seconds;
-    out.milliseconds = milliseconds;
-    out.microseconds = microseconds;
-    out.nanoseconds = nanoseconds;
+    out.year = years;
+    out.era = undefined;
+    out.eraYear = undefined;
+    out.month = months;
+    out.monthCode = undefined;
+    out.week = weeks;
+    out.day = days;
+    out.hour = hours;
+    out.minute = minutes;
+    out.second = seconds;
+    out.millisecond = milliseconds;
+    out.microsecond = microseconds;
+    out.nanosecond = nanoseconds;
 
     return out;
 }

@@ -4,6 +4,18 @@
  * @internal
  */
 // from https://github.com/js-temporal/temporal-polyfill/blob/main/lib/regex.ts
+// Possible results of parsing:
+// Date:
+// 1. None.
+// 2. Only year and month.
+// 3. Only month and day.
+// 4. All.
+// Time:
+// 1. All.
+// 2. None.
+// Other: Yes or no.
+
+import type { TemporalInfo } from "../../shared.js";
 
 const offsetIdentifierNoCapture =
     /(?:[+-](?:[01][0-9]|2[0-3])(?::?[0-5][0-9])?)/u;
@@ -73,36 +85,6 @@ const monthday = new RegExp(
 const standardDaysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const leapYearDaysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-export type ParseResult = (
-    | { year: undefined; month: undefined; day: undefined }
-    | { year: number; month: number; day: undefined }
-    | { year: undefined; month: number; day: number }
-    | { year: number; month: number; day: number }
-)
-    & (
-        | {
-              hour: number;
-              minute: number;
-              second: number;
-              millisecond: number;
-              microsecond: number;
-              nanosecond: number;
-          }
-        | {
-              hour: undefined;
-              minute: undefined;
-              second: undefined;
-              millisecond: undefined;
-              microsecond: undefined;
-              nanosecond: undefined;
-          }
-    ) & {
-        offset: string | undefined;
-        z: boolean;
-        timeZone: string | undefined;
-        calendar: string | undefined;
-    };
-
 function processAnnotations(annotations: string) {
     let calendar;
     let calendarWasCritical = false;
@@ -117,11 +99,11 @@ function processAnnotations(annotations: string) {
                 calendarWasCritical = critical === "!";
             } else if (critical === "!" || calendarWasCritical) {
                 throw new RangeError(
-                    `invalid annotations in ${annotations}: more than one u-ca present with critical flag.`,
+                    `Invalid annotations in ${annotations}: more than one u-ca present with critical flag.`,
                 );
             }
         } else if (critical === "!") {
-            throw new RangeError(`unrecognized annotation: !${key}=${value}.`);
+            throw new RangeError(`Unrecognized annotation: !${key}=${value}.`);
         }
     }
     return calendar;
@@ -146,7 +128,7 @@ function getISODaysInMonth(year: number, month: number) {
 function rejectRange(value: number, min: number, max: number) {
     if (value < min || value > max) {
         throw new RangeError(
-            `value out of range: ${min} <= ${value} <= ${max}.`,
+            `Value out of range: ${min} <= ${value} <= ${max}.`,
         );
     }
 }
@@ -184,10 +166,13 @@ function rejectDateTime(
 }
 
 function throwDateTimeError(text: string): never {
-    throw new RangeError(`invalid RFC 9557 string: ${text}.`);
+    throw new RangeError(`Invalid RFC 9557 string: ${text}.`);
 }
 
-function parseTime(text: string, out: ParseResult): ParseResult {
+function parseTime(
+    text: string,
+    out: Partial<TemporalInfo>,
+): Partial<TemporalInfo> {
     const match = time.exec(text);
     if (!match) {
         throwDateTimeError(text);
@@ -208,36 +193,33 @@ function parseTime(text: string, out: ParseResult): ParseResult {
     const nanosecond = +fraction.slice(6, 9);
 
     let offset;
-    let z = false;
     if (match[8]) {
-        offset = undefined;
-        z = true;
+        offset = "Z";
     } else if (match[9]) {
         offset = match[9];
     }
 
-    const timeZone = match[10];
+    const timeZone = match[10] as string | undefined;
 
     rejectTime(hour, minute, second, millisecond, microsecond, nanosecond);
 
-    out.year = undefined;
-    out.month = undefined;
-    out.day = undefined;
     out.hour = hour;
     out.minute = minute;
     out.second = second;
     out.millisecond = millisecond;
     out.microsecond = microsecond;
     out.nanosecond = nanosecond;
-    out.offset = offset;
-    out.z = z;
-    out.timeZone = timeZone;
-    out.calendar = calendar;
+    if (offset != null) out.offset = offset;
+    if (timeZone != null) out.timeZone = timeZone;
+    if (calendar != null) out.calendar = calendar;
 
     return out;
 }
 
-function parseYearMonth(text: string, out: ParseResult): ParseResult {
+function parseYearMonth(
+    text: string,
+    out: Partial<TemporalInfo>,
+): Partial<TemporalInfo> {
     const match = yearmonth.exec(text);
     if (!match) {
         return parseMonthDay(text, out);
@@ -252,23 +234,19 @@ function parseYearMonth(text: string, out: ParseResult): ParseResult {
     const month = +match[2];
 
     out.year = year;
+    out.era = undefined;
+    out.eraYear = undefined;
     out.month = month;
-    out.day = undefined;
-    out.hour = undefined;
-    out.minute = undefined;
-    out.second = undefined;
-    out.millisecond = undefined;
-    out.microsecond = undefined;
-    out.nanosecond = undefined;
-    out.offset = undefined;
-    out.z = false;
-    out.timeZone = undefined;
-    out.calendar = calendar;
+    out.monthCode = undefined;
+    if (calendar != null) out.calendar = calendar;
 
     return out;
 }
 
-function parseMonthDay(text: string, out: ParseResult): ParseResult {
+function parseMonthDay(
+    text: string,
+    out: Partial<TemporalInfo>,
+): Partial<TemporalInfo> {
     const match = monthday.exec(text);
     if (!match) {
         return parseTime(text, out);
@@ -278,42 +256,18 @@ function parseMonthDay(text: string, out: ParseResult): ParseResult {
     const month = +match[1];
     const day = +match[2];
 
-    out.year = undefined;
     out.month = month;
+    out.monthCode = undefined;
     out.day = day;
-    out.hour = undefined;
-    out.minute = undefined;
-    out.second = undefined;
-    out.millisecond = undefined;
-    out.microsecond = undefined;
-    out.nanosecond = undefined;
-    out.offset = undefined;
-    out.z = false;
-    out.timeZone = undefined;
-    out.calendar = calendar;
+    if (calendar != null) out.calendar = calendar;
 
     return out;
 }
 
-export function createParseResult(): ParseResult {
-    return {
-        year: 1972,
-        month: 1,
-        day: 1,
-        hour: 0,
-        minute: 0,
-        second: 0,
-        millisecond: 0,
-        microsecond: 0,
-        nanosecond: 0,
-        offset: undefined,
-        z: false,
-        timeZone: undefined,
-        calendar: undefined,
-    };
-}
-
-export function parse(text: string, out: ParseResult): ParseResult {
+export function parse(
+    text: string,
+    out: Partial<TemporalInfo>,
+): Partial<TemporalInfo> {
     const match = zoneddatetime.exec(text);
     if (!match) {
         return parseYearMonth(text, out);
@@ -346,15 +300,13 @@ export function parse(text: string, out: ParseResult): ParseResult {
     const nanosecond = +fraction.slice(6, 9);
 
     let offset;
-    let z = false;
     if (match[13]) {
-        offset = undefined;
-        z = true;
+        offset = "Z";
     } else if (match[14]) {
         offset = match[14];
     }
 
-    const timeZone = match[15];
+    const timeZone = match[15] as string | undefined;
 
     rejectDateTime(
         year,
@@ -369,7 +321,10 @@ export function parse(text: string, out: ParseResult): ParseResult {
     );
 
     out.year = year;
+    out.era = undefined;
+    out.eraYear = undefined;
     out.month = month;
+    out.monthCode = undefined;
     out.day = day;
     if (hasTime) {
         out.hour = hour;
@@ -378,17 +333,9 @@ export function parse(text: string, out: ParseResult): ParseResult {
         out.millisecond = millisecond;
         out.microsecond = microsecond;
         out.nanosecond = nanosecond;
-    } else {
-        out.hour = undefined;
-        out.minute = undefined;
-        out.second = undefined;
-        out.millisecond = undefined;
-        out.microsecond = undefined;
-        out.nanosecond = undefined;
     }
-    out.offset = offset;
-    out.z = z;
-    out.timeZone = timeZone;
-    out.calendar = calendar;
+    if (offset != null) out.offset = offset;
+    if (timeZone != null) out.timeZone = timeZone;
+    if (calendar != null) out.calendar = calendar;
     return out;
 }
