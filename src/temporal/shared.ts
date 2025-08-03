@@ -635,24 +635,6 @@ export type TemporalInfoInput =
     | TemporalObject
     | Date;
 
-/**
- * 格式化选项
- */
-export interface FormatOptions extends Intl.DateTimeFormatOptions {
-    /**
-     * 本地化配置
-     *
-     * 传入 `false` 或默认情况下输出 RFC 9557 或 ISO 8601 字符串。
-     *
-     * 传入 `true` 或其它值则输出本地化字符串。
-     *
-     * @default false
-     *
-     * @see [MDN - Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#locales)
-     */
-    locales?: boolean | Intl.LocalesArgument;
-}
-
 // TODO 需要一个比较时区标识符的函数
 // TODO 获取所有可用的时区、日历标识符
 
