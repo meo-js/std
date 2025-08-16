@@ -1,11 +1,10 @@
 /**
- * @public
- *
  * @module
+ * @public
  */
-import { utf8 } from "./encoding/text.js";
-import { every, Pipe, type IPipe, type Next } from "./pipe.js";
-import { flatCodePoints } from "./pipe/string.js";
+import { utf8 } from './encoding/text.js';
+import { every, Pipe, type IPipe, type Next } from './pipe.js';
+import { flatCodePoints } from './pipe/string.js';
 
 // TODO: 实现 CBOR 以替代 JSON -> UTF8 Bytes 的序列化实现。
 // 参考实现：
@@ -13,7 +12,11 @@ import { flatCodePoints } from "./pipe/string.js";
 // - micro-cbor：https://www.npmjs.com/package/microcbor#benchmarks 已有的实现很规范（确定性编码），除了对 TypedArray 的处理。
 // - cbor2：https://github.com/hildjj/cbor2 无循环引用处理。
 // - cbor-x：https://github.com/kriszyp/cbor-x 有点乱，但实现得很全，但貌似不是（确定性编码）。
+// 关于无法序列化的内容的参考实现：
+// - https://github.com/shuding/stable-hash/blob/main/src/index.ts
+// - https://github.com/tc39/proposal-composites/blob/main/polyfill/internal/hash.ts
 // 自称最快的库（cbor-x），粗略地浏览后，没有特别的黑科技，可以在实现过程中偶尔参考一下。
+// 增加 memoize 函数：https://www.npmjs.com/package/memoize?activeTab=readme
 // 预计选项：
 // 编码：
 // - 是否确定性编码

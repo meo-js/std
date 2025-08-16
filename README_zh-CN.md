@@ -7,7 +7,7 @@
 </h1>
 
 <p align="center">
-一个为广泛适用性打造的可移植 JavaScript 标准库。
+为广泛适用性打造的可移植 JavaScript 标准库。
 </p>
 
 <!-- <br>

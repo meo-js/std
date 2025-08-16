@@ -1,241 +1,309 @@
 {
-    "name": "@meojs/std",
-    "version": "1.0.9",
-    "packageManager": "npm@10.9.0",
-    "engines": {
-        "node": ">=20"
+  "name": "@meojs/std",
+  "version": "1.0.9",
+  "packageManager": "npm@10.9.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "description": "A portable JavaScript standard library crafted for wide applicability.",
+  "author": {
+    "name": "SmallMain",
+    "email": "smallmain@outlook.com",
+    "url": "https://www.smallmain.com/"
+  },
+  "homepage": "https://www.smallmain.com/",
+  "repository": "github:meo-js/std",
+  "bugs": "https://github.com/meo-js/std/issues",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
     },
-    "description": "A portable JavaScript standard library crafted for wide applicability.",
-    "author": {
-        "name": "SmallMain",
-        "email": "smallmain@outlook.com",
-        "url": "https://www.smallmain.com/"
+    "./array": {
+      "import": "./dist/array.mjs",
+      "require": "./dist/array.cjs",
+      "types": "./dist/array.d.ts"
     },
-    "homepage": "https://www.smallmain.com/",
-    "repository": "github:meo-js/std",
-    "bugs": "https://github.com/meo-js/std/issues",
-    "license": "MIT",
-    "publishConfig": {
-        "access": "public"
+    "./bigint": {
+      "import": "./dist/bigint.mjs",
+      "require": "./dist/bigint.cjs",
+      "types": "./dist/bigint.d.ts"
     },
-    "type": "module",
-    "exports": {
-        ".": {
-            "import": "./dist/index.mjs",
-            "require": "./dist/index.cjs",
-            "types": "./dist/index.d.ts"
-        },
-        "./array": {
-            "import": "./dist/array.mjs",
-            "require": "./dist/array.cjs",
-            "types": "./dist/array.d.ts"
-        },
-        "./callstack": {
-            "import": "./dist/callstack.mjs",
-            "require": "./dist/callstack.cjs",
-            "types": "./dist/callstack.d.ts"
-        },
-        "./class": {
-            "import": "./dist/class.mjs",
-            "require": "./dist/class.cjs",
-            "types": "./dist/class.d.ts"
-        },
-        "./collection": {
-            "import": "./dist/collection.mjs",
-            "require": "./dist/collection.cjs",
-            "types": "./dist/collection.d.ts"
-        },
-        "./collection/map": {
-            "import": "./dist/collection/map.mjs",
-            "require": "./dist/collection/map.cjs",
-            "types": "./dist/collection/map.d.ts"
-        },
-        "./collection/set": {
-            "import": "./dist/collection/set.mjs",
-            "require": "./dist/collection/set.cjs",
-            "types": "./dist/collection/set.d.ts"
-        },
-        "./decorator": {
-            "import": "./dist/decorator.mjs",
-            "require": "./dist/decorator.cjs",
-            "types": "./dist/decorator.d.ts"
-        },
-        "./encoding": {
-            "import": "./dist/encoding.mjs",
-            "require": "./dist/encoding.cjs",
-            "types": "./dist/encoding.d.ts"
-        },
-        "./encoding/byte": {
-            "import": "./dist/encoding/byte.mjs",
-            "require": "./dist/encoding/byte.cjs",
-            "types": "./dist/encoding/byte.d.ts"
-        },
-        "./encoding/text": {
-            "import": "./dist/encoding/text.mjs",
-            "require": "./dist/encoding/text.cjs",
-            "types": "./dist/encoding/text.d.ts"
-        },
-        "./enum": {
-            "import": "./dist/enum.mjs",
-            "require": "./dist/enum.cjs",
-            "types": "./dist/enum.d.ts"
-        },
-        "./error": {
-            "import": "./dist/error.mjs",
-            "require": "./dist/error.cjs",
-            "types": "./dist/error.d.ts"
-        },
-        "./function": {
-            "import": "./dist/function.mjs",
-            "require": "./dist/function.cjs",
-            "types": "./dist/function.d.ts"
-        },
-        "./generator": {
-            "import": "./dist/generator.mjs",
-            "require": "./dist/generator.cjs",
-            "types": "./dist/generator.d.ts"
-        },
-        "./global": {
-            "import": "./dist/global.mjs",
-            "require": "./dist/global.cjs",
-            "types": "./dist/global.d.ts"
-        },
-        "./json": {
-            "import": "./dist/json.mjs",
-            "require": "./dist/json.cjs",
-            "types": "./dist/json.d.ts"
-        },
-        "./macro": {
-            "import": "./dist/macro.mjs",
-            "require": "./dist/macro.cjs",
-            "types": "./dist/macro.d.ts"
-        },
-        "./math": {
-            "import": "./dist/math.mjs",
-            "require": "./dist/math.cjs",
-            "types": "./dist/math.d.ts"
-        },
-        "./object": {
-            "import": "./dist/object.mjs",
-            "require": "./dist/object.cjs",
-            "types": "./dist/object.d.ts"
-        },
-        "./predicate": {
-            "import": "./dist/predicate.mjs",
-            "require": "./dist/predicate.cjs",
-            "types": "./dist/predicate.d.ts"
-        },
-        "./primitive": {
-            "import": "./dist/primitive.mjs",
-            "require": "./dist/primitive.cjs",
-            "types": "./dist/primitive.d.ts"
-        },
-        "./promise": {
-            "import": "./dist/promise.mjs",
-            "require": "./dist/promise.cjs",
-            "types": "./dist/promise.d.ts"
-        },
-        "./protocol": {
-            "import": "./dist/protocol.mjs",
-            "require": "./dist/protocol.cjs",
-            "types": "./dist/protocol.d.ts"
-        },
-        "./prototype": {
-            "import": "./dist/prototype.mjs",
-            "require": "./dist/prototype.cjs",
-            "types": "./dist/prototype.d.ts"
-        },
-        "./string": {
-            "import": "./dist/string.mjs",
-            "require": "./dist/string.cjs",
-            "types": "./dist/string.d.ts"
-        },
-        "./timer": {
-            "import": "./dist/timer.mjs",
-            "require": "./dist/timer.cjs",
-            "types": "./dist/timer.d.ts"
-        },
-        "./ts": {
-            "import": "./dist/ts.mjs",
-            "require": "./dist/ts.cjs",
-            "types": "./dist/ts.d.ts"
-        },
-        "./ts/logical": {
-            "import": "./dist/ts/logical.mjs",
-            "require": "./dist/ts/logical.cjs",
-            "types": "./dist/ts/logical.d.ts"
-        },
-        "./ts/modifier": {
-            "import": "./dist/ts/modifier.mjs",
-            "require": "./dist/ts/modifier.cjs",
-            "types": "./dist/ts/modifier.d.ts"
-        },
-        "./ts/nominal": {
-            "import": "./dist/ts/nominal.mjs",
-            "require": "./dist/ts/nominal.cjs",
-            "types": "./dist/ts/nominal.d.ts"
-        },
-        "./ts/union": {
-            "import": "./dist/ts/union.mjs",
-            "require": "./dist/ts/union.cjs",
-            "types": "./dist/ts/union.d.ts"
-        },
-        "./typed-array": {
-            "import": "./dist/typed-array.mjs",
-            "require": "./dist/typed-array.cjs",
-            "types": "./dist/typed-array.d.ts"
-        }
+    "./bytes": {
+      "import": "./dist/bytes.mjs",
+      "require": "./dist/bytes.cjs",
+      "types": "./dist/bytes.d.ts"
     },
-    "files": [
-        "dist",
-        "README*.md",
-        "LICENSE"
-    ],
-    "lint-staged": {
-        "src/**/*": [
-            "eslint",
-            "prettier --ignore-unknown --check"
-        ]
+    "./callstack": {
+      "import": "./dist/callstack.mjs",
+      "require": "./dist/callstack.cjs",
+      "types": "./dist/callstack.d.ts"
     },
-    "simple-git-hooks": {
-        "pre-commit": "npx lint-staged",
-        "commit-msg": "npx commitlint --edit $1"
+    "./class": {
+      "import": "./dist/class.mjs",
+      "require": "./dist/class.cjs",
+      "types": "./dist/class.d.ts"
     },
-    "commitlint": {
-        "extends": [
-            "@commitlint/config-conventional"
-        ]
+    "./collection": {
+      "import": "./dist/collection.mjs",
+      "require": "./dist/collection.cjs",
+      "types": "./dist/collection.d.ts"
     },
-    "scripts": {
-        "build": "npx unbuild",
-        "dev": "npx unbuild --watch",
-        "clean": "rimraf ./dist",
-        "lint": "eslint",
-        "gen-exports": "npx tsx ./scripts/exports-generator.ts",
-        "ai": "npx tsx ./scripts/ai-process.ts",
-        "prepack": "npm run build",
-        "publish:patch": "npm version patch && npm publish",
-        "publish:minor": "npm version minor && npm publish",
-        "publish:major": "npm version major && npm publish"
+    "./collection/map": {
+      "import": "./dist/collection/map.mjs",
+      "require": "./dist/collection/map.cjs",
+      "types": "./dist/collection/map.d.ts"
     },
-    "devDependencies": {
-        "@commitlint/cli": "^19.8.0",
-        "@commitlint/config-conventional": "^19.8.0",
-        "@meojs/cfgs": "^2.0.21",
-        "@meojs/types": "^1.0.1",
-        "@types/node": "^20",
-        "cross-env": "^7.0.3",
-        "eslint": "^9.22.0",
-        "lint-staged": "^15.5.1",
-        "prettier": "^3.5.3",
-        "rimraf": "^6.0.1",
-        "simple-git-hooks": "^2.13.0"
+    "./collection/set": {
+      "import": "./dist/collection/set.mjs",
+      "require": "./dist/collection/set.cjs",
+      "types": "./dist/collection/set.d.ts"
     },
-    "dependencies": {
-        "chardet": "^2.1.0",
-        "core-js": "^3.42.0",
-        "string-ts": "^2.2.1",
-        "temporal-polyfill": "^0.3.0",
-        "type-fest": "^4.41.0"
+    "./crackled-optimize": {
+      "import": "./dist/crackled-optimize.mjs",
+      "require": "./dist/crackled-optimize.cjs",
+      "types": "./dist/crackled-optimize.d.ts"
+    },
+    "./crypto": {
+      "import": "./dist/crypto.mjs",
+      "require": "./dist/crypto.cjs",
+      "types": "./dist/crypto.d.ts"
+    },
+    "./crypto/digest": {
+      "import": "./dist/crypto/digest.mjs",
+      "require": "./dist/crypto/digest.cjs",
+      "types": "./dist/crypto/digest.d.ts"
+    },
+    "./decorator": {
+      "import": "./dist/decorator.mjs",
+      "require": "./dist/decorator.cjs",
+      "types": "./dist/decorator.d.ts"
+    },
+    "./encoding": {
+      "import": "./dist/encoding.mjs",
+      "require": "./dist/encoding.cjs",
+      "types": "./dist/encoding.d.ts"
+    },
+    "./encoding/byte": {
+      "import": "./dist/encoding/byte.mjs",
+      "require": "./dist/encoding/byte.cjs",
+      "types": "./dist/encoding/byte.d.ts"
+    },
+    "./encoding/text": {
+      "import": "./dist/encoding/text.mjs",
+      "require": "./dist/encoding/text.cjs",
+      "types": "./dist/encoding/text.d.ts"
+    },
+    "./enum": {
+      "import": "./dist/enum.mjs",
+      "require": "./dist/enum.cjs",
+      "types": "./dist/enum.d.ts"
+    },
+    "./env": {
+      "import": "./dist/env.mjs",
+      "require": "./dist/env.cjs",
+      "types": "./dist/env.d.ts"
+    },
+    "./equals": {
+      "import": "./dist/equals.mjs",
+      "require": "./dist/equals.cjs",
+      "types": "./dist/equals.d.ts"
+    },
+    "./error": {
+      "import": "./dist/error.mjs",
+      "require": "./dist/error.cjs",
+      "types": "./dist/error.d.ts"
+    },
+    "./function": {
+      "import": "./dist/function.mjs",
+      "require": "./dist/function.cjs",
+      "types": "./dist/function.d.ts"
+    },
+    "./generator": {
+      "import": "./dist/generator.mjs",
+      "require": "./dist/generator.cjs",
+      "types": "./dist/generator.d.ts"
+    },
+    "./global": {
+      "import": "./dist/global.mjs",
+      "require": "./dist/global.cjs",
+      "types": "./dist/global.d.ts"
+    },
+    "./intl": {
+      "import": "./dist/intl.mjs",
+      "require": "./dist/intl.cjs",
+      "types": "./dist/intl.d.ts"
+    },
+    "./iterator": {
+      "import": "./dist/iterator.mjs",
+      "require": "./dist/iterator.cjs",
+      "types": "./dist/iterator.d.ts"
+    },
+    "./json": {
+      "import": "./dist/json.mjs",
+      "require": "./dist/json.cjs",
+      "types": "./dist/json.d.ts"
+    },
+    "./macro": {
+      "import": "./dist/macro.mjs",
+      "require": "./dist/macro.cjs",
+      "types": "./dist/macro.d.ts"
+    },
+    "./math": {
+      "import": "./dist/math.mjs",
+      "require": "./dist/math.cjs",
+      "types": "./dist/math.d.ts"
+    },
+    "./memory": {
+      "import": "./dist/memory.mjs",
+      "require": "./dist/memory.cjs",
+      "types": "./dist/memory.d.ts"
+    },
+    "./object": {
+      "import": "./dist/object.mjs",
+      "require": "./dist/object.cjs",
+      "types": "./dist/object.d.ts"
+    },
+    "./pipe": {
+      "import": "./dist/pipe.mjs",
+      "require": "./dist/pipe.cjs",
+      "types": "./dist/pipe.d.ts"
+    },
+    "./pipe/string": {
+      "import": "./dist/pipe/string.mjs",
+      "require": "./dist/pipe/string.cjs",
+      "types": "./dist/pipe/string.d.ts"
+    },
+    "./pipe/typed-array": {
+      "import": "./dist/pipe/typed-array.mjs",
+      "require": "./dist/pipe/typed-array.cjs",
+      "types": "./dist/pipe/typed-array.d.ts"
+    },
+    "./predicate": {
+      "import": "./dist/predicate.mjs",
+      "require": "./dist/predicate.cjs",
+      "types": "./dist/predicate.d.ts"
+    },
+    "./primitive": {
+      "import": "./dist/primitive.mjs",
+      "require": "./dist/primitive.cjs",
+      "types": "./dist/primitive.d.ts"
+    },
+    "./promise": {
+      "import": "./dist/promise.mjs",
+      "require": "./dist/promise.cjs",
+      "types": "./dist/promise.d.ts"
+    },
+    "./protocol": {
+      "import": "./dist/protocol.mjs",
+      "require": "./dist/protocol.cjs",
+      "types": "./dist/protocol.d.ts"
+    },
+    "./string": {
+      "import": "./dist/string.mjs",
+      "require": "./dist/string.cjs",
+      "types": "./dist/string.d.ts"
+    },
+    "./temporal": {
+      "import": "./dist/temporal.mjs",
+      "require": "./dist/temporal.cjs",
+      "types": "./dist/temporal.d.ts"
+    },
+    "./timer": {
+      "import": "./dist/timer.mjs",
+      "require": "./dist/timer.cjs",
+      "types": "./dist/timer.d.ts"
+    },
+    "./ts": {
+      "import": "./dist/ts.mjs",
+      "require": "./dist/ts.cjs",
+      "types": "./dist/ts.d.ts"
+    },
+    "./ts/logical": {
+      "import": "./dist/ts/logical.mjs",
+      "require": "./dist/ts/logical.cjs",
+      "types": "./dist/ts/logical.d.ts"
+    },
+    "./ts/modifier": {
+      "import": "./dist/ts/modifier.mjs",
+      "require": "./dist/ts/modifier.cjs",
+      "types": "./dist/ts/modifier.d.ts"
+    },
+    "./ts/nominal": {
+      "import": "./dist/ts/nominal.mjs",
+      "require": "./dist/ts/nominal.cjs",
+      "types": "./dist/ts/nominal.d.ts"
+    },
+    "./ts/union": {
+      "import": "./dist/ts/union.mjs",
+      "require": "./dist/ts/union.cjs",
+      "types": "./dist/ts/union.d.ts"
+    },
+    "./typed-array": {
+      "import": "./dist/typed-array.mjs",
+      "require": "./dist/typed-array.cjs",
+      "types": "./dist/typed-array.d.ts"
     }
+  },
+  "files": [
+    "dist",
+    "README*.md",
+    "LICENSE"
+  ],
+  "lint-staged": {
+    "src/**/*": [
+      "eslint",
+      "prettier --ignore-unknown --check"
+    ]
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged",
+    "commit-msg": "npx commitlint --edit $1"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "scripts": {
+    "build": "npx unbuild",
+    "dev": "npx unbuild --watch",
+    "clean": "rimraf ./dist",
+    "lint": "eslint",
+    "gen-exports": "npx tsx ./scripts/exports-generator.ts",
+    "ai": "npx tsx ./scripts/ai-process.ts",
+    "prepare": "simple-git-hooks",
+    "prepack": "npm run build",
+    "publish:patch": "npm version patch && npm publish",
+    "publish:minor": "npm version minor && npm publish",
+    "publish:major": "npm version major && npm publish"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "@meojs/cfgs": "^2.0.24",
+    "@meojs/types": "^1.0.1",
+    "@types/node": "^20",
+    "cross-env": "^7.0.3",
+    "eslint": "^9.22.0",
+    "lint-staged": "^15.5.1",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
+    "simple-git-hooks": "^2.13.0"
+  },
+  "dependencies": {
+    "chardet": "^2.1.0",
+    "core-js": "^3.42.0",
+    "observable-polyfill": "^0.0.18",
+    "string-ts": "^2.2.1",
+    "temporal-polyfill": "^0.3.0",
+    "type-fest": "^4.41.0",
+    "web-streams-polyfill": "^4.1.0"
+  }
 }
