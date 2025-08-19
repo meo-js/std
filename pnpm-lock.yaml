@@ -37,8 +37,8 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       '@meojs/utc':
-        specifier: ^1.18.15
-        version: 1.18.15(@types/node@20.19.11)(eslint@9.33.0(jiti@2.5.1))(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(prettier@3.6.2)(stylelint@16.23.1(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))
+        specifier: ^1.18.17
+        version: 1.18.17(@types/node@20.19.11)(eslint@9.33.0(jiti@2.5.1))(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(prettier@3.6.2)(stylelint@16.23.1(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))
       '@types/node':
         specifier: ^20
         version: 20.19.11
@@ -640,8 +640,8 @@ packages:
     resolution: {integrity: sha512-1Jf0uyyueIVGRL73p8Q9xQh1LzjNCfMWNK2//b+T/bWXrHydg4bzbtlXVSs3gj8yhu78u6XLGPn4Dgn5Mx08Ng==}
     engines: {node: '>=20'}
 
-  '@meojs/utc@1.18.15':
-    resolution: {integrity: sha512-X3Xawq4WuM4DCBhwv1FxMbglLIx2C8f+WDOIGYntiI2wBJ7NvGs/9+TKg1FNY29HT0IGMOEcuGpW+Z6tjFmBGA==}
+  '@meojs/utc@1.18.17':
+    resolution: {integrity: sha512-cY2GwfH7wOPqsO8RjS8yGOO+qLDyT0ZC7s2gqUOMsGmrlOx41/v5qchJIW6/gLvCP9ReQ2oMfq9QZwYgtIa5mg==}
     engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
@@ -2940,7 +2940,7 @@ snapshots:
     dependencies:
       '@types/node': 20.19.11
 
-  '@meojs/utc@1.18.15(@types/node@20.19.11)(eslint@9.33.0(jiti@2.5.1))(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(prettier@3.6.2)(stylelint@16.23.1(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))':
+  '@meojs/utc@1.18.17(@types/node@20.19.11)(eslint@9.33.0(jiti@2.5.1))(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(prettier@3.6.2)(stylelint@16.23.1(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))':
     dependencies:
       '@arethetypeswrong/core': 0.18.2
       '@commitlint/config-conventional': 19.8.1

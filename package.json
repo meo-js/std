@@ -19,237 +19,898 @@
     "access": "public"
   },
   "type": "module",
+  "main": "./dist/default/index.cjs",
+  "module": "./dist/default/index.js",
+  "types": "./dist/default/index.d.cts",
   "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
-    },
-    "./array": {
-      "import": "./dist/array.mjs",
-      "require": "./dist/array.cjs",
-      "types": "./dist/array.d.ts"
-    },
-    "./bigint": {
-      "import": "./dist/bigint.mjs",
-      "require": "./dist/bigint.cjs",
-      "types": "./dist/bigint.d.ts"
-    },
-    "./bytes": {
-      "import": "./dist/bytes.mjs",
-      "require": "./dist/bytes.cjs",
-      "types": "./dist/bytes.d.ts"
-    },
-    "./callstack": {
-      "import": "./dist/callstack.mjs",
-      "require": "./dist/callstack.cjs",
-      "types": "./dist/callstack.d.ts"
-    },
-    "./class": {
-      "import": "./dist/class.mjs",
-      "require": "./dist/class.cjs",
-      "types": "./dist/class.d.ts"
-    },
-    "./collection": {
-      "import": "./dist/collection.mjs",
-      "require": "./dist/collection.cjs",
-      "types": "./dist/collection.d.ts"
-    },
-    "./collection/map": {
-      "import": "./dist/collection/map.mjs",
-      "require": "./dist/collection/map.cjs",
-      "types": "./dist/collection/map.d.ts"
-    },
-    "./collection/set": {
-      "import": "./dist/collection/set.mjs",
-      "require": "./dist/collection/set.cjs",
-      "types": "./dist/collection/set.d.ts"
-    },
-    "./crackled-optimize": {
-      "import": "./dist/crackled-optimize.mjs",
-      "require": "./dist/crackled-optimize.cjs",
-      "types": "./dist/crackled-optimize.d.ts"
-    },
-    "./crypto": {
-      "import": "./dist/crypto.mjs",
-      "require": "./dist/crypto.cjs",
-      "types": "./dist/crypto.d.ts"
-    },
-    "./crypto/digest": {
-      "import": "./dist/crypto/digest.mjs",
-      "require": "./dist/crypto/digest.cjs",
-      "types": "./dist/crypto/digest.d.ts"
-    },
-    "./decorator": {
-      "import": "./dist/decorator.mjs",
-      "require": "./dist/decorator.cjs",
-      "types": "./dist/decorator.d.ts"
-    },
-    "./encoding": {
-      "import": "./dist/encoding.mjs",
-      "require": "./dist/encoding.cjs",
-      "types": "./dist/encoding.d.ts"
-    },
-    "./encoding/byte": {
-      "import": "./dist/encoding/byte.mjs",
-      "require": "./dist/encoding/byte.cjs",
-      "types": "./dist/encoding/byte.d.ts"
-    },
-    "./encoding/text": {
-      "import": "./dist/encoding/text.mjs",
-      "require": "./dist/encoding/text.cjs",
-      "types": "./dist/encoding/text.d.ts"
-    },
-    "./enum": {
-      "import": "./dist/enum.mjs",
-      "require": "./dist/enum.cjs",
-      "types": "./dist/enum.d.ts"
-    },
-    "./env": {
-      "import": "./dist/env.mjs",
-      "require": "./dist/env.cjs",
-      "types": "./dist/env.d.ts"
-    },
-    "./equals": {
-      "import": "./dist/equals.mjs",
-      "require": "./dist/equals.cjs",
-      "types": "./dist/equals.d.ts"
-    },
-    "./error": {
-      "import": "./dist/error.mjs",
-      "require": "./dist/error.cjs",
-      "types": "./dist/error.d.ts"
-    },
-    "./function": {
-      "import": "./dist/function.mjs",
-      "require": "./dist/function.cjs",
-      "types": "./dist/function.d.ts"
-    },
-    "./generator": {
-      "import": "./dist/generator.mjs",
-      "require": "./dist/generator.cjs",
-      "types": "./dist/generator.d.ts"
-    },
-    "./global": {
-      "import": "./dist/global.mjs",
-      "require": "./dist/global.cjs",
-      "types": "./dist/global.d.ts"
-    },
-    "./intl": {
-      "import": "./dist/intl.mjs",
-      "require": "./dist/intl.cjs",
-      "types": "./dist/intl.d.ts"
-    },
-    "./iterator": {
-      "import": "./dist/iterator.mjs",
-      "require": "./dist/iterator.cjs",
-      "types": "./dist/iterator.d.ts"
-    },
-    "./json": {
-      "import": "./dist/json.mjs",
-      "require": "./dist/json.cjs",
-      "types": "./dist/json.d.ts"
-    },
-    "./macro": {
-      "import": "./dist/macro.mjs",
-      "require": "./dist/macro.cjs",
-      "types": "./dist/macro.d.ts"
-    },
-    "./math": {
-      "import": "./dist/math.mjs",
-      "require": "./dist/math.cjs",
-      "types": "./dist/math.d.ts"
-    },
-    "./memory": {
-      "import": "./dist/memory.mjs",
-      "require": "./dist/memory.cjs",
-      "types": "./dist/memory.d.ts"
-    },
-    "./object": {
-      "import": "./dist/object.mjs",
-      "require": "./dist/object.cjs",
-      "types": "./dist/object.d.ts"
-    },
-    "./pipe": {
-      "import": "./dist/pipe.mjs",
-      "require": "./dist/pipe.cjs",
-      "types": "./dist/pipe.d.ts"
-    },
-    "./pipe/string": {
-      "import": "./dist/pipe/string.mjs",
-      "require": "./dist/pipe/string.cjs",
-      "types": "./dist/pipe/string.d.ts"
-    },
-    "./pipe/typed-array": {
-      "import": "./dist/pipe/typed-array.mjs",
-      "require": "./dist/pipe/typed-array.cjs",
-      "types": "./dist/pipe/typed-array.d.ts"
-    },
-    "./predicate": {
-      "import": "./dist/predicate.mjs",
-      "require": "./dist/predicate.cjs",
-      "types": "./dist/predicate.d.ts"
-    },
-    "./primitive": {
-      "import": "./dist/primitive.mjs",
-      "require": "./dist/primitive.cjs",
-      "types": "./dist/primitive.d.ts"
-    },
-    "./promise": {
-      "import": "./dist/promise.mjs",
-      "require": "./dist/promise.cjs",
-      "types": "./dist/promise.d.ts"
-    },
-    "./protocol": {
-      "import": "./dist/protocol.mjs",
-      "require": "./dist/protocol.cjs",
-      "types": "./dist/protocol.d.ts"
-    },
-    "./string": {
-      "import": "./dist/string.mjs",
-      "require": "./dist/string.cjs",
-      "types": "./dist/string.d.ts"
-    },
-    "./temporal": {
-      "import": "./dist/temporal.mjs",
-      "require": "./dist/temporal.cjs",
-      "types": "./dist/temporal.d.ts"
+    "./typed-array": {},
+    "./ts": {
+      "cocos": {
+        "require": "./dist/cocos/ts.cjs",
+        "import": "./dist/cocos/ts.js",
+        "default": "./dist/cocos/ts.js"
+      },
+      "node": {
+        "require": "./dist/node/ts.cjs",
+        "import": "./dist/node/ts.js",
+        "default": "./dist/node/ts.js"
+      },
+      "default": {
+        "require": "./dist/default/ts.cjs",
+        "import": "./dist/default/ts.js",
+        "default": "./dist/default/ts.js"
+      }
     },
     "./timer": {
-      "import": "./dist/timer.mjs",
-      "require": "./dist/timer.cjs",
-      "types": "./dist/timer.d.ts"
+      "cocos": {
+        "require": "./dist/cocos/timer.cjs",
+        "import": "./dist/cocos/timer.js",
+        "default": "./dist/cocos/timer.js"
+      },
+      "node": {
+        "require": "./dist/node/timer.cjs",
+        "import": "./dist/node/timer.js",
+        "default": "./dist/node/timer.js"
+      },
+      "default": {
+        "require": "./dist/default/timer.cjs",
+        "import": "./dist/default/timer.js",
+        "default": "./dist/default/timer.js"
+      }
     },
-    "./ts": {
-      "import": "./dist/ts.mjs",
-      "require": "./dist/ts.cjs",
-      "types": "./dist/ts.d.ts"
+    "./temporal": {
+      "cocos": {
+        "require": "./dist/cocos/temporal.cjs",
+        "import": "./dist/cocos/temporal.js",
+        "default": "./dist/cocos/temporal.js"
+      },
+      "node": {
+        "require": "./dist/node/temporal.cjs",
+        "import": "./dist/node/temporal.js",
+        "default": "./dist/node/temporal.js"
+      },
+      "default": {
+        "require": "./dist/default/temporal.cjs",
+        "import": "./dist/default/temporal.js",
+        "default": "./dist/default/temporal.js"
+      }
     },
-    "./ts/logical": {
-      "import": "./dist/ts/logical.mjs",
-      "require": "./dist/ts/logical.cjs",
-      "types": "./dist/ts/logical.d.ts"
+    "./string": {},
+    "./serialize": {
+      "cocos": {
+        "require": "./dist/cocos/serialize.cjs",
+        "import": "./dist/cocos/serialize.js",
+        "default": "./dist/cocos/serialize.js"
+      },
+      "node": {
+        "require": "./dist/node/serialize.cjs",
+        "import": "./dist/node/serialize.js",
+        "default": "./dist/node/serialize.js"
+      },
+      "default": {
+        "require": "./dist/default/serialize.cjs",
+        "import": "./dist/default/serialize.js",
+        "default": "./dist/default/serialize.js"
+      }
     },
-    "./ts/modifier": {
-      "import": "./dist/ts/modifier.mjs",
-      "require": "./dist/ts/modifier.cjs",
-      "types": "./dist/ts/modifier.d.ts"
+    "./protocol": {
+      "cocos": {
+        "require": "./dist/cocos/protocol.cjs",
+        "import": "./dist/cocos/protocol.js",
+        "default": "./dist/cocos/protocol.js"
+      },
+      "node": {
+        "require": "./dist/node/protocol.cjs",
+        "import": "./dist/node/protocol.js",
+        "default": "./dist/node/protocol.js"
+      },
+      "default": {
+        "require": "./dist/default/protocol.cjs",
+        "import": "./dist/default/protocol.js",
+        "default": "./dist/default/protocol.js"
+      }
     },
-    "./ts/nominal": {
-      "import": "./dist/ts/nominal.mjs",
-      "require": "./dist/ts/nominal.cjs",
-      "types": "./dist/ts/nominal.d.ts"
+    "./promise": {
+      "cocos": {
+        "require": "./dist/cocos/promise.cjs",
+        "import": "./dist/cocos/promise.js",
+        "default": "./dist/cocos/promise.js"
+      },
+      "node": {
+        "require": "./dist/node/promise.cjs",
+        "import": "./dist/node/promise.js",
+        "default": "./dist/node/promise.js"
+      },
+      "default": {
+        "require": "./dist/default/promise.cjs",
+        "import": "./dist/default/promise.js",
+        "default": "./dist/default/promise.js"
+      }
+    },
+    "./primitive": {
+      "cocos": {
+        "require": "./dist/cocos/primitive.cjs",
+        "import": "./dist/cocos/primitive.js",
+        "default": "./dist/cocos/primitive.js"
+      },
+      "node": {
+        "require": "./dist/node/primitive.cjs",
+        "import": "./dist/node/primitive.js",
+        "default": "./dist/node/primitive.js"
+      },
+      "default": {
+        "require": "./dist/default/primitive.cjs",
+        "import": "./dist/default/primitive.js",
+        "default": "./dist/default/primitive.js"
+      }
+    },
+    "./predicate": {
+      "cocos": {
+        "require": "./dist/cocos/predicate.cjs",
+        "import": "./dist/cocos/predicate.js",
+        "default": "./dist/cocos/predicate.js"
+      },
+      "node": {
+        "require": "./dist/node/predicate.cjs",
+        "import": "./dist/node/predicate.js",
+        "default": "./dist/node/predicate.js"
+      },
+      "default": {
+        "require": "./dist/default/predicate.cjs",
+        "import": "./dist/default/predicate.js",
+        "default": "./dist/default/predicate.js"
+      }
+    },
+    "./pool": {
+      "cocos": {
+        "require": "./dist/cocos/pool.cjs",
+        "import": "./dist/cocos/pool.js",
+        "default": "./dist/cocos/pool.js"
+      },
+      "node": {
+        "require": "./dist/node/pool.cjs",
+        "import": "./dist/node/pool.js",
+        "default": "./dist/node/pool.js"
+      },
+      "default": {
+        "require": "./dist/default/pool.cjs",
+        "import": "./dist/default/pool.js",
+        "default": "./dist/default/pool.js"
+      }
+    },
+    "./polyfill": {
+      "cocos": {
+        "require": "./dist/cocos/polyfill.cjs",
+        "import": "./dist/cocos/polyfill.js",
+        "default": "./dist/cocos/polyfill.js"
+      },
+      "node": {
+        "require": "./dist/node/polyfill.cjs",
+        "import": "./dist/node/polyfill.js",
+        "default": "./dist/node/polyfill.js"
+      },
+      "default": {
+        "require": "./dist/default/polyfill.cjs",
+        "import": "./dist/default/polyfill.js",
+        "default": "./dist/default/polyfill.js"
+      }
+    },
+    "./pipe": {
+      "cocos": {
+        "require": "./dist/cocos/pipe.cjs",
+        "import": "./dist/cocos/pipe.js",
+        "default": "./dist/cocos/pipe.js"
+      },
+      "node": {
+        "require": "./dist/node/pipe.cjs",
+        "import": "./dist/node/pipe.js",
+        "default": "./dist/node/pipe.js"
+      },
+      "default": {
+        "require": "./dist/default/pipe.cjs",
+        "import": "./dist/default/pipe.js",
+        "default": "./dist/default/pipe.js"
+      }
+    },
+    "./object": {
+      "cocos": {
+        "require": "./dist/cocos/object.cjs",
+        "import": "./dist/cocos/object.js",
+        "default": "./dist/cocos/object.js"
+      },
+      "node": {
+        "require": "./dist/node/object.cjs",
+        "import": "./dist/node/object.js",
+        "default": "./dist/node/object.js"
+      },
+      "default": {
+        "require": "./dist/default/object.cjs",
+        "import": "./dist/default/object.js",
+        "default": "./dist/default/object.js"
+      }
+    },
+    "./metadata": {
+      "cocos": {
+        "require": "./dist/cocos/metadata.cjs",
+        "import": "./dist/cocos/metadata.js",
+        "default": "./dist/cocos/metadata.js"
+      },
+      "node": {
+        "require": "./dist/node/metadata.cjs",
+        "import": "./dist/node/metadata.js",
+        "default": "./dist/node/metadata.js"
+      },
+      "default": {
+        "require": "./dist/default/metadata.cjs",
+        "import": "./dist/default/metadata.js",
+        "default": "./dist/default/metadata.js"
+      }
+    },
+    "./memory": {
+      "cocos": {
+        "require": "./dist/cocos/memory.cjs",
+        "import": "./dist/cocos/memory.js",
+        "default": "./dist/cocos/memory.js"
+      },
+      "node": {
+        "require": "./dist/node/memory.cjs",
+        "import": "./dist/node/memory.js",
+        "default": "./dist/node/memory.js"
+      },
+      "default": {
+        "require": "./dist/default/memory.cjs",
+        "import": "./dist/default/memory.js",
+        "default": "./dist/default/memory.js"
+      }
+    },
+    "./math": {
+      "cocos": {
+        "require": "./dist/cocos/math.cjs",
+        "import": "./dist/cocos/math.js",
+        "default": "./dist/cocos/math.js"
+      },
+      "node": {
+        "require": "./dist/node/math.cjs",
+        "import": "./dist/node/math.js",
+        "default": "./dist/node/math.js"
+      },
+      "default": {
+        "require": "./dist/default/math.cjs",
+        "import": "./dist/default/math.js",
+        "default": "./dist/default/math.js"
+      }
+    },
+    "./macro": {
+      "cocos": {
+        "require": "./dist/cocos/macro.cjs",
+        "import": "./dist/cocos/macro.js",
+        "default": "./dist/cocos/macro.js"
+      },
+      "node": {
+        "require": "./dist/node/macro.cjs",
+        "import": "./dist/node/macro.js",
+        "default": "./dist/node/macro.js"
+      },
+      "default": {
+        "require": "./dist/default/macro.cjs",
+        "import": "./dist/default/macro.js",
+        "default": "./dist/default/macro.js"
+      }
+    },
+    "./json": {
+      "cocos": {
+        "require": "./dist/cocos/json.cjs",
+        "import": "./dist/cocos/json.js",
+        "default": "./dist/cocos/json.js"
+      },
+      "node": {
+        "require": "./dist/node/json.cjs",
+        "import": "./dist/node/json.js",
+        "default": "./dist/node/json.js"
+      },
+      "default": {
+        "require": "./dist/default/json.cjs",
+        "import": "./dist/default/json.js",
+        "default": "./dist/default/json.js"
+      }
+    },
+    "./iterator": {
+      "cocos": {
+        "require": "./dist/cocos/iterator.cjs",
+        "import": "./dist/cocos/iterator.js",
+        "default": "./dist/cocos/iterator.js"
+      },
+      "node": {
+        "require": "./dist/node/iterator.cjs",
+        "import": "./dist/node/iterator.js",
+        "default": "./dist/node/iterator.js"
+      },
+      "default": {
+        "require": "./dist/default/iterator.cjs",
+        "import": "./dist/default/iterator.js",
+        "default": "./dist/default/iterator.js"
+      }
+    },
+    "./intl": {
+      "cocos": {
+        "require": "./dist/cocos/intl.cjs",
+        "import": "./dist/cocos/intl.js",
+        "default": "./dist/cocos/intl.js"
+      },
+      "node": {
+        "require": "./dist/node/intl.cjs",
+        "import": "./dist/node/intl.js",
+        "default": "./dist/node/intl.js"
+      },
+      "default": {
+        "require": "./dist/default/intl.cjs",
+        "import": "./dist/default/intl.js",
+        "default": "./dist/default/intl.js"
+      }
+    },
+    ".": {
+      "cocos": {
+        "require": "./dist/cocos/index.cjs",
+        "import": "./dist/cocos/index.js",
+        "default": "./dist/cocos/index.js"
+      },
+      "node": {
+        "require": "./dist/node/index.cjs",
+        "import": "./dist/node/index.js",
+        "default": "./dist/node/index.js"
+      },
+      "default": {
+        "require": "./dist/default/index.cjs",
+        "import": "./dist/default/index.js",
+        "default": "./dist/default/index.js"
+      }
+    },
+    "./hashing": {
+      "cocos": {
+        "require": "./dist/cocos/hashing.cjs",
+        "import": "./dist/cocos/hashing.js",
+        "default": "./dist/cocos/hashing.js"
+      },
+      "node": {
+        "require": "./dist/node/hashing.cjs",
+        "import": "./dist/node/hashing.js",
+        "default": "./dist/node/hashing.js"
+      },
+      "default": {
+        "require": "./dist/default/hashing.cjs",
+        "import": "./dist/default/hashing.js",
+        "default": "./dist/default/hashing.js"
+      }
+    },
+    "./global": {
+      "cocos": {
+        "require": "./dist/cocos/global.cjs",
+        "import": "./dist/cocos/global.js",
+        "default": "./dist/cocos/global.js"
+      },
+      "node": {
+        "require": "./dist/node/global.cjs",
+        "import": "./dist/node/global.js",
+        "default": "./dist/node/global.js"
+      },
+      "default": {
+        "require": "./dist/default/global.cjs",
+        "import": "./dist/default/global.js",
+        "default": "./dist/default/global.js"
+      }
+    },
+    "./generator": {
+      "cocos": {
+        "require": "./dist/cocos/generator.cjs",
+        "import": "./dist/cocos/generator.js",
+        "default": "./dist/cocos/generator.js"
+      },
+      "node": {
+        "require": "./dist/node/generator.cjs",
+        "import": "./dist/node/generator.js",
+        "default": "./dist/node/generator.js"
+      },
+      "default": {
+        "require": "./dist/default/generator.cjs",
+        "import": "./dist/default/generator.js",
+        "default": "./dist/default/generator.js"
+      }
+    },
+    "./function": {
+      "cocos": {
+        "require": "./dist/cocos/function.cjs",
+        "import": "./dist/cocos/function.js",
+        "default": "./dist/cocos/function.js"
+      },
+      "node": {
+        "require": "./dist/node/function.cjs",
+        "import": "./dist/node/function.js",
+        "default": "./dist/node/function.js"
+      },
+      "default": {
+        "require": "./dist/default/function.cjs",
+        "import": "./dist/default/function.js",
+        "default": "./dist/default/function.js"
+      }
+    },
+    "./event": {},
+    "./error": {
+      "cocos": {
+        "require": "./dist/cocos/error.cjs",
+        "import": "./dist/cocos/error.js",
+        "default": "./dist/cocos/error.js"
+      },
+      "node": {
+        "require": "./dist/node/error.cjs",
+        "import": "./dist/node/error.js",
+        "default": "./dist/node/error.js"
+      },
+      "default": {
+        "require": "./dist/default/error.cjs",
+        "import": "./dist/default/error.js",
+        "default": "./dist/default/error.js"
+      }
+    },
+    "./equally": {
+      "cocos": {
+        "require": "./dist/cocos/equally.cjs",
+        "import": "./dist/cocos/equally.js",
+        "default": "./dist/cocos/equally.js"
+      },
+      "node": {
+        "require": "./dist/node/equally.cjs",
+        "import": "./dist/node/equally.js",
+        "default": "./dist/node/equally.js"
+      },
+      "default": {
+        "require": "./dist/default/equally.cjs",
+        "import": "./dist/default/equally.js",
+        "default": "./dist/default/equally.js"
+      }
+    },
+    "./env": {
+      "cocos": {
+        "require": "./dist/cocos/env.cjs",
+        "import": "./dist/cocos/env.js",
+        "default": "./dist/cocos/env.js"
+      },
+      "node": {
+        "require": "./dist/node/env.cjs",
+        "import": "./dist/node/env.js",
+        "default": "./dist/node/env.js"
+      },
+      "default": {
+        "require": "./dist/default/env.cjs",
+        "import": "./dist/default/env.js",
+        "default": "./dist/default/env.js"
+      }
+    },
+    "./enum": {
+      "cocos": {
+        "require": "./dist/cocos/enum.cjs",
+        "import": "./dist/cocos/enum.js",
+        "default": "./dist/cocos/enum.js"
+      },
+      "node": {
+        "require": "./dist/node/enum.cjs",
+        "import": "./dist/node/enum.js",
+        "default": "./dist/node/enum.js"
+      },
+      "default": {
+        "require": "./dist/default/enum.cjs",
+        "import": "./dist/default/enum.js",
+        "default": "./dist/default/enum.js"
+      }
+    },
+    "./encoding": {
+      "cocos": {
+        "require": "./dist/cocos/encoding.cjs",
+        "import": "./dist/cocos/encoding.js",
+        "default": "./dist/cocos/encoding.js"
+      },
+      "node": {
+        "require": "./dist/node/encoding.cjs",
+        "import": "./dist/node/encoding.js",
+        "default": "./dist/node/encoding.js"
+      },
+      "default": {
+        "require": "./dist/default/encoding.cjs",
+        "import": "./dist/default/encoding.js",
+        "default": "./dist/default/encoding.js"
+      }
+    },
+    "./decorator": {
+      "cocos": {
+        "require": "./dist/cocos/decorator.cjs",
+        "import": "./dist/cocos/decorator.js",
+        "default": "./dist/cocos/decorator.js"
+      },
+      "node": {
+        "require": "./dist/node/decorator.cjs",
+        "import": "./dist/node/decorator.js",
+        "default": "./dist/node/decorator.js"
+      },
+      "default": {
+        "require": "./dist/default/decorator.cjs",
+        "import": "./dist/default/decorator.js",
+        "default": "./dist/default/decorator.js"
+      }
+    },
+    "./crypto": {
+      "cocos": {
+        "require": "./dist/cocos/crypto.cjs",
+        "import": "./dist/cocos/crypto.js",
+        "default": "./dist/cocos/crypto.js"
+      },
+      "node": {
+        "require": "./dist/node/crypto.cjs",
+        "import": "./dist/node/crypto.js",
+        "default": "./dist/node/crypto.js"
+      },
+      "default": {
+        "require": "./dist/default/crypto.cjs",
+        "import": "./dist/default/crypto.js",
+        "default": "./dist/default/crypto.js"
+      }
+    },
+    "./crackled-optimize": {
+      "cocos": {
+        "require": "./dist/cocos/crackled-optimize.cjs",
+        "import": "./dist/cocos/crackled-optimize.js",
+        "default": "./dist/cocos/crackled-optimize.js"
+      },
+      "node": {
+        "require": "./dist/node/crackled-optimize.cjs",
+        "import": "./dist/node/crackled-optimize.js",
+        "default": "./dist/node/crackled-optimize.js"
+      },
+      "default": {
+        "require": "./dist/default/crackled-optimize.cjs",
+        "import": "./dist/default/crackled-optimize.js",
+        "default": "./dist/default/crackled-optimize.js"
+      }
+    },
+    "./collection": {
+      "cocos": {
+        "require": "./dist/cocos/collection.cjs",
+        "import": "./dist/cocos/collection.js",
+        "default": "./dist/cocos/collection.js"
+      },
+      "node": {
+        "require": "./dist/node/collection.cjs",
+        "import": "./dist/node/collection.js",
+        "default": "./dist/node/collection.js"
+      },
+      "default": {
+        "require": "./dist/default/collection.cjs",
+        "import": "./dist/default/collection.js",
+        "default": "./dist/default/collection.js"
+      }
+    },
+    "./class": {
+      "cocos": {
+        "require": "./dist/cocos/class.cjs",
+        "import": "./dist/cocos/class.js",
+        "default": "./dist/cocos/class.js"
+      },
+      "node": {
+        "require": "./dist/node/class.cjs",
+        "import": "./dist/node/class.js",
+        "default": "./dist/node/class.js"
+      },
+      "default": {
+        "require": "./dist/default/class.cjs",
+        "import": "./dist/default/class.js",
+        "default": "./dist/default/class.js"
+      }
+    },
+    "./callstack": {
+      "cocos": {
+        "require": "./dist/cocos/callstack.cjs",
+        "import": "./dist/cocos/callstack.js",
+        "default": "./dist/cocos/callstack.js"
+      },
+      "node": {
+        "require": "./dist/node/callstack.cjs",
+        "import": "./dist/node/callstack.js",
+        "default": "./dist/node/callstack.js"
+      },
+      "default": {
+        "require": "./dist/default/callstack.cjs",
+        "import": "./dist/default/callstack.js",
+        "default": "./dist/default/callstack.js"
+      }
+    },
+    "./array": {
+      "cocos": {
+        "require": "./dist/cocos/array.cjs",
+        "import": "./dist/cocos/array.js",
+        "default": "./dist/cocos/array.js"
+      },
+      "node": {
+        "require": "./dist/node/array.cjs",
+        "import": "./dist/node/array.js",
+        "default": "./dist/node/array.js"
+      },
+      "default": {
+        "require": "./dist/default/array.cjs",
+        "import": "./dist/default/array.js",
+        "default": "./dist/default/array.js"
+      }
     },
     "./ts/union": {
-      "import": "./dist/ts/union.mjs",
-      "require": "./dist/ts/union.cjs",
-      "types": "./dist/ts/union.d.ts"
+      "cocos": {
+        "require": "./dist/cocos/ts/union.cjs",
+        "import": "./dist/cocos/ts/union.js",
+        "default": "./dist/cocos/ts/union.js"
+      },
+      "node": {
+        "require": "./dist/node/ts/union.cjs",
+        "import": "./dist/node/ts/union.js",
+        "default": "./dist/node/ts/union.js"
+      },
+      "default": {
+        "require": "./dist/default/ts/union.cjs",
+        "import": "./dist/default/ts/union.js",
+        "default": "./dist/default/ts/union.js"
+      }
     },
-    "./typed-array": {
-      "import": "./dist/typed-array.mjs",
-      "require": "./dist/typed-array.cjs",
-      "types": "./dist/typed-array.d.ts"
-    }
+    "./ts/nominal": {
+      "cocos": {
+        "require": "./dist/cocos/ts/nominal.cjs",
+        "import": "./dist/cocos/ts/nominal.js",
+        "default": "./dist/cocos/ts/nominal.js"
+      },
+      "node": {
+        "require": "./dist/node/ts/nominal.cjs",
+        "import": "./dist/node/ts/nominal.js",
+        "default": "./dist/node/ts/nominal.js"
+      },
+      "default": {
+        "require": "./dist/default/ts/nominal.cjs",
+        "import": "./dist/default/ts/nominal.js",
+        "default": "./dist/default/ts/nominal.js"
+      }
+    },
+    "./ts/modifier": {
+      "cocos": {
+        "require": "./dist/cocos/ts/modifier.cjs",
+        "import": "./dist/cocos/ts/modifier.js",
+        "default": "./dist/cocos/ts/modifier.js"
+      },
+      "node": {
+        "require": "./dist/node/ts/modifier.cjs",
+        "import": "./dist/node/ts/modifier.js",
+        "default": "./dist/node/ts/modifier.js"
+      },
+      "default": {
+        "require": "./dist/default/ts/modifier.cjs",
+        "import": "./dist/default/ts/modifier.js",
+        "default": "./dist/default/ts/modifier.js"
+      }
+    },
+    "./ts/logical": {
+      "cocos": {
+        "require": "./dist/cocos/ts/logical.cjs",
+        "import": "./dist/cocos/ts/logical.js",
+        "default": "./dist/cocos/ts/logical.js"
+      },
+      "node": {
+        "require": "./dist/node/ts/logical.cjs",
+        "import": "./dist/node/ts/logical.js",
+        "default": "./dist/node/ts/logical.js"
+      },
+      "default": {
+        "require": "./dist/default/ts/logical.cjs",
+        "import": "./dist/default/ts/logical.js",
+        "default": "./dist/default/ts/logical.js"
+      }
+    },
+    "./temporal/formatter": {
+      "cocos": {
+        "require": "./dist/cocos/temporal/formatter.cjs",
+        "import": "./dist/cocos/temporal/formatter.js",
+        "default": "./dist/cocos/temporal/formatter.js"
+      },
+      "node": {
+        "require": "./dist/node/temporal/formatter.cjs",
+        "import": "./dist/node/temporal/formatter.js",
+        "default": "./dist/node/temporal/formatter.js"
+      },
+      "default": {
+        "require": "./dist/default/temporal/formatter.cjs",
+        "import": "./dist/default/temporal/formatter.js",
+        "default": "./dist/default/temporal/formatter.js"
+      }
+    },
+    "./polyfill/observable": {
+      "cocos": {
+        "require": "./dist/cocos/polyfill/observable.cjs",
+        "import": "./dist/cocos/polyfill/observable.js",
+        "default": "./dist/cocos/polyfill/observable.js"
+      },
+      "node": {
+        "require": "./dist/node/polyfill/observable.cjs",
+        "import": "./dist/node/polyfill/observable.js",
+        "default": "./dist/node/polyfill/observable.js"
+      },
+      "default": {
+        "require": "./dist/default/polyfill/observable.cjs",
+        "import": "./dist/default/polyfill/observable.js",
+        "default": "./dist/default/polyfill/observable.js"
+      }
+    },
+    "./pipe/typed-array": {
+      "cocos": {
+        "require": "./dist/cocos/pipe/typed-array.cjs",
+        "import": "./dist/cocos/pipe/typed-array.js",
+        "default": "./dist/cocos/pipe/typed-array.js"
+      },
+      "node": {
+        "require": "./dist/node/pipe/typed-array.cjs",
+        "import": "./dist/node/pipe/typed-array.js",
+        "default": "./dist/node/pipe/typed-array.js"
+      },
+      "default": {
+        "require": "./dist/default/pipe/typed-array.cjs",
+        "import": "./dist/default/pipe/typed-array.js",
+        "default": "./dist/default/pipe/typed-array.js"
+      }
+    },
+    "./pipe/string": {
+      "cocos": {
+        "require": "./dist/cocos/pipe/string.cjs",
+        "import": "./dist/cocos/pipe/string.js",
+        "default": "./dist/cocos/pipe/string.js"
+      },
+      "node": {
+        "require": "./dist/node/pipe/string.cjs",
+        "import": "./dist/node/pipe/string.js",
+        "default": "./dist/node/pipe/string.js"
+      },
+      "default": {
+        "require": "./dist/default/pipe/string.cjs",
+        "import": "./dist/default/pipe/string.js",
+        "default": "./dist/default/pipe/string.js"
+      }
+    },
+    "./math/float": {
+      "cocos": {
+        "require": "./dist/cocos/math/float.cjs",
+        "import": "./dist/cocos/math/float.js",
+        "default": "./dist/cocos/math/float.js"
+      },
+      "node": {
+        "require": "./dist/node/math/float.cjs",
+        "import": "./dist/node/math/float.js",
+        "default": "./dist/node/math/float.js"
+      },
+      "default": {
+        "require": "./dist/default/math/float.cjs",
+        "import": "./dist/default/math/float.js",
+        "default": "./dist/default/math/float.js"
+      }
+    },
+    "./math/bigint": {
+      "cocos": {
+        "require": "./dist/cocos/math/bigint.cjs",
+        "import": "./dist/cocos/math/bigint.js",
+        "default": "./dist/cocos/math/bigint.js"
+      },
+      "node": {
+        "require": "./dist/node/math/bigint.cjs",
+        "import": "./dist/node/math/bigint.js",
+        "default": "./dist/node/math/bigint.js"
+      },
+      "default": {
+        "require": "./dist/default/math/bigint.cjs",
+        "import": "./dist/default/math/bigint.js",
+        "default": "./dist/default/math/bigint.js"
+      }
+    },
+    "./event/event": {
+      "cocos": {
+        "require": "./dist/cocos/event.cjs",
+        "import": "./dist/cocos/event.js",
+        "default": "./dist/cocos/event.js"
+      },
+      "node": {
+        "require": "./dist/node/event.cjs",
+        "import": "./dist/node/event.js",
+        "default": "./dist/node/event.js"
+      },
+      "default": {
+        "require": "./dist/default/event.cjs",
+        "import": "./dist/default/event.js",
+        "default": "./dist/default/event.js"
+      }
+    },
+    "./encoding/text": {
+      "cocos": {
+        "require": "./dist/cocos/encoding/text.cjs",
+        "import": "./dist/cocos/encoding/text.js",
+        "default": "./dist/cocos/encoding/text.js"
+      },
+      "node": {
+        "require": "./dist/node/encoding/text.cjs",
+        "import": "./dist/node/encoding/text.js",
+        "default": "./dist/node/encoding/text.js"
+      },
+      "default": {
+        "require": "./dist/default/encoding/text.cjs",
+        "import": "./dist/default/encoding/text.js",
+        "default": "./dist/default/encoding/text.js"
+      }
+    },
+    "./encoding/byte": {
+      "cocos": {
+        "require": "./dist/cocos/encoding/byte.cjs",
+        "import": "./dist/cocos/encoding/byte.js",
+        "default": "./dist/cocos/encoding/byte.js"
+      },
+      "node": {
+        "require": "./dist/node/encoding/byte.cjs",
+        "import": "./dist/node/encoding/byte.js",
+        "default": "./dist/node/encoding/byte.js"
+      },
+      "default": {
+        "require": "./dist/default/encoding/byte.cjs",
+        "import": "./dist/default/encoding/byte.js",
+        "default": "./dist/default/encoding/byte.js"
+      }
+    },
+    "./crypto/digest": {
+      "cocos": {
+        "require": "./dist/cocos/crypto/digest.cjs",
+        "import": "./dist/cocos/crypto/digest.js",
+        "default": "./dist/cocos/crypto/digest.js"
+      },
+      "node": {
+        "require": "./dist/node/crypto/digest.cjs",
+        "import": "./dist/node/crypto/digest.js",
+        "default": "./dist/node/crypto/digest.js"
+      },
+      "default": {
+        "require": "./dist/default/crypto/digest.cjs",
+        "import": "./dist/default/crypto/digest.js",
+        "default": "./dist/default/crypto/digest.js"
+      }
+    },
+    "./collection/set": {
+      "cocos": {
+        "require": "./dist/cocos/collection/set.cjs",
+        "import": "./dist/cocos/collection/set.js",
+        "default": "./dist/cocos/collection/set.js"
+      },
+      "node": {
+        "require": "./dist/node/collection/set.cjs",
+        "import": "./dist/node/collection/set.js",
+        "default": "./dist/node/collection/set.js"
+      },
+      "default": {
+        "require": "./dist/default/collection/set.cjs",
+        "import": "./dist/default/collection/set.js",
+        "default": "./dist/default/collection/set.js"
+      }
+    },
+    "./collection/map": {
+      "cocos": {
+        "require": "./dist/cocos/collection/map.cjs",
+        "import": "./dist/cocos/collection/map.js",
+        "default": "./dist/cocos/collection/map.js"
+      },
+      "node": {
+        "require": "./dist/node/collection/map.cjs",
+        "import": "./dist/node/collection/map.js",
+        "default": "./dist/node/collection/map.js"
+      },
+      "default": {
+        "require": "./dist/default/collection/map.cjs",
+        "import": "./dist/default/collection/map.js",
+        "default": "./dist/default/collection/map.js"
+      }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
@@ -259,7 +920,7 @@
   "scripts": {
     "build": "pnpm exec utc build",
     "prepare": "pnpm exec utc install-git-hook",
-    "prepack": "pnpm run build",
+    "prepublishOnly": "pnpm run build",
     "publish:patch": "pnpm version patch && pnpm publish",
     "publish:minor": "pnpm version minor && pnpm publish",
     "publish:major": "pnpm version major && pnpm publish"
@@ -267,7 +928,7 @@
   "devDependencies": {
     "@meojs/cfgs": "^2.0.56",
     "@meojs/types": "^1.0.1",
-    "@meojs/utc": "^1.18.15",
+    "@meojs/utc": "^1.18.17",
     "@types/node": "^20",
     "eslint": "^9.33.0",
     "prettier": "^3.6.2",

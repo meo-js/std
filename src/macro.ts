@@ -3,7 +3,7 @@
  * @module
  */
 import * as ccenv from 'cc/env';
-import { COCOS, NODE } from 'compile-constant/env';
+import { COCOS, NODE } from 'compile-constant';
 
 /**
  * 是否处于调试模式
