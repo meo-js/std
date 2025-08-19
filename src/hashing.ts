@@ -1,27 +1,26 @@
 /**
  * @public
- *
  * @module
  */
 import {
-    cyrb53Pipe,
-    sha256Pipe,
-    type cyrb53,
-    type sha256,
-} from "./crypto/digest.js";
-import { hex } from "./encoding/byte.js";
-import { concatString, Pipe, type ISimplePipe } from "./pipe.js";
-import { serializePipe, type serialize } from "./serialize.js";
-import { asUint8Array } from "./typed-array.js";
+  cyrb53Pipe,
+  sha256Pipe,
+  type cyrb53,
+  type sha256,
+} from './crypto/digest.js';
+import { hex } from './encoding/byte.js';
+import { concatString, Pipe, type ISimplePipe } from './pipe.js';
+import { serializePipe, type serialize } from './serialize.js';
+import { asUint8Array } from './typed-array.js';
 
 const toUint8: ISimplePipe<Uint32Array, number> = (input, next) => {
-    const buffer = asUint8Array(input);
-    for (let i = 0; i < buffer.length; i++) {
-        if (!next(buffer[i])) {
-            return false;
-        }
+  const buffer = asUint8Array(input);
+  for (let i = 0; i < buffer.length; i++) {
+    if (!next(buffer[i])) {
+      return false;
     }
-    return true;
+  }
+  return true;
 };
 
 /**
@@ -31,8 +30,8 @@ const toUint8: ISimplePipe<Uint32Array, number> = (input, next) => {
  * @see {@link cyrb53}
  */
 export function getHashCode(value: unknown): number {
-    // TODO: Class、symbol 这些无法序列化的值必须特殊处理
-    return Pipe.run(value, serializePipe(), cyrb53Pipe());
+  // TODO: Class、symbol 这些无法序列化的值必须特殊处理
+  return Pipe.run(value, serializePipe(), cyrb53Pipe());
 }
 
 /**
@@ -43,13 +42,13 @@ export function getHashCode(value: unknown): number {
  * @see {@link hex}
  */
 export function getHash(value: unknown): string {
-    // TODO: Class、symbol 这些无法序列化的值必须特殊处理
-    return Pipe.run(
-        value,
-        serializePipe(),
-        sha256Pipe(),
-        toUint8,
-        hex.encodePipe(),
-        concatString(),
-    );
+  // TODO: Class、symbol 这些无法序列化的值必须特殊处理
+  return Pipe.run(
+    value,
+    serializePipe(),
+    sha256Pipe(),
+    toUint8,
+    hex.encodePipe(),
+    concatString(),
+  );
 }

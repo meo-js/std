@@ -1,14 +1,13 @@
 /**
  * @public
- *
  * @module
  */
-import type * as tf from "type-fest";
-import type { ToObject, Zip } from "./array.js";
-import { isRecordObject } from "./predicate.js";
-import type { checked, IsLiteral, Mutable } from "./ts.js";
-import type { If } from "./ts/logical.js";
-import type { ToArray } from "./ts/union.js";
+import type * as tf from 'type-fest';
+import type { ToObject, Zip } from './array.js';
+import { isRecordObject } from './predicate.js';
+import type { checked, IsLiteral, Mutable } from './ts.js';
+import type { If } from './ts/logical.js';
+import type { ToArray } from './ts/union.js';
 
 /**
  * 对象键类型
@@ -24,9 +23,9 @@ export type ValueOf<T> = T[keyof T];
  * 对象元素类型
  */
 export type EntriesOf<T> = If<
-    IsLiteral<KeyOf<T>>,
-    Zip<ToArray<KeyOf<T>>, ToArray<ValueOf<T>>>,
-    [KeyOf<T>, ValueOf<T>][]
+  IsLiteral<KeyOf<T>>,
+  Zip<ToArray<KeyOf<T>>, ToArray<ValueOf<T>>>,
+  [KeyOf<T>, ValueOf<T>][]
 >;
 
 /**
@@ -51,8 +50,8 @@ export type EmptyObject = tf.EmptyObject;
  * @template K - 键的联合类型，默认值为任意一个键
  */
 export type RequireLeastOneKey<
-    T extends object,
-    K extends keyof T = keyof T,
+  T extends object,
+  K extends keyof T = keyof T,
 > = tf.RequireAtLeastOne<T, K>;
 
 /**
@@ -62,8 +61,8 @@ export type RequireLeastOneKey<
  * @template K - 键的联合类型，默认值为任意一个键
  */
 export type RequireExactlyOneKey<
-    T extends object,
-    K extends keyof T = keyof T,
+  T extends object,
+  K extends keyof T = keyof T,
 > = tf.RequireAtLeastOne<T, K>;
 
 /**
@@ -73,8 +72,8 @@ export type RequireExactlyOneKey<
  * @template K - 键的联合类型，默认值为任意一个键
  */
 export type RequireOneOrNoneKey<
-    T extends object,
-    K extends keyof T = keyof T,
+  T extends object,
+  K extends keyof T = keyof T,
 > = tf.RequireOneOrNone<T, K>;
 
 /**
@@ -84,8 +83,8 @@ export type RequireOneOrNoneKey<
  * @template K - 键的联合类型，默认值为任意一个键
  */
 export type RequireAllOrNoneKey<
-    T extends object,
-    K extends keyof T = keyof T,
+  T extends object,
+  K extends keyof T = keyof T,
 > = tf.RequireAllOrNone<T, K>;
 
 /**
@@ -117,9 +116,9 @@ export type OmitKeysByValue<T, V> = Exclude<keyof T, tf.ConditionalKeys<T, V>>;
  * @template K - 键的联合类型
  */
 export type OmitKey<T, K extends keyof T> = tf.Except<
-    T,
-    K,
-    { requireExactProps: false }
+  T,
+  K,
+  { requireExactProps: false }
 >;
 
 /**
@@ -152,11 +151,11 @@ export type PickValue<T, V> = tf.ConditionalPick<T, V>;
  * 合并两个类型，第二个类型的键将覆盖第一种类型的键
  */
 export type Assign<
-    Dest extends object,
-    Sources extends readonly unknown[],
+  Dest extends object,
+  Sources extends readonly unknown[],
 > = Sources extends [infer First, ...infer Rest]
-    ? Assign<tf.Merge<_EnsureObject<Dest>, _EnsureObject<First>>, Rest>
-    : _EnsureObject<Dest>;
+  ? Assign<tf.Merge<_EnsureObject<Dest>, _EnsureObject<First>>, Rest>
+  : _EnsureObject<Dest>;
 
 type _EnsureObject<T> = T extends readonly unknown[] ? ToObject<Mutable<T>> : T;
 
@@ -164,24 +163,24 @@ type _EnsureObject<T> = T extends readonly unknown[] ? ToObject<Mutable<T>> : T;
  * @returns 若属性在原型链中存在则返回 `true`，否则返回 `false`
  */
 export function hasProperty(o: object, v: PropertyKey): boolean {
-    return v in o;
+  return v in o;
 }
 
 /**
  * @returns 若属性在对象中存在则返回 `true`，否则返回 `false`
  */
 export function hasOwnProperty(o: object, v: PropertyKey): boolean {
-    return Object.hasOwn(o, v);
+  return Object.hasOwn(o, v);
 }
 
 /**
  * 获取对象自身属性的描述符
  */
 export function getOwnPropertyDescriptor(
-    o: object,
-    v: PropertyKey,
+  o: object,
+  v: PropertyKey,
 ): PropertyDescriptor | undefined {
-    return Object.getOwnPropertyDescriptor(o, v);
+  return Object.getOwnPropertyDescriptor(o, v);
 }
 
 /**
@@ -190,16 +189,16 @@ export function getOwnPropertyDescriptor(
  * @param o 对象
  */
 export function getOwnProperties(o: object): (string | symbol)[] {
-    return Reflect.ownKeys(o);
+  return Reflect.ownKeys(o);
 }
 
 /**
  * 获取对象自身所有属性的描述符
  */
 export function getOwnPropertyDescriptors(
-    o: object,
+  o: object,
 ): RecordObject<PropertyDescriptor> {
-    return Object.getOwnPropertyDescriptors(o);
+  return Object.getOwnPropertyDescriptors(o);
 }
 
 /**
@@ -208,7 +207,7 @@ export function getOwnPropertyDescriptors(
  * @param o 对象
  */
 export function getOwnStringProperties(o: object): string[] {
-    return Object.getOwnPropertyNames(o);
+  return Object.getOwnPropertyNames(o);
 }
 
 /**
@@ -217,7 +216,7 @@ export function getOwnStringProperties(o: object): string[] {
  * @param o 对象
  */
 export function getOwnSymbolProperties(o: object): symbol[] {
-    return Object.getOwnPropertySymbols(o);
+  return Object.getOwnPropertySymbols(o);
 }
 
 /**
@@ -226,7 +225,7 @@ export function getOwnSymbolProperties(o: object): symbol[] {
  * @param o 对象
  */
 export function getKeys(o: object): string[] {
-    return Object.keys(o);
+  return Object.keys(o);
 }
 
 /**
@@ -235,7 +234,7 @@ export function getKeys(o: object): string[] {
  * @param o 对象
  */
 export function getValues(o: object): unknown[] {
-    return Object.values(o);
+  return Object.values(o);
 }
 
 /**
@@ -244,47 +243,47 @@ export function getValues(o: object): unknown[] {
  * @param o 对象
  */
 export function getEntries(o: object): [string, unknown][] {
-    return Object.entries(o);
+  return Object.entries(o);
 }
 
 /**
  * @returns 返回按顺序遍历的迭代器，最后一个元素是根原型
  */
 export function* walkPrototypeChain<T extends object>(
-    o: object,
+  o: object,
 ): Generator<T, void, void> {
-    let proto: T | null = Object.getPrototypeOf(o) as T | null;
-    while (proto != null) {
-        yield proto;
-        proto = Object.getPrototypeOf(proto) as T | null;
-    }
+  let proto: T | null = Object.getPrototypeOf(o) as T | null;
+  while (proto != null) {
+    yield proto;
+    proto = Object.getPrototypeOf(proto) as T | null;
+  }
 }
 
 /**
  * @returns 返回按顺序排列的数组，最后一个元素是根原型
  */
 export function getPrototypeChain<T extends object>(o: object): T[] {
-    const prototypes: T[] = [];
-    let proto: T | null = Object.getPrototypeOf(o) as T | null;
-    while (proto != null) {
-        prototypes.push(proto);
-        proto = Object.getPrototypeOf(proto) as T | null;
-    }
-    return prototypes;
+  const prototypes: T[] = [];
+  let proto: T | null = Object.getPrototypeOf(o) as T | null;
+  while (proto != null) {
+    prototypes.push(proto);
+    proto = Object.getPrototypeOf(proto) as T | null;
+  }
+  return prototypes;
 }
 
 /**
  * @returns 返回对象的原型
  */
 export function getPrototype<T extends object | null>(o: object): T {
-    return Object.getPrototypeOf(o) as T;
+  return Object.getPrototypeOf(o) as T;
 }
 
 /**
  * 设置对象的原型
  */
 export function setPrototype(o: object, proto: object | null) {
-    Object.setPrototypeOf(o, proto);
+  Object.setPrototypeOf(o, proto);
 }
 
 /**
@@ -293,10 +292,10 @@ export function setPrototype(o: object, proto: object | null) {
  * 相当于调用 {@link Object.assign} 方法。
  */
 export function assign<T extends object, const R extends unknown[]>(
-    o: T,
-    ...args: R
+  o: T,
+  ...args: R
 ): Assign<T, R> {
-    return Object.assign(o, ...args) as checked;
+  return Object.assign(o, ...args) as checked;
 }
 
 /**
@@ -305,70 +304,70 @@ export function assign<T extends object, const R extends unknown[]>(
  * @returns 若 {@link opts.update} 为 `true`，则返回修剪过后的原对象，否则返回一个新对象
  */
 export function prune<T extends object>(
-    o: T,
-    opts?: {
-        /**
-         * 是否深度递归地修剪
-         *
-         * 仅会修剪通过 {@link isRecordObject} 判定为 `true` 的对象。
-         *
-         * @default false
-         */
-        deep?: boolean;
+  o: T,
+  opts?: {
+    /**
+     * 是否深度递归地修剪
+     *
+     * 仅会修剪通过 {@link isRecordObject} 判定为 `true` 的对象。
+     *
+     * @default false
+     */
+    deep?: boolean;
 
-        /**
-         * 是否修剪原对象
-         *
-         * @default false
-         */
-        update?: boolean;
-    },
+    /**
+     * 是否修剪原对象
+     *
+     * @default false
+     */
+    update?: boolean;
+  },
 ): T {
-    const deep = opts?.deep ?? false;
-    const update = opts?.update ?? false;
+  const deep = opts?.deep ?? false;
+  const update = opts?.update ?? false;
 
-    if (!update) {
-        return _prune_new(o, deep, opts);
-    } else {
-        return _prune_update(o, deep, opts);
-    }
+  if (!update) {
+    return _prune_new(o, deep, opts);
+  } else {
+    return _prune_update(o, deep, opts);
+  }
 }
 
 function _prune_new<T extends object>(
-    o: T,
-    deep: boolean,
-    opts: object | undefined,
+  o: T,
+  deep: boolean,
+  opts: object | undefined,
 ): T {
-    if (deep) {
-        return Object.fromEntries(
-            Object.entries(o)
-                .filter(([, value]) => value !== undefined)
-                .map(([key, value]) => [key, prune(value, opts)]),
-        ) as T;
-    } else {
-        return Object.fromEntries(
-            Object.entries(o).filter(([, value]) => value !== undefined),
-        ) as T;
-    }
+  if (deep) {
+    return Object.fromEntries(
+      Object.entries(o)
+        .filter(([, value]) => value !== undefined)
+        .map(([key, value]) => [key, prune(value, opts)]),
+    ) as T;
+  } else {
+    return Object.fromEntries(
+      Object.entries(o).filter(([, value]) => value !== undefined),
+    ) as T;
+  }
 }
 
 function _prune_update<T extends object>(
-    o: T,
-    deep: boolean,
-    opts: object | undefined,
+  o: T,
+  deep: boolean,
+  opts: object | undefined,
 ): T {
-    for (const key in o) {
-        if (Object.hasOwn(o, key)) {
-            const value = o[key];
-            if (value === undefined) {
-                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- checked.
-                delete o[key];
-            } else if (deep) {
-                o[key] = isRecordObject(value) ? prune(value, opts) : value;
-            }
-        }
+  for (const key in o) {
+    if (Object.hasOwn(o, key)) {
+      const value = o[key];
+      if (value === undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- checked.
+        delete o[key];
+      } else if (deep) {
+        o[key] = isRecordObject(value) ? prune(value, opts) : value;
+      }
     }
-    return o;
+  }
+  return o;
 }
 
 /**
@@ -383,16 +382,16 @@ function _prune_update<T extends object>(
  * // { 1: "a", 2: "b", 3: "c" }
  */
 export function invert<K extends PropertyKey, V extends PropertyKey>(
-    obj: Record<K, V>,
+  obj: Record<K, V>,
 ): Record<V, K> {
-    const result = {} as Record<V, K>;
+  const result = {} as Record<V, K>;
 
-    for (const key in obj) {
-        if (Object.hasOwn(obj, key)) {
-            const value = obj[key];
-            result[value] = key;
-        }
+  for (const key in obj) {
+    if (Object.hasOwn(obj, key)) {
+      const value = obj[key];
+      result[value] = key;
     }
+  }
 
-    return result;
+  return result;
 }

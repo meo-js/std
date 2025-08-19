@@ -1,7 +1,7 @@
 {
   "name": "@meojs/std",
   "version": "1.0.9",
-  "packageManager": "npm@10.9.0",
+  "packageManager": "pnpm@10.14.0",
   "engines": {
     "node": ">=20"
   },
@@ -256,46 +256,24 @@
     "README*.md",
     "LICENSE"
   ],
-  "lint-staged": {
-    "src/**/*": [
-      "eslint",
-      "prettier --ignore-unknown --check"
-    ]
-  },
-  "simple-git-hooks": {
-    "pre-commit": "npx lint-staged",
-    "commit-msg": "npx commitlint --edit $1"
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
   "scripts": {
-    "build": "npx unbuild",
-    "dev": "npx unbuild --watch",
-    "clean": "rimraf ./dist",
-    "lint": "eslint",
-    "gen-exports": "npx tsx ./scripts/exports-generator.ts",
-    "ai": "npx tsx ./scripts/ai-process.ts",
-    "prepare": "simple-git-hooks",
-    "prepack": "npm run build",
-    "publish:patch": "npm version patch && npm publish",
-    "publish:minor": "npm version minor && npm publish",
-    "publish:major": "npm version major && npm publish"
+    "build": "pnpm exec utc build",
+    "prepare": "pnpm exec utc install-git-hook",
+    "prepack": "pnpm run build",
+    "publish:patch": "pnpm version patch && pnpm publish",
+    "publish:minor": "pnpm version minor && pnpm publish",
+    "publish:major": "pnpm version major && pnpm publish"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.8.0",
-    "@commitlint/config-conventional": "^19.8.0",
-    "@meojs/cfgs": "^2.0.24",
+    "@meojs/cfgs": "^2.0.56",
     "@meojs/types": "^1.0.1",
+    "@meojs/utc": "^1.18.15",
     "@types/node": "^20",
-    "cross-env": "^7.0.3",
-    "eslint": "^9.22.0",
-    "lint-staged": "^15.5.1",
-    "prettier": "^3.5.3",
-    "rimraf": "^6.0.1",
-    "simple-git-hooks": "^2.13.0"
+    "eslint": "^9.33.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.2.0",
+    "typescript": "^5.8.3",
+    "vitest": "4.0.0-beta.8"
   },
   "dependencies": {
     "chardet": "^2.1.0",

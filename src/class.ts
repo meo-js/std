@@ -2,11 +2,10 @@
  * Class utilities.
  *
  * @public
- *
  * @module
  */
-import { isFunction } from "./predicate.js";
-import type { uncertain } from "./ts.js";
+import { isFunction } from './predicate.js';
+import type { uncertain } from './ts.js';
 
 /**
  * Represents a Class.
@@ -16,9 +15,9 @@ import type { uncertain } from "./ts.js";
  * @template Statics The static properties of the class. Default is `{}`.
  */
 export type Class<
-    T extends object = object,
-    Arguments extends readonly unknown[] = uncertain,
-    Statics extends object = {},
+  T extends object = object,
+  Arguments extends readonly unknown[] = uncertain,
+  Statics extends object = {},
 > = (new (...args: Arguments) => T) & Statics;
 
 /**
@@ -29,9 +28,9 @@ export type Class<
  * @template Statics The static properties of the class. Default is `{}`.
  */
 export type AbstractClass<
-    T extends object = object,
-    Arguments extends readonly unknown[] = uncertain,
-    Statics extends object = {},
+  T extends object = object,
+  Arguments extends readonly unknown[] = uncertain,
+  Statics extends object = {},
 > = (abstract new (...args: Arguments) => T) & Statics;
 
 /**
@@ -41,8 +40,8 @@ export type AbstractClass<
  * @template Arguments The constructor arguments. Default is `uncertain`.
  */
 export type Constructor<
-    T extends object = object,
-    Arguments extends readonly unknown[] = uncertain,
+  T extends object = object,
+  Arguments extends readonly unknown[] = uncertain,
 > = new (...args: Arguments) => T;
 
 /**
@@ -52,8 +51,8 @@ export type Constructor<
  * @template Arguments The constructor arguments. Default is `uncertain`.
  */
 export type AbstractConstructor<
-    T extends object = object,
-    Arguments extends readonly unknown[] = uncertain,
+  T extends object = object,
+  Arguments extends readonly unknown[] = uncertain,
 > = abstract new (...args: Arguments) => T;
 
 /**
@@ -63,7 +62,7 @@ export type AbstractConstructor<
  * @returns The class of the object.
  */
 export function getClass<T extends object>(object: T): Class<T> {
-    return object.constructor as Class<T>;
+  return object.constructor as Class<T>;
 }
 
 /**
@@ -73,14 +72,14 @@ export function getClass<T extends object>(object: T): Class<T> {
  * @returns The parent class, or `undefined` if there is no superclass.
  */
 export function getSuperClass<R extends AbstractClass = Class>(
-    targetClass: AbstractClass,
+  targetClass: AbstractClass,
 ): R | undefined {
-    const parent = Object.getPrototypeOf(targetClass) as R;
-    if (parent === Function.prototype) {
-        return undefined;
-    } else {
-        return parent;
-    }
+  const parent = Object.getPrototypeOf(targetClass) as R;
+  if (parent === Function.prototype) {
+    return undefined;
+  } else {
+    return parent;
+  }
 }
 
 /**
@@ -91,19 +90,19 @@ export function getSuperClass<R extends AbstractClass = Class>(
  * @returns A generator yielding each class in the inheritance chain.
  */
 export function* walkClassChain<R extends AbstractClass = Class>(
-    target: AbstractClass | object,
-    includeSelf: boolean = true,
+  target: AbstractClass | object,
+  includeSelf: boolean = true,
 ): Generator<R, void, void> {
-    target = isFunction(target) ? target : getClass(target);
+  target = isFunction(target) ? target : getClass(target);
 
-    if (includeSelf) {
-        yield target as R;
-    }
+  if (includeSelf) {
+    yield target as R;
+  }
 
-    let parentClass: R | undefined = target as R;
-    while ((parentClass = getSuperClass<R>(parentClass))) {
-        yield parentClass;
-    }
+  let parentClass: R | undefined = target as R;
+  while ((parentClass = getSuperClass<R>(parentClass))) {
+    yield parentClass;
+  }
 }
 
 /**
@@ -114,22 +113,22 @@ export function* walkClassChain<R extends AbstractClass = Class>(
  * @returns An array of classes from the target up to the root superclass.
  */
 export function getClassChain<R extends AbstractClass = Class>(
-    target: AbstractClass | object,
-    includeSelf: boolean = true,
+  target: AbstractClass | object,
+  includeSelf: boolean = true,
 ): R[] {
-    target = isFunction(target) ? target : getClass(target);
+  target = isFunction(target) ? target : getClass(target);
 
-    const classes: R[] = [];
+  const classes: R[] = [];
 
-    if (includeSelf) {
-        classes.push(target as R);
-    }
+  if (includeSelf) {
+    classes.push(target as R);
+  }
 
-    let parentClass: R | undefined = target as R;
-    while ((parentClass = getSuperClass<R>(parentClass))) {
-        classes.push(parentClass);
-    }
-    return classes;
+  let parentClass: R | undefined = target as R;
+  while ((parentClass = getSuperClass<R>(parentClass))) {
+    classes.push(parentClass);
+  }
+  return classes;
 }
 
 /**
@@ -139,15 +138,15 @@ export function getClassChain<R extends AbstractClass = Class>(
  * @returns The root superclass.
  */
 export function getBaseClass<R extends AbstractClass = Class>(
-    targetClass: AbstractClass,
+  targetClass: AbstractClass,
 ): R {
-    let currentClass: AbstractClass | undefined = undefined;
-    let nextClass: AbstractClass | undefined = targetClass;
-    do {
-        currentClass = nextClass;
-        nextClass = getSuperClass(nextClass);
-    } while (nextClass);
-    return currentClass as R;
+  let currentClass: AbstractClass | undefined = undefined;
+  let nextClass: AbstractClass | undefined = targetClass;
+  do {
+    currentClass = nextClass;
+    nextClass = getSuperClass(nextClass);
+  } while (nextClass);
+  return currentClass as R;
 }
 
 /**
@@ -159,12 +158,12 @@ export function getBaseClass<R extends AbstractClass = Class>(
  * @returns `true` if `targetClass` is a subclass of `superClass`, otherwise `false`.
  */
 export function isSubClass(
-    targetClass: AbstractClass,
-    superClass: AbstractClass,
-    includeSelf: boolean = true,
+  targetClass: AbstractClass,
+  superClass: AbstractClass,
+  includeSelf: boolean = true,
 ): boolean {
-    if (includeSelf && targetClass === superClass) return true;
-    return Object.prototype.isPrototypeOf.call(superClass, targetClass);
+  if (includeSelf && targetClass === superClass) return true;
+  return Object.prototype.isPrototypeOf.call(superClass, targetClass);
 }
 
 /**
@@ -175,8 +174,8 @@ export function isSubClass(
  * @returns `true` if {@link targetClass} directly extends {@link superClass}, otherwise `false`.
  */
 export function isDirectSubClass(
-    targetClass: AbstractClass,
-    superClass: AbstractClass,
+  targetClass: AbstractClass,
+  superClass: AbstractClass,
 ): boolean {
-    return getSuperClass(targetClass) === superClass;
+  return getSuperClass(targetClass) === superClass;
 }

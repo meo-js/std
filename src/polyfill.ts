@@ -4,49 +4,48 @@
  * 这些特性都是我们认为应立即开始使用但当前还未被普遍支持的。
  *
  * @public
- *
  * @module
  */
 // 部分 polyfill 的导入顺序很重要，请勿随意调整
 // --- ECMAScript 2020 ---
-import "core-js/proposals/global-this.js";
-import "core-js/proposals/promise-all-settled.js";
-import "core-js/proposals/string-match-all.js";
+import 'core-js/proposals/global-this.js';
+import 'core-js/proposals/promise-all-settled.js';
+import 'core-js/proposals/string-match-all.js';
 // --- ECMAScript 2021 ---
-import "core-js/proposals/promise-any.js";
-import "core-js/proposals/string-replace-all-stage-4.js";
+import 'core-js/proposals/promise-any.js';
+import 'core-js/proposals/string-replace-all-stage-4.js';
 // --- ECMAScript 2022 ---
-import "core-js/proposals/accessible-object-hasownproperty.js";
-import "core-js/proposals/error-cause.js";
-import "core-js/proposals/relative-indexing-method.js";
+import 'core-js/proposals/accessible-object-hasownproperty.js';
+import 'core-js/proposals/error-cause.js';
+import 'core-js/proposals/relative-indexing-method.js';
 // --- ECMAScript 2023 ---
-import "core-js/proposals/array-find-from-last.js";
-import "core-js/proposals/change-array-by-copy-stage-4.js";
+import 'core-js/proposals/array-find-from-last.js';
+import 'core-js/proposals/change-array-by-copy-stage-4.js';
 // --- ECMAScript 2024 ---
-import "core-js/proposals/array-grouping-v2.js";
-import "core-js/proposals/promise-with-resolvers.js";
-import "core-js/proposals/well-formed-unicode-strings.js";
+import 'core-js/proposals/array-grouping-v2.js';
+import 'core-js/proposals/promise-with-resolvers.js';
+import 'core-js/proposals/well-formed-unicode-strings.js';
 // --- ECMAScript 2025 ---
-import "core-js/proposals/iterator-helpers-stage-3-2.js";
-import "core-js/proposals/promise-try.js";
-import "core-js/proposals/regexp-escaping.js";
-import "core-js/proposals/set-methods-v2.js";
+import 'core-js/proposals/iterator-helpers-stage-3-2.js';
+import 'core-js/proposals/promise-try.js';
+import 'core-js/proposals/regexp-escaping.js';
+import 'core-js/proposals/set-methods-v2.js';
 declare global {
-    interface RegExpConstructor {
-        escape(str: string): string;
-    }
+  interface RegExpConstructor {
+    escape(str: string): string;
+  }
 }
 // --- ECMAScript Next ---
-import "core-js/proposals/decorator-metadata-v2.js";
-import "core-js/proposals/explicit-resource-management.js";
-import "temporal-polyfill";
+import 'core-js/proposals/decorator-metadata-v2.js';
+import 'core-js/proposals/explicit-resource-management.js';
+import 'temporal-polyfill';
 // --- Web API ---
-import "core-js/web/queue-microtask.js";
-import "./polyfill/report-error.js";
-import "./polyfill/abort-controller.js";
-import "core-js/web/structured-clone.js";
-import "./polyfill/observable.js";
-import "./polyfill/web-streams.js";
+import 'core-js/web/queue-microtask.js';
+import 'core-js/web/structured-clone.js';
+import './polyfill/abort-controller.js';
+import './polyfill/observable.js';
+import './polyfill/report-error.js';
+import './polyfill/web-streams.js';
 // --- Unstable Export ---
-export { Temporal } from "temporal-polyfill";
-export * from "./polyfill/observable.js";
+export { Temporal } from 'temporal-polyfill';
+export * from './polyfill/observable.js';

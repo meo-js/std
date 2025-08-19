@@ -1,34 +1,34 @@
 /**
  * @public
- *
  * @module
  */
-import { Temporal } from "temporal-polyfill";
-import type * as tf from "type-fest";
-import type { AbstractClass, Class } from "./class.js";
+import { Temporal } from 'temporal-polyfill';
+import type * as tf from 'type-fest';
+import type { AbstractClass, Class } from './class.js';
 import type {
-    AnyCollection,
-    AnyMap,
-    AnySet,
-    Collection,
-    WeakCollection,
-} from "./collection.js";
-import type { AsyncGenFn, GenFn } from "./function.js";
-import type { Jsonifiable } from "./json.js";
-import type { Numeric } from "./math.js";
-import type { PlainObject, RecordObject } from "./object.js";
-import type { Primitive } from "./primitive.js";
-import type { ValueLike } from "./protocol.js";
-import type { Equatable } from "./protocol/equatable.js";
-import type { Streamable } from "./protocol/streamable.js";
-import { equal, stream } from "./protocol/symbols.js";
-import type { TemporalObject } from "./temporal/shared.js";
-import type { none } from "./ts.js";
+  AnyCollection,
+  AnyMap,
+  AnySet,
+  Collection,
+  WeakCollection,
+} from './collection.js';
+import type { AsyncGenFn, GenFn } from './function.js';
+import type { Jsonifiable } from './json.js';
+import type { Numeric } from './math.js';
+import type { PlainObject, RecordObject } from './object.js';
+import type { Primitive } from './primitive.js';
+import type { ValueLike } from './protocol.js';
+import type { Equatable } from './protocol/equatable.js';
+import type { Streamable } from './protocol/streamable.js';
+import { equal, stream } from './protocol/symbols.js';
+import type { TemporalObject } from './temporal/shared.js';
+import type { none } from './ts.js';
 import type {
-    BigIntTypedArray,
-    NumberTypedArray,
-    TypedArray,
-} from "./typed-array.js";
+  AnyBufferSource,
+  BigIntTypedArray,
+  NumberTypedArray,
+  TypedArray,
+} from './typed-array.js';
 
 /**
  * 是否为 `unknown` 类型
@@ -61,13 +61,13 @@ export type IsUndefined<T> = T extends undefined ? true : false;
 export type IsNone<T> = T extends null | undefined ? true : false;
 
 const GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
-    // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
-    function* () {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
+  function* () {},
 ) as object;
 
 const ASYNC_GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
-    // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
-    async function* () {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function -- checked.
+  async function* () {},
 ) as object;
 
 /**
@@ -77,7 +77,7 @@ const ASYNC_GENERATOR_FUNC_PROTOTYPE = Object.getPrototypeOf(
  * @returns `boolean`
  */
 export function isNull(value: unknown): value is null {
-    return value === null;
+  return value === null;
 }
 
 /**
@@ -87,7 +87,7 @@ export function isNull(value: unknown): value is null {
  * @returns `boolean`
  */
 export function isUndefined(value: unknown): value is undefined {
-    return value === undefined;
+  return value === undefined;
 }
 
 /**
@@ -97,7 +97,7 @@ export function isUndefined(value: unknown): value is undefined {
  * @returns `boolean`
  */
 export function isNone(value: unknown): value is none {
-    return value == null;
+  return value == null;
 }
 
 /**
@@ -107,7 +107,7 @@ export function isNone(value: unknown): value is none {
  * @returns `boolean`
  */
 export function isValidValue(value: unknown): boolean {
-    return value != null && !Number.isNaN(value);
+  return value != null && !Number.isNaN(value);
 }
 
 /**
@@ -117,10 +117,9 @@ export function isValidValue(value: unknown): boolean {
  * @returns `boolean`
  */
 export function isPrimitive(value: unknown): value is Primitive {
-    return (
-        value == null
-        || (typeof value !== "object" && typeof value !== "function")
-    );
+  return (
+    value == null || (typeof value !== 'object' && typeof value !== 'function')
+  );
 }
 
 /**
@@ -130,7 +129,7 @@ export function isPrimitive(value: unknown): value is Primitive {
  * @returns `boolean`
  */
 export function isString(value: unknown): value is string {
-    return typeof value === "string";
+  return typeof value === 'string';
 }
 
 /**
@@ -140,7 +139,7 @@ export function isString(value: unknown): value is string {
  * @returns `boolean`
  */
 export function isNumber(value: unknown): value is number {
-    return typeof value === "number";
+  return typeof value === 'number';
 }
 
 /**
@@ -150,7 +149,7 @@ export function isNumber(value: unknown): value is number {
  * @returns `boolean`
  */
 export function isBigInt(value: unknown): value is bigint {
-    return typeof value === "bigint";
+  return typeof value === 'bigint';
 }
 
 /**
@@ -160,8 +159,8 @@ export function isBigInt(value: unknown): value is bigint {
  * @returns `boolean`
  */
 export function isNumeric(value: unknown): value is Numeric {
-    const type = typeof value;
-    return !Number.isNaN(value) && (type === "number" || type === "bigint");
+  const type = typeof value;
+  return !Number.isNaN(value) && (type === 'number' || type === 'bigint');
 }
 
 /**
@@ -171,7 +170,7 @@ export function isNumeric(value: unknown): value is Numeric {
  * @returns `boolean`
  */
 export function isNaN(value: unknown): boolean {
-    return Number.isNaN(value);
+  return Number.isNaN(value);
 }
 
 /**
@@ -181,7 +180,7 @@ export function isNaN(value: unknown): boolean {
  * @returns `boolean`
  */
 export function isBoolean(value: unknown): value is boolean {
-    return typeof value === "boolean";
+  return typeof value === 'boolean';
 }
 
 /**
@@ -191,7 +190,7 @@ export function isBoolean(value: unknown): value is boolean {
  * @returns `boolean`
  */
 export function isSymbol(value: unknown): value is symbol {
-    return typeof value === "symbol";
+  return typeof value === 'symbol';
 }
 
 /**
@@ -201,9 +200,9 @@ export function isSymbol(value: unknown): value is symbol {
  * @returns `boolean`
  */
 export function isObject<T extends object = object>(
-    value: unknown,
+  value: unknown,
 ): value is T {
-    return value != null && typeof value === "object";
+  return value != null && typeof value === 'object';
 }
 
 /**
@@ -213,12 +212,11 @@ export function isObject<T extends object = object>(
  * @returns `boolean`
  */
 export function isObjectLike<T extends object = object>(
-    value: unknown,
+  value: unknown,
 ): value is T {
-    return (
-        value != null
-        && (typeof value === "object" || typeof value === "function")
-    );
+  return (
+    value != null && (typeof value === 'object' || typeof value === 'function')
+  );
 }
 
 /**
@@ -253,27 +251,25 @@ export function isObjectLike<T extends object = object>(
  * ```
  */
 export function isRecordObject<T extends object = RecordObject>(
-    value: unknown,
+  value: unknown,
 ): value is T {
-    if (!value || typeof value !== "object") {
-        return false;
-    }
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
 
-    const proto = Object.getPrototypeOf(value) as
-        | typeof Object.prototype
-        | null;
+  const proto = Object.getPrototypeOf(value) as typeof Object.prototype | null;
 
-    const hasObjectPrototype =
-        proto === null
-        || proto === Object.prototype
-        // Required to support node:vm.runInNewContext({})
-        || Object.getPrototypeOf(proto) === null;
+  const hasObjectPrototype =
+    proto === null
+    || proto === Object.prototype
+    // Required to support node:vm.runInNewContext({})
+    || Object.getPrototypeOf(proto) === null;
 
-    if (!hasObjectPrototype) {
-        return false;
-    }
+  if (!hasObjectPrototype) {
+    return false;
+  }
 
-    return Object.prototype.toString.call(value) === "[object Object]";
+  return Object.prototype.toString.call(value) === '[object Object]';
 }
 
 /**
@@ -283,23 +279,23 @@ export function isRecordObject<T extends object = RecordObject>(
  * @returns `boolean`
  */
 export function isPlainObject<T extends object = PlainObject>(
-    value: unknown,
+  value: unknown,
 ): value is T {
-    if (!isRecordObject(value)) {
-        return false;
+  if (!isRecordObject(value)) {
+    return false;
+  }
+
+  const keys = Reflect.ownKeys(value);
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+
+    if (typeof key !== 'string') {
+      return false;
     }
+  }
 
-    const keys = Reflect.ownKeys(value);
-
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-
-        if (typeof key !== "string") {
-            return false;
-        }
-    }
-
-    return true;
+  return true;
 }
 
 /**
@@ -318,16 +314,16 @@ export function isPlainObject<T extends object = PlainObject>(
  * isJson(null); // false (not a string)
  */
 export function isJson(value: unknown): value is string {
-    if (typeof value !== "string") {
-        return false;
-    }
+  if (typeof value !== 'string') {
+    return false;
+  }
 
-    try {
-        JSON.parse(value);
-        return true;
-    } catch {
-        return false;
-    }
+  try {
+    JSON.parse(value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -337,50 +333,50 @@ export function isJson(value: unknown): value is string {
  * @returns `boolean`
  */
 export function isJsonifiable(value: unknown): value is Jsonifiable {
-    switch (typeof value) {
-        case "object": {
-            return value === null || isJsonArray(value) || isJsonObject(value);
-        }
-        case "string":
-        case "number":
-        case "boolean": {
-            return true;
-        }
-        default: {
-            return false;
-        }
+  switch (typeof value) {
+    case 'object': {
+      return value === null || isJsonArray(value) || isJsonObject(value);
     }
+    case 'string':
+    case 'number':
+    case 'boolean': {
+      return true;
+    }
+    default: {
+      return false;
+    }
+  }
 }
 
 function isJsonArray(value: unknown): value is unknown[] {
-    if (!Array.isArray(value)) {
-        return false;
-    }
+  if (!Array.isArray(value)) {
+    return false;
+  }
 
-    return value.every(item => isJsonifiable(item));
+  return value.every(item => isJsonifiable(item));
 }
 
 function isJsonObject(obj: unknown): obj is RecordObject {
-    if (!isRecordObject(obj)) {
-        return false;
+  if (!isRecordObject(obj)) {
+    return false;
+  }
+
+  const keys = Reflect.ownKeys(obj);
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    const value = obj[key];
+
+    if (typeof key !== 'string') {
+      return false;
     }
 
-    const keys = Reflect.ownKeys(obj);
-
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const value = obj[key];
-
-        if (typeof key !== "string") {
-            return false;
-        }
-
-        if (!isJsonifiable(value)) {
-            return false;
-        }
+    if (!isJsonifiable(value)) {
+      return false;
     }
+  }
 
-    return true;
+  return true;
 }
 
 /**
@@ -390,7 +386,7 @@ function isJsonObject(obj: unknown): obj is RecordObject {
  * @returns `boolean`
  */
 export function isArray<T = unknown>(value: unknown): value is T[] {
-    return Array.isArray(value);
+  return Array.isArray(value);
 }
 
 /**
@@ -400,9 +396,9 @@ export function isArray<T = unknown>(value: unknown): value is T[] {
  * @returns `boolean`
  */
 export function isMap<K = unknown, V = unknown>(
-    value: unknown,
+  value: unknown,
 ): value is Map<K, V> {
-    return value instanceof Map;
+  return value instanceof Map;
 }
 
 /**
@@ -412,9 +408,9 @@ export function isMap<K = unknown, V = unknown>(
  * @returns `boolean`
  */
 export function isWeakMap<K extends WeakKey = WeakKey, V = unknown>(
-    value: unknown,
+  value: unknown,
 ): value is WeakMap<K, V> {
-    return value instanceof WeakMap;
+  return value instanceof WeakMap;
 }
 
 /**
@@ -424,9 +420,9 @@ export function isWeakMap<K extends WeakKey = WeakKey, V = unknown>(
  * @returns `boolean`
  */
 export function isAnyMap<K = unknown, V = unknown>(
-    value: unknown,
+  value: unknown,
 ): value is AnyMap<K, V> {
-    return isMap<K, V>(value) || isWeakMap<K & WeakKey, V>(value);
+  return isMap<K, V>(value) || isWeakMap<K & WeakKey, V>(value);
 }
 
 /**
@@ -436,7 +432,7 @@ export function isAnyMap<K = unknown, V = unknown>(
  * @returns `boolean`
  */
 export function isSet<T = unknown>(value: unknown): value is Set<T> {
-    return value instanceof Set;
+  return value instanceof Set;
 }
 
 /**
@@ -446,9 +442,9 @@ export function isSet<T = unknown>(value: unknown): value is Set<T> {
  * @returns `boolean`
  */
 export function isWeakSet<T extends WeakKey = WeakKey>(
-    value: unknown,
+  value: unknown,
 ): value is WeakSet<T> {
-    return value instanceof WeakSet;
+  return value instanceof WeakSet;
 }
 
 /**
@@ -458,7 +454,7 @@ export function isWeakSet<T extends WeakKey = WeakKey>(
  * @returns `boolean`
  */
 export function isAnySet<T = unknown>(value: unknown): value is AnySet<T> {
-    return isSet<T>(value) || isWeakSet<T & WeakKey>(value);
+  return isSet<T>(value) || isWeakSet<T & WeakKey>(value);
 }
 
 /**
@@ -468,9 +464,9 @@ export function isAnySet<T = unknown>(value: unknown): value is AnySet<T> {
  * @returns `boolean`
  */
 export function isCollection<K = unknown, V = unknown>(
-    value: unknown,
+  value: unknown,
 ): value is Collection<K, V> {
-    return isMap<K, V>(value) || isSet<V>(value);
+  return isMap<K, V>(value) || isSet<V>(value);
 }
 
 /**
@@ -480,9 +476,9 @@ export function isCollection<K = unknown, V = unknown>(
  * @returns `boolean`
  */
 export function isWeakCollection<T extends WeakKey = WeakKey, V = unknown>(
-    value: unknown,
+  value: unknown,
 ): value is WeakCollection<T, V> {
-    return isWeakMap<T, V>(value) || isWeakSet<T>(value);
+  return isWeakMap<T, V>(value) || isWeakSet<T>(value);
 }
 
 /**
@@ -492,7 +488,7 @@ export function isWeakCollection<T extends WeakKey = WeakKey, V = unknown>(
  * @returns `boolean`
  */
 export function isAnyCollection(value: unknown): value is AnyCollection {
-    return isCollection(value) || isWeakCollection(value);
+  return isCollection(value) || isWeakCollection(value);
 }
 
 /**
@@ -502,7 +498,7 @@ export function isAnyCollection(value: unknown): value is AnyCollection {
  * @returns `boolean`
  */
 export function isDate(value: unknown): value is Date {
-    return value instanceof Date;
+  return value instanceof Date;
 }
 
 /**
@@ -512,7 +508,7 @@ export function isDate(value: unknown): value is Date {
  * @returns `boolean`
  */
 export function isRegExp(value: unknown): value is RegExp {
-    return value instanceof RegExp;
+  return value instanceof RegExp;
 }
 
 /**
@@ -522,9 +518,9 @@ export function isRegExp(value: unknown): value is RegExp {
  * @returns `boolean`
  */
 export function isWeakRef<T extends object = object>(
-    value: unknown,
+  value: unknown,
 ): value is WeakRef<T> {
-    return value instanceof WeakRef;
+  return value instanceof WeakRef;
 }
 
 /**
@@ -534,7 +530,7 @@ export function isWeakRef<T extends object = object>(
  * @returns `boolean`
  */
 export function isInstant(value: unknown): value is Temporal.Instant {
-    return value instanceof Temporal.Instant;
+  return value instanceof Temporal.Instant;
 }
 
 /**
@@ -544,7 +540,7 @@ export function isInstant(value: unknown): value is Temporal.Instant {
  * @returns `boolean`
  */
 export function isDuration(value: unknown): value is Temporal.Duration {
-    return value instanceof Temporal.Duration;
+  return value instanceof Temporal.Duration;
 }
 
 /**
@@ -554,7 +550,7 @@ export function isDuration(value: unknown): value is Temporal.Duration {
  * @returns `boolean`
  */
 export function isPlainDate(value: unknown): value is Temporal.PlainDate {
-    return value instanceof Temporal.PlainDate;
+  return value instanceof Temporal.PlainDate;
 }
 
 /**
@@ -564,7 +560,7 @@ export function isPlainDate(value: unknown): value is Temporal.PlainDate {
  * @returns `boolean`
  */
 export function isPlainTime(value: unknown): value is Temporal.PlainTime {
-    return value instanceof Temporal.PlainTime;
+  return value instanceof Temporal.PlainTime;
 }
 
 /**
@@ -574,9 +570,9 @@ export function isPlainTime(value: unknown): value is Temporal.PlainTime {
  * @returns `boolean`
  */
 export function isPlainDateTime(
-    value: unknown,
+  value: unknown,
 ): value is Temporal.PlainDateTime {
-    return value instanceof Temporal.PlainDateTime;
+  return value instanceof Temporal.PlainDateTime;
 }
 
 /**
@@ -586,9 +582,9 @@ export function isPlainDateTime(
  * @returns `boolean`
  */
 export function isZonedDateTime(
-    value: unknown,
+  value: unknown,
 ): value is Temporal.ZonedDateTime {
-    return value instanceof Temporal.ZonedDateTime;
+  return value instanceof Temporal.ZonedDateTime;
 }
 
 /**
@@ -598,9 +594,9 @@ export function isZonedDateTime(
  * @returns `boolean`
  */
 export function isPlainMonthDay(
-    value: unknown,
+  value: unknown,
 ): value is Temporal.PlainMonthDay {
-    return value instanceof Temporal.PlainMonthDay;
+  return value instanceof Temporal.PlainMonthDay;
 }
 
 /**
@@ -610,9 +606,9 @@ export function isPlainMonthDay(
  * @returns `boolean`
  */
 export function isPlainYearMonth(
-    value: unknown,
+  value: unknown,
 ): value is Temporal.PlainYearMonth {
-    return value instanceof Temporal.PlainYearMonth;
+  return value instanceof Temporal.PlainYearMonth;
 }
 
 /**
@@ -622,9 +618,7 @@ export function isPlainYearMonth(
  * @returns `boolean`
  */
 export function isTemporalObject(value: unknown): value is TemporalObject {
-    return Object.prototype.toString
-        .call(value)
-        .startsWith("[object Temporal.");
+  return Object.prototype.toString.call(value).startsWith('[object Temporal.');
 }
 
 /**
@@ -634,7 +628,7 @@ export function isTemporalObject(value: unknown): value is TemporalObject {
  * @returns `boolean`
  */
 export function isModule(value: unknown) {
-    return Object.prototype.toString.call(value) === "[object Module]";
+  return Object.prototype.toString.call(value) === '[object Module]';
 }
 
 /**
@@ -646,13 +640,12 @@ export function isModule(value: unknown) {
  * @returns `boolean`
  */
 export function isClass<T extends AbstractClass = Class>(
-    value: unknown,
+  value: unknown,
 ): value is T {
-    return (
-        typeof value === "function"
-        && Object.getOwnPropertyDescriptor(value, "prototype")?.writable
-            === false
-    );
+  return (
+    typeof value === 'function'
+    && Object.getOwnPropertyDescriptor(value, 'prototype')?.writable === false
+  );
 }
 
 /**
@@ -662,9 +655,9 @@ export function isClass<T extends AbstractClass = Class>(
  * @returns `boolean`
  */
 export function isFunction<T extends Function = Function>(
-    value: unknown,
+  value: unknown,
 ): value is T {
-    return typeof value === "function";
+  return typeof value === 'function';
 }
 
 /**
@@ -674,13 +667,13 @@ export function isFunction<T extends Function = Function>(
  * @returns `boolean`
  */
 export function isGeneratorFunction<T extends GenFn = GeneratorFunction>(
-    value: unknown,
+  value: unknown,
 ): value is T {
-    if (isFunction(value)) {
-        return Object.getPrototypeOf(value) === GENERATOR_FUNC_PROTOTYPE;
-    } else {
-        return false;
-    }
+  if (isFunction(value)) {
+    return Object.getPrototypeOf(value) === GENERATOR_FUNC_PROTOTYPE;
+  } else {
+    return false;
+  }
 }
 
 /**
@@ -690,13 +683,13 @@ export function isGeneratorFunction<T extends GenFn = GeneratorFunction>(
  * @returns `boolean`
  */
 export function isAsyncGeneratorFunction<
-    T extends AsyncGenFn = AsyncGeneratorFunction,
+  T extends AsyncGenFn = AsyncGeneratorFunction,
 >(value: unknown): value is T {
-    if (isFunction(value)) {
-        return Object.getPrototypeOf(value) === ASYNC_GENERATOR_FUNC_PROTOTYPE;
-    } else {
-        return false;
-    }
+  if (isFunction(value)) {
+    return Object.getPrototypeOf(value) === ASYNC_GENERATOR_FUNC_PROTOTYPE;
+  } else {
+    return false;
+  }
 }
 
 /**
@@ -706,16 +699,16 @@ export function isAsyncGeneratorFunction<
  * @returns `boolean`
  */
 export function isGenerator(value: unknown): value is Generator {
-    if (isObjectLike(value)) {
-        return (
-            <keyof Generator>"next" in value
-            && <keyof Generator>"return" in value
-            && <keyof Generator>"throw" in value
-            && <keyof Generator>Symbol.iterator in value
-        );
-    } else {
-        return false;
-    }
+  if (isObjectLike(value)) {
+    return (
+      <keyof Generator>'next' in value
+      && <keyof Generator>'return' in value
+      && <keyof Generator>'throw' in value
+      && <keyof Generator>Symbol.iterator in value
+    );
+  } else {
+    return false;
+  }
 }
 
 /**
@@ -725,16 +718,16 @@ export function isGenerator(value: unknown): value is Generator {
  * @returns `boolean`
  */
 export function isAsyncGenerator(value: unknown): value is AsyncGenerator {
-    if (isObjectLike(value)) {
-        return (
-            <keyof AsyncGenerator>"next" in value
-            && <keyof AsyncGenerator>"return" in value
-            && <keyof AsyncGenerator>"throw" in value
-            && <keyof AsyncGenerator>Symbol.asyncIterator in value
-        );
-    } else {
-        return false;
-    }
+  if (isObjectLike(value)) {
+    return (
+      <keyof AsyncGenerator>'next' in value
+      && <keyof AsyncGenerator>'return' in value
+      && <keyof AsyncGenerator>'throw' in value
+      && <keyof AsyncGenerator>Symbol.asyncIterator in value
+    );
+  } else {
+    return false;
+  }
 }
 
 /**
@@ -744,7 +737,7 @@ export function isAsyncGenerator(value: unknown): value is AsyncGenerator {
  * @returns `boolean`
  */
 export function isIterable(value: unknown): value is Iterable<unknown> {
-    return isObjectLike(value) && Symbol.iterator in value;
+  return isObjectLike(value) && Symbol.iterator in value;
 }
 
 /**
@@ -754,9 +747,9 @@ export function isIterable(value: unknown): value is Iterable<unknown> {
  * @returns `boolean`
  */
 export function isAsyncIterable(
-    value: unknown,
+  value: unknown,
 ): value is AsyncIterable<unknown> {
-    return isObjectLike(value) && Symbol.asyncIterator in value;
+  return isObjectLike(value) && Symbol.asyncIterator in value;
 }
 
 /**
@@ -766,10 +759,10 @@ export function isAsyncIterable(
  * @returns `boolean`
  */
 export function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
-    return (
-        isObjectLike(value)
-        && typeof (<Partial<PromiseLike<unknown>>>value).then === "function"
-    );
+  return (
+    isObjectLike(value)
+    && typeof (<Partial<PromiseLike<unknown>>>value).then === 'function'
+  );
 }
 
 /**
@@ -779,7 +772,7 @@ export function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
  * @returns `boolean`
  */
 export function isPromise(value: unknown): value is Promise<unknown> {
-    return value instanceof Promise;
+  return value instanceof Promise;
 }
 
 /**
@@ -789,7 +782,7 @@ export function isPromise(value: unknown): value is Promise<unknown> {
  * @returns `boolean`
  */
 export function isError(value: unknown): value is Error {
-    return value instanceof Error;
+  return value instanceof Error;
 }
 
 /**
@@ -799,9 +792,7 @@ export function isError(value: unknown): value is Error {
  * @returns `boolean`
  */
 export function isDisposable(value: unknown): value is Disposable {
-    return (
-        isObjectLike<RecordObject>(value) && isFunction(value[Symbol.dispose])
-    );
+  return isObjectLike<RecordObject>(value) && isFunction(value[Symbol.dispose]);
 }
 
 /**
@@ -811,10 +802,9 @@ export function isDisposable(value: unknown): value is Disposable {
  * @returns `boolean`
  */
 export function isAsyncDisposable(value: unknown): value is AsyncDisposable {
-    return (
-        isObjectLike<RecordObject>(value)
-        && isFunction(value[Symbol.asyncDispose])
-    );
+  return (
+    isObjectLike<RecordObject>(value) && isFunction(value[Symbol.asyncDispose])
+  );
 }
 
 /**
@@ -824,9 +814,9 @@ export function isAsyncDisposable(value: unknown): value is AsyncDisposable {
  * @returns `boolean`
  */
 export function isAnyDisposable(
-    value: unknown,
+  value: unknown,
 ): value is AsyncDisposable | Disposable {
-    return isDisposable(value) || isAsyncDisposable(value);
+  return isDisposable(value) || isAsyncDisposable(value);
 }
 
 /**
@@ -838,7 +828,7 @@ export function isAnyDisposable(
  * @returns `boolean`
  */
 export function isNativeCode(target: Function): boolean {
-    return Function.prototype.toString.call(target).includes("native code");
+  return Function.prototype.toString.call(target).includes('native code');
 }
 
 /**
@@ -848,7 +838,7 @@ export function isNativeCode(target: Function): boolean {
  * @returns `boolean`
  */
 export function isArrayBuffer(value: unknown): value is ArrayBuffer {
-    return value instanceof ArrayBuffer;
+  return value instanceof ArrayBuffer;
 }
 
 /**
@@ -858,9 +848,9 @@ export function isArrayBuffer(value: unknown): value is ArrayBuffer {
  * @returns `boolean`
  */
 export function isSharedArrayBuffer(
-    value: unknown,
+  value: unknown,
 ): value is SharedArrayBuffer {
-    return value instanceof SharedArrayBuffer;
+  return value instanceof SharedArrayBuffer;
 }
 
 /**
@@ -870,9 +860,9 @@ export function isSharedArrayBuffer(
  * @returns `boolean`
  */
 export function isAnyArrayBuffer(
-    value: unknown,
+  value: unknown,
 ): value is ArrayBuffer | SharedArrayBuffer {
-    return isArrayBuffer(value) || isSharedArrayBuffer(value);
+  return isArrayBuffer(value) || isSharedArrayBuffer(value);
 }
 
 /**
@@ -882,7 +872,7 @@ export function isAnyArrayBuffer(
  * @returns `boolean`
  */
 export function isArrayBufferView(value: unknown): value is ArrayBufferView {
-    return ArrayBuffer.isView(value);
+  return ArrayBuffer.isView(value);
 }
 
 /**
@@ -892,7 +882,7 @@ export function isArrayBufferView(value: unknown): value is ArrayBufferView {
  * @returns `boolean`
  */
 export function isTypedArray(value: unknown): value is TypedArray {
-    return ArrayBuffer.isView(value) && !(value instanceof DataView);
+  return ArrayBuffer.isView(value) && !(value instanceof DataView);
 }
 
 /**
@@ -902,7 +892,7 @@ export function isTypedArray(value: unknown): value is TypedArray {
  * @returns `boolean`
  */
 export function isNumberTypedArray(value: unknown): value is NumberTypedArray {
-    return isTypedArray(value) && !isBigIntTypedArray(value);
+  return isTypedArray(value) && !isBigIntTypedArray(value);
 }
 
 /**
@@ -912,10 +902,21 @@ export function isNumberTypedArray(value: unknown): value is NumberTypedArray {
  * @returns `boolean`
  */
 export function isBigIntTypedArray(value: unknown): value is BigIntTypedArray {
-    return (
-        isTypedArray(value)
-        && (isBigInt64Array(value) || isBigUint64Array(value))
-    );
+  return (
+    isTypedArray(value) && (isBigInt64Array(value) || isBigUint64Array(value))
+  );
+}
+
+/**
+ * 检测值是否为 {@link AnyBufferSource} 类型
+ *
+ * @param value 任意值
+ * @returns `boolean`
+ */
+export function isAnyBufferSource(value: unknown): value is AnyBufferSource {
+  return (
+    isObjectLike(value) && (isArrayBuffer(value) || isArrayBufferView(value))
+  );
 }
 
 /**
@@ -925,10 +926,11 @@ export function isBigIntTypedArray(value: unknown): value is BigIntTypedArray {
  * @returns `boolean`
  */
 export function isBufferSource(value: unknown): value is BufferSource {
-    return (
-        isObjectLike(value)
-        && (isArrayBuffer(value) || isArrayBufferView(value))
-    );
+  return (
+    isObjectLike(value)
+    && (isArrayBuffer(value)
+      || (isArrayBufferView(value) && isArrayBuffer(value.buffer)))
+  );
 }
 
 /**
@@ -938,7 +940,7 @@ export function isBufferSource(value: unknown): value is BufferSource {
  * @returns `boolean`
  */
 export function isDataView(value: unknown): value is DataView {
-    return value instanceof DataView;
+  return value instanceof DataView;
 }
 
 /**
@@ -948,7 +950,7 @@ export function isDataView(value: unknown): value is DataView {
  * @returns `boolean`
  */
 export function isInt8Array(value: unknown): value is Int8Array {
-    return value instanceof Int8Array;
+  return value instanceof Int8Array;
 }
 
 /**
@@ -958,7 +960,7 @@ export function isInt8Array(value: unknown): value is Int8Array {
  * @returns `boolean`
  */
 export function isUint8Array(value: unknown): value is Uint8Array {
-    return value instanceof Uint8Array;
+  return value instanceof Uint8Array;
 }
 
 /**
@@ -968,9 +970,9 @@ export function isUint8Array(value: unknown): value is Uint8Array {
  * @returns `boolean`
  */
 export function isUint8ClampedArray(
-    value: unknown,
+  value: unknown,
 ): value is Uint8ClampedArray {
-    return value instanceof Uint8ClampedArray;
+  return value instanceof Uint8ClampedArray;
 }
 
 /**
@@ -980,7 +982,7 @@ export function isUint8ClampedArray(
  * @returns `boolean`
  */
 export function isInt16Array(value: unknown): value is Int16Array {
-    return value instanceof Int16Array;
+  return value instanceof Int16Array;
 }
 
 /**
@@ -990,7 +992,7 @@ export function isInt16Array(value: unknown): value is Int16Array {
  * @returns `boolean`
  */
 export function isUint16Array(value: unknown): value is Uint16Array {
-    return value instanceof Uint16Array;
+  return value instanceof Uint16Array;
 }
 
 /**
@@ -1000,7 +1002,7 @@ export function isUint16Array(value: unknown): value is Uint16Array {
  * @returns `boolean`
  */
 export function isInt32Array(value: unknown): value is Int32Array {
-    return value instanceof Int32Array;
+  return value instanceof Int32Array;
 }
 
 /**
@@ -1010,7 +1012,7 @@ export function isInt32Array(value: unknown): value is Int32Array {
  * @returns `boolean`
  */
 export function isUint32Array(value: unknown): value is Uint32Array {
-    return value instanceof Uint32Array;
+  return value instanceof Uint32Array;
 }
 
 /**
@@ -1020,7 +1022,7 @@ export function isUint32Array(value: unknown): value is Uint32Array {
  * @returns `boolean`
  */
 export function isFloat32Array(value: unknown): value is Float32Array {
-    return value instanceof Float32Array;
+  return value instanceof Float32Array;
 }
 
 /**
@@ -1030,7 +1032,7 @@ export function isFloat32Array(value: unknown): value is Float32Array {
  * @returns `boolean`
  */
 export function isFloat64Array(value: unknown): value is Float64Array {
-    return value instanceof Float64Array;
+  return value instanceof Float64Array;
 }
 
 /**
@@ -1040,7 +1042,7 @@ export function isFloat64Array(value: unknown): value is Float64Array {
  * @returns `boolean`
  */
 export function isBigInt64Array(value: unknown): value is BigInt64Array {
-    return value instanceof BigInt64Array;
+  return value instanceof BigInt64Array;
 }
 
 /**
@@ -1050,30 +1052,30 @@ export function isBigInt64Array(value: unknown): value is BigInt64Array {
  * @returns `boolean`
  */
 export function isBigUint64Array(value: unknown): value is BigUint64Array {
-    return value instanceof BigUint64Array;
+  return value instanceof BigUint64Array;
 }
 
 /**
  * 检测值是否为 {@link ValueLike}
  */
 export function isValueLike<T = unknown>(
-    value: unknown,
+  value: unknown,
 ): value is ValueLike<T> {
-    return isObjectLike(value) && <keyof ValueLike>"value" in value;
+  return isObjectLike(value) && <keyof ValueLike>'value' in value;
 }
 
 /**
  * 检测值是否为 {@link Equatable}
  */
 export function isEquatable(value: unknown): value is Equatable {
-    return isObjectLike(value) && isFunction((<Equatable>value)[equal]);
+  return isObjectLike(value) && isFunction((<Equatable>value)[equal]);
 }
 
 /**
  * 检测值是否为 {@link Streamable}
  */
 export function isStreamable<I = unknown, O = I>(
-    value: unknown,
+  value: unknown,
 ): value is Streamable<I, O> {
-    return isObjectLike(value) && isFunction((<Streamable>value)[stream]);
+  return isObjectLike(value) && isFunction((<Streamable>value)[stream]);
 }

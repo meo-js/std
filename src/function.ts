@@ -1,10 +1,9 @@
 /**
  * @public
- *
  * @module
  */
-import type { uncertain } from "./ts.js";
-import type { SetThis } from "./ts/modifier.js";
+import type { uncertain } from './ts.js';
+import type { SetThis } from './ts/modifier.js';
 
 /**
  * 函数
@@ -13,36 +12,36 @@ import type { SetThis } from "./ts/modifier.js";
  * @param Return 返回值
  */
 export type fn<
-    Arguments extends readonly unknown[] = uncertain,
-    Return = unknown,
+  Arguments extends readonly unknown[] = uncertain,
+  Return = unknown,
 > = (...args: Arguments) => Return;
 
 /**
  * 生成器函数
  */
 export type GenFn<
-    Arguments extends readonly unknown[] = uncertain,
-    T = unknown,
-    Return = unknown,
-    Next = uncertain,
+  Arguments extends readonly unknown[] = uncertain,
+  T = unknown,
+  Return = unknown,
+  Next = uncertain,
 > = fn<Arguments, Generator<T, Return, Next>>;
 
 /**
  * 异步生成器函数
  */
 export type AsyncGenFn<
-    Arguments extends readonly unknown[] = uncertain,
-    T = unknown,
-    Return = unknown,
-    Next = uncertain,
+  Arguments extends readonly unknown[] = uncertain,
+  T = unknown,
+  Return = unknown,
+  Next = uncertain,
 > = fn<Arguments, AsyncGenerator<T, Return, Next>>;
 
 /**
  * 异步函数
  */
 export type AsyncFn<
-    Arguments extends readonly unknown[] = uncertain,
-    T = unknown,
+  Arguments extends readonly unknown[] = uncertain,
+  T = unknown,
 > = fn<Arguments, Promise<T>>;
 
 // 绑定缓存
@@ -60,20 +59,20 @@ export const noop = () => {};
  * 内部维护着绑定缓存，同样的参数会返回同一个函数实例
  */
 export function bind<T extends fn, This extends object>(
-    fn: T,
-    thisArg: This,
+  fn: T,
+  thisArg: This,
 ): SetThis<T, This> {
-    let cache = bindCaches.get(thisArg);
+  let cache = bindCaches.get(thisArg);
 
-    if (!cache) {
-        bindCaches.set(thisArg, (cache = new WeakMap()));
-    }
+  if (!cache) {
+    bindCaches.set(thisArg, (cache = new WeakMap()));
+  }
 
-    let bound = cache.get(fn);
+  let bound = cache.get(fn);
 
-    if (!bound) {
-        cache.set(fn, (bound = fn.bind(thisArg)));
-    }
+  if (!bound) {
+    cache.set(fn, (bound = fn.bind(thisArg)));
+  }
 
-    return bound as SetThis<T, This>;
+  return bound as SetThis<T, This>;
 }

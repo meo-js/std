@@ -1,9 +1,8 @@
 /**
  * @public
- *
  * @module
  */
-import type { PlainObject } from "./object.js";
+import type { PlainObject } from './object.js';
 
 let fastProto: unknown = null;
 
@@ -13,7 +12,7 @@ let fastProto: unknown = null;
  * @see [to-fast-properties](https://github.com/sindresorhus/to-fast-properties)
  */
 export function forceToFastObject<T extends object>(o: T): T {
-    return fastObject(o) as T;
+  return fastObject(o) as T;
 }
 
 /**
@@ -26,22 +25,22 @@ export function forceToFastObject<T extends object>(o: T): T {
  * @see [Discussion](https://stackoverflow.com/questions/79478418/how-to-correctly-unref-a-v8-substring-sliced-string-from-its-source-string)
  */
 export function forceToUnslicedString(str: string): string {
-    const temp: PlainObject = {};
-    temp[str] = undefined;
-    return str;
+  const temp: PlainObject = {};
+  temp[str] = undefined;
+  return str;
 }
 
 function fastObject(this: void, o: object) {
-    if (fastProto !== null) {
-        // < SotreIC >
-        (<{ a: number }>(<unknown>this)).a = 1;
-        const res = fastProto;
-        fastProto = null;
-        return res;
-    }
+  if (fastProto !== null) {
+    // < SotreIC >
+    (<{ a: number }>(<unknown>this)).a = 1;
+    const res = fastProto;
+    fastProto = null;
+    return res;
+  }
 
-    fastProto = fastObject.prototype = o;
+  fastProto = fastObject.prototype = o;
 
-    // @ts-expect-error -- ts7009 checked.
-    return new fastObject() as unknown;
+  // @ts-expect-error -- ts7009 checked.
+  return new fastObject() as unknown;
 }

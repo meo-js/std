@@ -1,6 +1,6 @@
 /**
- * @module
  * @public
+ * @module
  */
 import * as ccenv from 'cc/env';
 import { COCOS, NODE } from 'compile-constant/env';
@@ -15,11 +15,11 @@ import { COCOS, NODE } from 'compile-constant/env';
  * 其余编译目标等同于 `globalThis.MEO_DEBUG`，默认值为 `false`
  */
 export const DEBUG =
-    (COCOS
-        ? ccenv.DEBUG
-        : NODE
-          ? process.env.NODE_ENV !== 'production'
-          : globalThis.MEO_DEBUG) ?? false;
+  (COCOS
+    ? ccenv.DEBUG
+    : NODE
+      ? process.env.NODE_ENV !== 'production'
+      : globalThis.MEO_DEBUG) ?? false;
 
 /**
  * 是否启用新手调试模式
@@ -39,4 +39,4 @@ export const ROOKIE = (DEBUG && globalThis.MEO_ROOKIE) ?? false;
  */
 // FIXME: 新 decorator 提案普及后移除该 flag
 export const USE_LEGACY_DECORATOR =
-    (COCOS ? true : globalThis.MEO_USE_LEGACY_DECORATOR) ?? false;
+  (COCOS ? true : globalThis.MEO_USE_LEGACY_DECORATOR) ?? false;

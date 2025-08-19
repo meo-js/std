@@ -1,6 +1,6 @@
 /**
- * @module
  * @public
+ * @module
  */
 import { utf8 } from './encoding/text.js';
 import { every, Pipe, type IPipe, type Next } from './pipe.js';
@@ -34,63 +34,63 @@ import { flatCodePoints } from './pipe/string.js';
 // 5. 以扩展的形式增加 value-shared 等必要的扩展
 
 export function serialize(input: unknown): Uint8Array {
-    return utf8.encode(JSON.stringify(input));
+  return utf8.encode(JSON.stringify(input));
 }
 
 export function deserialize<T>(input: Uint8Array): T {
-    return JSON.parse(utf8.decode(input)) as T;
+  return JSON.parse(utf8.decode(input)) as T;
 }
 
 export function serializePipe() {
-    return Pipe.create(new SerializePipe());
+  return Pipe.create(new SerializePipe());
 }
 
 export function deserializePipe<T>() {
-    return Pipe.create(new DeserializePipe<T>());
+  return Pipe.create(new DeserializePipe<T>());
 }
 
 class SerializePipe implements IPipe<unknown, number> {
-    // TODO: JSON 字符串直接拼接毫无意义，等待新的 CBOR 实现。
+  // TODO: JSON 字符串直接拼接毫无意义，等待新的 CBOR 实现。
 
-    transform(input: unknown, next: Next<number>): boolean {
-        const str = JSON.stringify(input);
-        // TODO: 以下演示了使用 every 实现管道内嵌套管道的方式，应该写进文档，然后是否可以提供更便捷、性能更高的嵌套方式？
-        return Pipe.run(str, flatCodePoints(), utf8.encodePipe(), every(next));
-    }
+  transform(input: unknown, next: Next<number>): boolean {
+    const str = JSON.stringify(input);
+    // TODO: 以下演示了使用 every 实现管道内嵌套管道的方式，应该写进文档，然后是否可以提供更便捷、性能更高的嵌套方式？
+    return Pipe.run(str, flatCodePoints(), utf8.encodePipe(), every(next));
+  }
 
-    flush(next: Next<number>): void {
-        // do nothing.
-    }
+  flush(next: Next<number>): void {
+    // do nothing.
+  }
 
-    catch(error: unknown): unknown {
-        // do nothing.
-        return error;
-    }
+  catch(error: unknown): unknown {
+    // do nothing.
+    return error;
+  }
 }
 
 class DeserializePipe<T> implements IPipe<number, T, T> {
-    private bytes: number[] = [];
+  private bytes: number[] = [];
 
-    transform(input: number, next: Next<T>): boolean {
-        this.bytes.push(input);
-        return true;
-    }
+  transform(input: number, next: Next<T>): boolean {
+    this.bytes.push(input);
+    return true;
+  }
 
-    flush(next: Next<T>): T {
-        try {
-            const uint8Array = new Uint8Array(this.bytes);
-            const result = deserialize<T>(uint8Array);
-            this.bytes = [];
-            next(result);
-            return result;
-        } catch (error) {
-            this.bytes = [];
-            throw error;
-        }
+  flush(next: Next<T>): T {
+    try {
+      const uint8Array = new Uint8Array(this.bytes);
+      const result = deserialize<T>(uint8Array);
+      this.bytes = [];
+      next(result);
+      return result;
+    } catch (error) {
+      this.bytes = [];
+      throw error;
     }
+  }
 
-    catch(error: unknown): unknown {
-        this.bytes = [];
-        return error;
-    }
+  catch(error: unknown): unknown {
+    this.bytes = [];
+    return error;
+  }
 }

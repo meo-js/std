@@ -7,39 +7,39 @@
 // 使用枚举实现 Result？
 
 const Color = {
-    BLACK: "#000000" as Color,
-    WHITE: "#FFFFFF" as Color,
-    RED: "#FF0000" as Color,
+  BLACK: '#000000' as Color,
+  WHITE: '#FFFFFF' as Color,
+  RED: '#FF0000' as Color,
 } as const;
-const brand = Symbol("brand");
-const ColorSymbol = Symbol("Color");
+const brand = Symbol('brand');
+const ColorSymbol = Symbol('Color');
 type Color = string & {
-    [brand]: Record<typeof ColorSymbol, true>;
+  [brand]: Record<typeof ColorSymbol, true>;
 };
 
-type ColorUnion = "black" | "white";
+type ColorUnion = 'black' | 'white';
 function draw(color: Color) {
-    switch (color) {
-        case Color.BLACK:
-            break;
-        case Color.WHITE:
-            break;
-        case Color.RED:
-            break;
-    }
-    console.log(color);
+  switch (color) {
+    case Color.BLACK:
+      break;
+    case Color.WHITE:
+      break;
+    case Color.RED:
+      break;
+  }
+  console.log(color);
 }
 
 function draw2(color: typeof Color.BLACK) {
-    switch (color) {
-        case Color.BLACK:
-            break;
-        case Color.WHITE:
-            break;
-        case Color.RED:
-            break;
-    }
-    console.log(color);
+  switch (color) {
+    case Color.BLACK:
+      break;
+    case Color.WHITE:
+      break;
+    case Color.RED:
+      break;
+  }
+  console.log(color);
 }
 
 draw(Color.BLACK);

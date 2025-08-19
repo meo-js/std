@@ -1,7 +1,7 @@
 import {
-    ASCII_REPLACEMENT_CHAR,
-    UNICODE_REPLACEMENT_CHAR,
-} from "../../string.js";
+  ASCII_REPLACEMENT_CHAR,
+  UNICODE_REPLACEMENT_CHAR,
+} from '../../string.js';
 
 /**
  * 文本解码时无效数据处理函数
@@ -19,12 +19,12 @@ export type DecodeFallback = (codeUnit: number, unicode: boolean) => string;
  * - Ascii 编码的替换字符为 `0x1A`
  */
 export const replace: DecodeFallback = (codeUnit, unicode) => {
-    return unicode ? UNICODE_REPLACEMENT_CHAR : ASCII_REPLACEMENT_CHAR;
+  return unicode ? UNICODE_REPLACEMENT_CHAR : ASCII_REPLACEMENT_CHAR;
 };
 
 /**
  * 忽略无效数据
  */
 export const ignore: DecodeFallback = (codeUnit, unicode) => {
-    return "";
+  return '';
 };

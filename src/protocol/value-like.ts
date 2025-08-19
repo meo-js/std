@@ -2,7 +2,7 @@
  * 值对象
  */
 export interface ValueLike<out T = unknown> {
-    value: T;
+  value: T;
 }
 
 /**

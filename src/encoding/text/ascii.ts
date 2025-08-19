@@ -1,18 +1,19 @@
+import type { AnyBufferSource } from '../../typed-array.js';
 import type {
-    SingleByteDecodeOptions,
-    SingleByteEncodeOptions,
-} from "./options.js";
+  SingleByteDecodeOptions,
+  SingleByteEncodeOptions,
+} from './options.js';
 import {
-    _decode,
-    _decodePipe,
-    _encode,
-    _encodeInto,
-    _encodePipe,
-    _isWellFormed,
-    _isWellFormedPipe,
-    _verify,
-    _verifyPipe,
-} from "./single-byte.js";
+  _decode,
+  _decodePipe,
+  _encode,
+  _encodeInto,
+  _encodePipe,
+  _isWellFormed,
+  _isWellFormedPipe,
+  _verify,
+  _verifyPipe,
+} from './single-byte.js';
 
 /**
  * Ascii 最大码点
@@ -27,10 +28,10 @@ export const MAX_CODE = 127;
  * @returns Ascii 字节数据
  */
 export function encode(
-    text: string,
-    opts?: SingleByteEncodeOptions,
+  text: string,
+  opts?: SingleByteEncodeOptions,
 ): Uint8Array {
-    return _encode(MAX_CODE, text, opts);
+  return _encode(MAX_CODE, text, opts);
 }
 
 /**
@@ -42,11 +43,12 @@ export function encode(
  * @returns 返回一个对象，包含已转换的 UTF-16 编码单元数量和写入缓冲区的字节数
  */
 export function encodeInto(
-    text: string,
-    out: BufferSource,
-    opts?: SingleByteEncodeOptions,
+  text: string,
+  out: AnyBufferSource,
+  opts?: SingleByteEncodeOptions,
 ): { read: number; written: number } {
-    return _encodeInto(MAX_CODE, text, out, opts);
+  // Cast to BufferSource compatible type; internal helpers expect BufferSource
+  return _encodeInto(MAX_CODE, text, out, opts);
 }
 
 /**
@@ -57,10 +59,10 @@ export function encodeInto(
  * @returns 字符串
  */
 export function decode(
-    bytes: BufferSource,
-    opts?: SingleByteDecodeOptions,
+  bytes: AnyBufferSource,
+  opts?: SingleByteDecodeOptions,
 ): string {
-    return _decode(MAX_CODE, bytes, opts);
+  return _decode(MAX_CODE, bytes, opts);
 }
 
 /**
@@ -71,10 +73,10 @@ export function decode(
  * @returns 是否为有效的 Ascii 编码
  */
 export function verify(
-    bytes: BufferSource,
-    allowReplacementChar?: boolean,
+  bytes: AnyBufferSource,
+  allowReplacementChar?: boolean,
 ): boolean {
-    return _verify(MAX_CODE, bytes, allowReplacementChar);
+  return _verify(MAX_CODE, bytes, allowReplacementChar);
 }
 
 /**
@@ -83,36 +85,36 @@ export function verify(
  * @returns 是否是有效的 Ascii 字符串
  */
 export function isWellFormed(
-    text: string,
-    allowReplacementChar?: boolean,
+  text: string,
+  allowReplacementChar?: boolean,
 ): boolean {
-    return _isWellFormed(MAX_CODE, text, allowReplacementChar);
+  return _isWellFormed(MAX_CODE, text, allowReplacementChar);
 }
 
 /**
  * 创建一个编码字符码点为 Ascii 字节数据的管道
  */
 export function encodePipe(opts?: SingleByteEncodeOptions) {
-    return _encodePipe(MAX_CODE, opts);
+  return _encodePipe(MAX_CODE, opts);
 }
 
 /**
  * 创建一个解码 Ascii 字节数据的管道
  */
 export function decodePipe(opts?: SingleByteDecodeOptions) {
-    return _decodePipe(MAX_CODE, opts);
+  return _decodePipe(MAX_CODE, opts);
 }
 
 /**
  * 创建一个验证字节数据是否为有效 Ascii 编码的管道
  */
 export function verifyPipe(allowReplacementChar?: boolean) {
-    return _verifyPipe(MAX_CODE, allowReplacementChar);
+  return _verifyPipe(MAX_CODE, allowReplacementChar);
 }
 
 /**
  * 创建一个验证字符码点是否能编码为 Ascii 的管道
  */
 export function isWellFormedPipe(allowReplacementChar?: boolean) {
-    return _isWellFormedPipe(MAX_CODE, allowReplacementChar);
+  return _isWellFormedPipe(MAX_CODE, allowReplacementChar);
 }

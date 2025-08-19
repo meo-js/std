@@ -1,7 +1,6 @@
 /**
- * @module
- *
  * @internal
+ * @module
  */
 
 /**
@@ -10,11 +9,11 @@
  * 默认为 {@link console}
  */
 export interface InternalLogger {
-    trace(...msgs: unknown[]): void;
-    debug(...msgs: unknown[]): void;
-    info(...msgs: unknown[]): void;
-    warn(...msgs: unknown[]): void;
-    error(...msgs: unknown[]): void;
+  trace(...msgs: unknown[]): void;
+  debug(...msgs: unknown[]): void;
+  info(...msgs: unknown[]): void;
+  warn(...msgs: unknown[]): void;
+  error(...msgs: unknown[]): void;
 }
 
 /**

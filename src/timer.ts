@@ -1,9 +1,8 @@
 /**
  * @public
- *
  * @module
  */
-import type { WeakTagged } from "./ts/nominal.js";
+import type { WeakTagged } from './ts/nominal.js';
 
 /**
  * {@link setTimeout} 与 {@link setInterval} 的句柄
@@ -20,7 +19,7 @@ declare const timerHandleTag: unique symbol;
  * @param ms 等待解决的时间，单位：毫秒
  */
 export async function sleep(ms: number) {
-    return new Promise<void>(resolve => {
-        setTimeout(resolve, ms);
-    });
+  return new Promise<void>(resolve => {
+    setTimeout(resolve, ms);
+  });
 }

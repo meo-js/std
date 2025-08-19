@@ -1,18 +1,17 @@
 /**
  * @public
- *
  * @module
  */
-import type * as tf from "type-fest";
-import type { ApplyDefaultOptions as _ApplyDefaultOptions } from "type-fest/source/internal/object.js";
-import type { fn } from "./function.js";
-import type { Primitive } from "./primitive.js";
+import type * as tf from 'type-fest';
+import type { ApplyDefaultOptions as _ApplyDefaultOptions } from 'type-fest/source/internal/object.js';
+import type { fn } from './function.js';
+import type { Primitive } from './primitive.js';
 
 // #export * from "!sub-modules"
 // #region Generated exports
-export * from "./ts/modifier.js";
-export * from "./ts/nominal.js";
-export * from "./ts/union.js";
+export * from './ts/modifier.js';
+export * from './ts/nominal.js';
+export * from './ts/union.js';
 // #endregion
 
 /**
@@ -31,8 +30,8 @@ export type Simplify<T> = tf.Simplify<T>;
  */
 // FIXME: 当前的 TypeScript 不支持显式协逆变，后续跟进 issues #41770 #10717
 export type Covariant<T extends fn> = T extends (...args: infer A) => infer R
-    ? (...args: { [P in keyof A]: uncertain }) => R
-    : never;
+  ? (...args: { [P in keyof A]: uncertain }) => R
+  : never;
 
 /**
  * 创建一个不变类型，不允许接受该类型的任何父子类型
@@ -45,8 +44,8 @@ export type Invariant<T> = tf.InvariantOf<T>;
  * 这是解决 [TypeScript#29729](https://github.com/Microsoft/TypeScript/issues/29729) 问题的一种方法，一旦不再需要，它将被移除。
  */
 export type Literal<T, BaseType extends Primitive> = tf.LiteralUnion<
-    T,
-    BaseType
+  T,
+  BaseType
 >;
 
 /**
@@ -98,12 +97,12 @@ export type PartialDeep<T> = tf.PartialDeep<T>;
  * 可参考 {@link SetClass} 类型的实现来了解具体用法。
  */
 export type ApplyDefaultOptions<
-    Options extends object,
-    Default extends Simplify<
-        Omit<Required<Options>, tf.RequiredKeysOf<Options>>
-            & Partial<Record<tf.RequiredKeysOf<Options>, never>>
-    >,
-    Input extends Options,
+  Options extends object,
+  Default extends Simplify<
+    Omit<Required<Options>, tf.RequiredKeysOf<Options>>
+      & Partial<Record<tf.RequiredKeysOf<Options>, never>>
+  >,
+  Input extends Options,
 > = _ApplyDefaultOptions<Options, Default, Input>;
 
 /**

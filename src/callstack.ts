@@ -1,6 +1,5 @@
 /**
  * @public
- *
  * @module
  */
 
@@ -17,15 +16,14 @@
  * ```
  */
 export function captureCallstackText(ignore?: Function): string {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions -- captureStackTrace may not exist.
-    if (Error.captureStackTrace) {
-        const temp = { stack: "" as string | undefined };
-        Error.captureStackTrace(temp, ignore);
-        return temp.stack?.replace("Error\n    ", "") ?? "";
-    } else {
-        return (
-            new Error("TempStack").stack?.replace("Error: TempStack\n    ", "")
-            ?? ""
-        );
-    }
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions -- captureStackTrace may not exist.
+  if (Error.captureStackTrace) {
+    const temp = { stack: '' as string | undefined };
+    Error.captureStackTrace(temp, ignore);
+    return temp.stack?.replace('Error\n    ', '') ?? '';
+  } else {
+    return (
+      new Error('TempStack').stack?.replace('Error: TempStack\n    ', '') ?? ''
+    );
+  }
 }

@@ -1,12 +1,12 @@
-import type * as tf from "type-fest";
-import { PLATFORM_ENDIAN } from "../env.js";
-import { assertPositive } from "../internal/error.js";
-import { isBigInt, isNumber, isUint8Array } from "../predicate.js";
-import type { And, Not } from "../ts/logical.js";
-import { asDataView, Endian } from "../typed-array.js";
-import { bitLengthPositive } from "./bigint.js";
-import * as float from "./float.js";
-import { round, Rounding } from "./float.js";
+import type * as tf from 'type-fest';
+import { PLATFORM_ENDIAN } from '../env.js';
+import { assertPositive } from '../internal/error.js';
+import { isBigInt, isNumber, isUint8Array } from '../predicate.js';
+import type { And, Not } from '../ts/logical.js';
+import { asDataView, Endian } from '../typed-array.js';
+import { bitLengthPositive } from './bigint.js';
+import * as float from './float.js';
+import { round, Rounding } from './float.js';
 
 /**
  * {@link Number} 或 {@link BigInt} 类型
@@ -53,8 +53,8 @@ export type Gt<A extends number, B extends number> = tf.GreaterThan<A, B>;
  * 判断 {@link A} 是否大于等于 {@link B}
  */
 export type Gte<A extends number, B extends number> = tf.GreaterThanOrEqual<
-    A,
-    B
+  A,
+  B
 >;
 
 /**
@@ -85,9 +85,9 @@ export type Neq<A extends number, B extends number> = Not<Eq<A, B>>;
  * @template Step - 步长，默认为 `1`
  */
 export type IntRangeOf<
-    Start extends number,
-    End extends number,
-    Step extends number = 1,
+  Start extends number,
+  End extends number,
+  Step extends number = 1,
 > = tf.IntRange<Start, End, Step>;
 
 /**
@@ -99,10 +99,10 @@ export type IsNegative<T extends Numeric> = tf.IsNegative<T>;
  * 判断是否为正数
  */
 export type IsPositive<T extends Numeric> = T extends Zero
+  ? false
+  : `${T}` extends `-${string}`
     ? false
-    : `${T}` extends `-${string}`
-      ? false
-      : true;
+    : true;
 
 /**
  * 判断是否为零
@@ -123,19 +123,19 @@ export type IsFloat<T extends Numeric> = tf.IsFloat<T>;
  * 数值二进制编/解码选项
  */
 export interface NumericBinaryOptions {
-    /**
-     * 指定为小端字节序
-     *
-     * @default 默认使用平台字节序，若平台字节序非大端或小端，则使用小端字节序
-     */
-    littleEndian?: boolean;
+  /**
+   * 指定为小端字节序
+   *
+   * @default 默认使用平台字节序，若平台字节序非大端或小端，则使用小端字节序
+   */
+  littleEndian?: boolean;
 
-    /**
-     * 是否使用补码
-     *
-     * @default true
-     */
-    signed?: boolean;
+  /**
+   * 是否使用补码
+   *
+   * @default true
+   */
+  signed?: boolean;
 }
 
 /**
@@ -147,16 +147,16 @@ export type FromUint8ArrayOptions = NumericBinaryOptions;
  * 数值转为 {@link Uint8Array} 的选项
  */
 export interface ToUint8ArrayOptions extends NumericBinaryOptions {
-    /**
-     * 指定输出位数
-     *
-     * 注意：
-     * - 内部会向上取整为字节数再使用，例如 `53` 位会被向上取整为 `7` 字节（`56` 位）。
-     * - 若提供了 `out` 则会忽略该选项，强制使用缓冲区长度
-     *
-     * @default 若不指定则默认使用 {@link bitLength} 计算最小位数，
-     */
-    bit?: number;
+  /**
+   * 指定输出位数
+   *
+   * 注意：
+   * - 内部会向上取整为字节数再使用，例如 `53` 位会被向上取整为 `7` 字节（`56` 位）。
+   * - 若提供了 `out` 则会忽略该选项，强制使用缓冲区长度
+   *
+   * @default 若不指定则默认使用 {@link bitLength} 计算最小位数，
+   */
+  bit?: number;
 }
 
 /**
@@ -206,11 +206,11 @@ export const NAN = Number.NaN;
  * - 如果值为 {@link Number}，则相当于调用 {@link Number.isSafeInteger}。
  */
 export function isInteger(value: unknown): boolean {
-    if (isBigInt(value)) {
-        return true;
-    } else {
-        return Number.isSafeInteger(value);
-    }
+  if (isBigInt(value)) {
+    return true;
+  } else {
+    return Number.isSafeInteger(value);
+  }
 }
 
 /**
@@ -220,9 +220,9 @@ export function isInteger(value: unknown): boolean {
  * - 如果值为 {@link Number}，则相当于调用 {@link Number.isFinite} 并检查 {@link Math.floor} 后的值是否不相等。
  */
 export function isFloat(value: unknown): boolean {
-    return (
-        isBigInt(value) || (Number.isFinite(value) && !Number.isInteger(value))
-    );
+  return (
+    isBigInt(value) || (Number.isFinite(value) && !Number.isInteger(value))
+  );
 }
 
 /**
@@ -232,29 +232,29 @@ export function isFloat(value: unknown): boolean {
  * - 如果值为 {@link Number}，则相当于调用 {@link Number.isFinite}。
  */
 export function isFinite(value: unknown): boolean {
-    if (isBigInt(value)) {
-        return true;
-    } else {
-        return Number.isFinite(value);
-    }
+  if (isBigInt(value)) {
+    return true;
+  } else {
+    return Number.isFinite(value);
+  }
 }
 
 /**
  * 检测值是否为无限数
  */
 export function isInfinity(value: unknown): boolean {
-    return value === INF || value === NINF;
+  return value === INF || value === NINF;
 }
 
 /**
  * 检测值是否为 {@link Number.NaN}
  */
 export function isNaN(value: unknown): boolean {
-    if (isBigInt(value)) {
-        return false;
-    } else {
-        return Number.isNaN(value);
-    }
+  if (isBigInt(value)) {
+    return false;
+  } else {
+    return Number.isNaN(value);
+  }
 }
 
 /**
@@ -265,11 +265,11 @@ export function isNaN(value: unknown): boolean {
  * @returns 可以被整除则返回 `true`，否则返回 `false`
  */
 export function divisibleBy(dividend: Numeric, divisor: Numeric): boolean {
-    if (isBigInt(dividend) || isBigInt(divisor)) {
-        return BigInt(dividend) % BigInt(divisor) === BigInt(0);
-    } else {
-        return dividend % divisor === 0;
-    }
+  if (isBigInt(dividend) || isBigInt(divisor)) {
+    return BigInt(dividend) % BigInt(divisor) === BigInt(0);
+  } else {
+    return dividend % divisor === 0;
+  }
 }
 
 /**
@@ -285,11 +285,11 @@ export function divisibleBy(dividend: Numeric, divisor: Numeric): boolean {
  * @returns 如果两个数值相等则返回 `true`，否则返回 `false`
  */
 export function eq(a: Numeric, b: Numeric): boolean {
-    if (isBigInt(a) || isBigInt(b)) {
-        return a <= b && a >= b;
-    }
+  if (isBigInt(a) || isBigInt(b)) {
+    return a <= b && a >= b;
+  }
 
-    return float.eq(a, b);
+  return float.eq(a, b);
 }
 
 /**
@@ -302,7 +302,7 @@ export function eq(a: Numeric, b: Numeric): boolean {
  * @see {@link eq}
  */
 export function neq(a: Numeric, b: Numeric): boolean {
-    return !eq(a, b);
+  return !eq(a, b);
 }
 
 /**
@@ -315,11 +315,11 @@ export function neq(a: Numeric, b: Numeric): boolean {
  * @see {@link eq}
  */
 export function gte(a: Numeric, b: Numeric): boolean {
-    if (eq(a, b)) {
-        return true;
-    }
+  if (eq(a, b)) {
+    return true;
+  }
 
-    return a > b;
+  return a > b;
 }
 
 /**
@@ -332,11 +332,11 @@ export function gte(a: Numeric, b: Numeric): boolean {
  * @see {@link eq}
  */
 export function lte(a: Numeric, b: Numeric): boolean {
-    if (eq(a, b)) {
-        return true;
-    }
+  if (eq(a, b)) {
+    return true;
+  }
 
-    return a < b;
+  return a < b;
 }
 
 /**
@@ -349,11 +349,11 @@ export function lte(a: Numeric, b: Numeric): boolean {
  * @see {@link eq}
  */
 export function gt(a: Numeric, b: Numeric): boolean {
-    if (eq(a, b)) {
-        return false;
-    }
+  if (eq(a, b)) {
+    return false;
+  }
 
-    return a > b;
+  return a > b;
 }
 
 /**
@@ -366,11 +366,11 @@ export function gt(a: Numeric, b: Numeric): boolean {
  * @see {@link eq}
  */
 export function lt(a: Numeric, b: Numeric): boolean {
-    if (eq(a, b)) {
-        return false;
-    }
+  if (eq(a, b)) {
+    return false;
+  }
 
-    return a < b;
+  return a < b;
 }
 
 /**
@@ -380,24 +380,21 @@ export function lt(a: Numeric, b: Numeric): boolean {
  * @param signed 是否考虑二进制补码，默认为 `true`
  */
 export function bitLength(value: Numeric, signed: boolean = true): number {
-    if (!signed) {
-        assertPositive(value, false);
-    }
+  if (!signed) {
+    assertPositive(value, false);
+  }
 
-    if (isBigInt(value)) {
-        if (value === BigInt(0) || value === BigInt(-1)) return 1;
+  if (isBigInt(value)) {
+    if (value === BigInt(0) || value === BigInt(-1)) return 1;
 
-        return Number(
-            bitLengthPositive(value > 0 ? value : ~value)
-                + BigInt(signed ? 1 : 0),
-        );
-    } else {
-        if (value === 0 || value === -1) return 1;
+    return Number(
+      bitLengthPositive(value > 0 ? value : ~value) + BigInt(signed ? 1 : 0),
+    );
+  } else {
+    if (value === 0 || value === -1) return 1;
 
-        return (
-            Math.floor(Math.log2(value > 0 ? value : ~value)) + (signed ? 2 : 1)
-        );
-    }
+    return Math.floor(Math.log2(value > 0 ? value : ~value)) + (signed ? 2 : 1);
+  }
 }
 
 /**
@@ -408,11 +405,11 @@ export function bitLength(value: Numeric, signed: boolean = true): number {
  * @returns 最大整数值
  */
 export function maxIntOfBits(bits: number, signed: boolean = true): bigint {
-    if (bits <= 0) return BigInt(0);
-    const b = BigInt(bits);
-    return signed
-        ? (BigInt(1) << (b - BigInt(1))) - BigInt(1)
-        : (BigInt(1) << b) - BigInt(1);
+  if (bits <= 0) return BigInt(0);
+  const b = BigInt(bits);
+  return signed
+    ? (BigInt(1) << (b - BigInt(1))) - BigInt(1)
+    : (BigInt(1) << b) - BigInt(1);
 }
 
 /**
@@ -423,9 +420,9 @@ export function maxIntOfBits(bits: number, signed: boolean = true): bigint {
  * @returns 最小整数值，如果不使用补码会直接返回 `0`
  */
 export function minIntOfBits(bits: number, signed: boolean = true): bigint {
-    if (bits <= 0) return BigInt(0);
-    const b = BigInt(bits);
-    return signed ? -(BigInt(1) << (b - BigInt(1))) : BigInt(0);
+  if (bits <= 0) return BigInt(0);
+  const b = BigInt(bits);
+  return signed ? -(BigInt(1) << (b - BigInt(1))) : BigInt(0);
 }
 
 /**
@@ -435,61 +432,61 @@ export function minIntOfBits(bits: number, signed: boolean = true): bigint {
  * @param opts {@link ToUint8ArrayOptions}
  */
 export function toUint8Array(
-    value: Numeric,
-    opts?: ToUint8ArrayOptions,
+  value: Numeric,
+  opts?: ToUint8ArrayOptions,
 ): Uint8Array;
 export function toUint8Array(
-    value: Numeric,
-    out: Uint8Array,
-    opts?: ToUint8ArrayOptions,
+  value: Numeric,
+  out: Uint8Array,
+  opts?: ToUint8ArrayOptions,
 ): Uint8Array;
 export function toUint8Array(
-    value: Numeric,
-    arg2?: Uint8Array | ToUint8ArrayOptions,
-    opts?: ToUint8ArrayOptions,
+  value: Numeric,
+  arg2?: Uint8Array | ToUint8ArrayOptions,
+  opts?: ToUint8ArrayOptions,
 ): Uint8Array {
-    if (!isUint8Array(arg2)) {
-        opts = arg2;
-    }
+  if (!isUint8Array(arg2)) {
+    opts = arg2;
+  }
 
-    const {
-        bit,
-        littleEndian = PLATFORM_ENDIAN !== Endian.Big,
-        signed = true,
-    } = opts ?? {};
+  const {
+    bit,
+    littleEndian = PLATFORM_ENDIAN !== Endian.Big,
+    signed = true,
+  } = opts ?? {};
 
-    if (isFloat(value)) {
-        throw new TypeError(`\`value\` must be an integer, not ${value}.`);
-    }
+  if (isFloat(value)) {
+    throw new TypeError(`\`value\` must be an integer, not ${value}.`);
+  }
 
-    if (!signed) {
-        assertPositive(value, false);
-    }
+  if (!signed) {
+    assertPositive(value, false);
+  }
 
-    let len = 0;
-    let out: Uint8Array;
-    const hasOut = isUint8Array(arg2);
+  let len = 0;
+  let out: Uint8Array;
+  const hasOut = isUint8Array(arg2);
 
+  if (hasOut) {
+    out = arg2;
+    len = bit != null ? Math.ceil(bit / 8) : out.length;
+  } else {
+    len = Math.ceil((bit ?? bitLength(value, signed)) / 8);
+    out = new Uint8Array(len);
+  }
+
+  if (eq(value, 0)) {
     if (hasOut) {
-        out = arg2;
-        len = bit != null ? Math.ceil(bit / 8) : out.length;
-    } else {
-        len = Math.ceil((bit ?? bitLength(value, signed)) / 8);
-        out = new Uint8Array(len);
+      out.fill(0);
     }
+    return out;
+  }
 
-    if (eq(value, 0)) {
-        if (hasOut) {
-            out.fill(0);
-        }
-        return out;
-    }
+  if (_fastToUint8Array(value, len, littleEndian, out)) {
+    return out;
+  }
 
-    if (_fastToUint8Array(value, len, littleEndian, out)) {
-        return out;
-    }
-
-    return _bigIntToUint8Array(BigInt(value), len, littleEndian, signed, out);
+  return _bigIntToUint8Array(BigInt(value), len, littleEndian, signed, out);
 }
 
 /**
@@ -499,166 +496,165 @@ export function toUint8Array(
  * @param opts {@link FromUint8ArrayOptions}
  */
 export function fromUint8Array(
-    bytes: Uint8Array,
-    opts: FromUint8ArrayOptions = {},
+  bytes: Uint8Array,
+  opts: FromUint8ArrayOptions = {},
 ): Numeric {
-    const { littleEndian = PLATFORM_ENDIAN !== Endian.Big, signed = true } =
-        opts;
+  const { littleEndian = PLATFORM_ENDIAN !== Endian.Big, signed = true } = opts;
 
-    if (bytes.length === 0) return 0;
+  if (bytes.length === 0) return 0;
 
-    const result = _fastFromUint8Array(bytes, littleEndian, signed);
-    if (result !== null) {
-        return result;
-    }
+  const result = _fastFromUint8Array(bytes, littleEndian, signed);
+  if (result !== null) {
+    return result;
+  }
 
-    return _bigIntfromUint8Array(bytes, littleEndian, signed);
+  return _bigIntfromUint8Array(bytes, littleEndian, signed);
 }
 
 function _fastToUint8Array(
-    value: Numeric,
-    len: number,
-    littleEndian: boolean,
-    out: Uint8Array,
+  value: Numeric,
+  len: number,
+  littleEndian: boolean,
+  out: Uint8Array,
 ) {
-    const view = asDataView(out);
-    switch (len) {
-        case 1:
-            view.setUint8(0, _asUintNumber(8, value));
-            return true;
+  const view = asDataView(out);
+  switch (len) {
+    case 1:
+      view.setUint8(0, _asUintNumber(8, value));
+      return true;
 
-        case 2:
-            view.setUint16(0, _asUintNumber(16, value), littleEndian);
-            return true;
+    case 2:
+      view.setUint16(0, _asUintNumber(16, value), littleEndian);
+      return true;
 
-        case 4:
-            view.setUint32(0, _asUintNumber(32, value), littleEndian);
-            return true;
+    case 4:
+      view.setUint32(0, _asUintNumber(32, value), littleEndian);
+      return true;
 
-        case 8:
-            view.setBigUint64(0, BigInt(value), littleEndian);
-            return true;
+    case 8:
+      view.setBigUint64(0, BigInt(value), littleEndian);
+      return true;
 
-        default:
-            return false;
-    }
+    default:
+      return false;
+  }
 }
 
 function _bigIntToUint8Array(
-    value: bigint,
-    len: number,
-    littleEndian: boolean,
-    signed: boolean,
-    out: Uint8Array,
+  value: bigint,
+  len: number,
+  littleEndian: boolean,
+  signed: boolean,
+  out: Uint8Array,
 ): Uint8Array {
-    let v = value;
-    if (v < BigInt(0)) {
-        // 转为补码
-        const mod = BigInt(1) << BigInt(len * 8);
-        v = (mod + v) & (mod - BigInt(1));
+  let v = value;
+  if (v < BigInt(0)) {
+    // 转为补码
+    const mod = BigInt(1) << BigInt(len * 8);
+    v = (mod + v) & (mod - BigInt(1));
+  }
+
+  let tmp = v;
+
+  if (littleEndian) {
+    for (let i = 0; i < len; i++) {
+      out[i] = Number(tmp & BigInt(0xff));
+      tmp >>= BigInt(8);
     }
-
-    let tmp = v;
-
-    if (littleEndian) {
-        for (let i = 0; i < len; i++) {
-            out[i] = Number(tmp & BigInt(0xff));
-            tmp >>= BigInt(8);
-        }
-    } else {
-        for (let i = 0; i < len; i++) {
-            out[len - 1 - i] = Number(tmp & BigInt(0xff));
-            tmp >>= BigInt(8);
-        }
+  } else {
+    for (let i = 0; i < len; i++) {
+      out[len - 1 - i] = Number(tmp & BigInt(0xff));
+      tmp >>= BigInt(8);
     }
+  }
 
-    if (tmp !== BigInt(0)) {
-        throw new RangeError(
-            `${value} must require ${bitLength(value, signed)} bits buffer, but only has ${len * 8} bits.`,
-        );
-    }
+  if (tmp !== BigInt(0)) {
+    throw new RangeError(
+      `${value} must require ${bitLength(value, signed)} bits buffer, but only has ${len * 8} bits.`,
+    );
+  }
 
-    return out;
+  return out;
 }
 
 function _fastFromUint8Array(
-    bytes: Uint8Array,
-    littleEndian: boolean,
-    signed: boolean,
+  bytes: Uint8Array,
+  littleEndian: boolean,
+  signed: boolean,
 ): Numeric | null {
-    const len = bytes.length;
-    const view = asDataView(bytes);
+  const len = bytes.length;
+  const view = asDataView(bytes);
 
-    switch (len) {
-        case 1:
-            return signed ? view.getInt8(0) : view.getUint8(0);
+  switch (len) {
+    case 1:
+      return signed ? view.getInt8(0) : view.getUint8(0);
 
-        case 2:
-            return signed
-                ? view.getInt16(0, littleEndian)
-                : view.getUint16(0, littleEndian);
+    case 2:
+      return signed
+        ? view.getInt16(0, littleEndian)
+        : view.getUint16(0, littleEndian);
 
-        case 4:
-            return signed
-                ? view.getInt32(0, littleEndian)
-                : view.getUint32(0, littleEndian);
+    case 4:
+      return signed
+        ? view.getInt32(0, littleEndian)
+        : view.getUint32(0, littleEndian);
 
-        case 8:
-            return signed
-                ? view.getBigInt64(0, littleEndian)
-                : view.getBigUint64(0, littleEndian);
+    case 8:
+      return signed
+        ? view.getBigInt64(0, littleEndian)
+        : view.getBigUint64(0, littleEndian);
 
-        default:
-            return null;
-    }
+    default:
+      return null;
+  }
 }
 
 function _bigIntfromUint8Array(
-    bytes: Uint8Array,
-    littleEndian: boolean,
-    signed: boolean,
+  bytes: Uint8Array,
+  littleEndian: boolean,
+  signed: boolean,
 ): bigint {
-    const len = bytes.length;
-    let value = BigInt(0);
+  const len = bytes.length;
+  let value = BigInt(0);
 
-    if (littleEndian) {
-        for (let i = len - 1; i >= 0; i--) {
-            value = (value << BigInt(8)) | BigInt(bytes[i]);
-        }
-    } else {
-        for (let i = 0; i < len; i++) {
-            value = (value << BigInt(8)) | BigInt(bytes[i]);
-        }
+  if (littleEndian) {
+    for (let i = len - 1; i >= 0; i--) {
+      value = (value << BigInt(8)) | BigInt(bytes[i]);
     }
-
-    // 若按补码解释且符号位为 1，则转换为负数
-    if (signed) {
-        const bitLen = BigInt(len * 8);
-        const signBit = BigInt(1) << (bitLen - BigInt(1));
-        if ((value & signBit) !== BigInt(0)) {
-            // 按补码规则还原
-            value = value - (BigInt(1) << bitLen);
-        }
+  } else {
+    for (let i = 0; i < len; i++) {
+      value = (value << BigInt(8)) | BigInt(bytes[i]);
     }
+  }
 
-    return value;
+  // 若按补码解释且符号位为 1，则转换为负数
+  if (signed) {
+    const bitLen = BigInt(len * 8);
+    const signBit = BigInt(1) << (bitLen - BigInt(1));
+    if ((value & signBit) !== BigInt(0)) {
+      // 按补码规则还原
+      value = value - (BigInt(1) << bitLen);
+    }
+  }
+
+  return value;
 }
 
 function _asUintNumber(bits: number, value: Numeric): number {
-    return isNumber(value) ? value : Number(BigInt.asUintN(bits, value));
+  return isNumber(value) ? value : Number(BigInt.asUintN(bits, value));
 }
 
 /**
  * 返回该数字的定点表示法字符串。
  */
 export function toFixed(
-    value: Numeric,
-    decimals = 0,
-    rounding: Rounding = Rounding.HalfUp,
+  value: Numeric,
+  decimals = 0,
+  rounding: Rounding = Rounding.HalfUp,
 ): string {
-    if (isBigInt(value)) {
-        return `${value}.${"0".repeat(decimals)}`;
-    } else {
-        return round(value, decimals, rounding).toFixed(decimals);
-    }
+  if (isBigInt(value)) {
+    return `${value}.${'0'.repeat(decimals)}`;
+  } else {
+    return round(value, decimals, rounding).toFixed(decimals);
+  }
 }

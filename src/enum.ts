@@ -1,9 +1,8 @@
 /**
  * @public
- *
  * @module
  */
-import type { PlainObject } from "./object.js";
+import type { PlainObject } from './object.js';
 
 /**
  * 枚举键类型
@@ -38,15 +37,15 @@ export type EntriesOf<T extends object> = [KeyOf<T>, ValueOf<T>][];
  * const result = [['A', 1], ['B', 2]];
  */
 export function getEntries<T extends object>(tsEnum: T): [keyof T, number][] {
-    const result: [keyof T, number][] = [];
-    for (const key in tsEnum) {
-        if (!Number.isNaN(Number(key))) continue;
-        if (Object.hasOwn(tsEnum, key)) {
-            const value = tsEnum[key];
-            result.push([key, value as number]);
-        }
+  const result: [keyof T, number][] = [];
+  for (const key in tsEnum) {
+    if (!Number.isNaN(Number(key))) continue;
+    if (Object.hasOwn(tsEnum, key)) {
+      const value = tsEnum[key];
+      result.push([key, value as number]);
     }
-    return result;
+  }
+  return result;
 }
 
 // TODO 改进这些函数类型的实验：
@@ -69,14 +68,14 @@ export function getEntries<T extends object>(tsEnum: T): [keyof T, number][] {
  * const result = ['A', 'B'];
  */
 export function getKeys<T extends object>(tsEnum: T): (keyof T)[] {
-    const result: (keyof T)[] = [];
-    for (const key in tsEnum) {
-        if (!Number.isNaN(Number(key))) continue;
-        if (Object.hasOwn(tsEnum, key)) {
-            result.push(key);
-        }
+  const result: (keyof T)[] = [];
+  for (const key in tsEnum) {
+    if (!Number.isNaN(Number(key))) continue;
+    if (Object.hasOwn(tsEnum, key)) {
+      result.push(key);
     }
-    return result;
+  }
+  return result;
 }
 
 /**
@@ -88,16 +87,16 @@ export function getKeys<T extends object>(tsEnum: T): (keyof T)[] {
  * const result = [1, 2];
  */
 export function getValues<T extends object>(tsEnum: T): number[] {
-    const result: number[] = [];
-    for (const key in tsEnum) {
-        if (Object.hasOwn(tsEnum, key)) {
-            const value = Number(tsEnum[key]);
-            if (!Number.isNaN(value)) {
-                result.push(value);
-            }
-        }
+  const result: number[] = [];
+  for (const key in tsEnum) {
+    if (Object.hasOwn(tsEnum, key)) {
+      const value = Number(tsEnum[key]);
+      if (!Number.isNaN(value)) {
+        result.push(value);
+      }
     }
-    return result;
+  }
+  return result;
 }
 
 /**
@@ -108,19 +107,19 @@ export function getValues<T extends object>(tsEnum: T): number[] {
  * @param value 成员值
  */
 export function isMemberOf<T extends object>(
-    tsEnum: T,
-    key: string,
-    value: number,
+  tsEnum: T,
+  key: string,
+  value: number,
 ) {
-    for (const k in tsEnum) {
-        if (!Number.isNaN(Number(k))) continue;
-        if (Object.hasOwn(tsEnum, k)) {
-            if (k === key) {
-                return (<PlainObject<number>>tsEnum)[k] === value;
-            }
-        }
+  for (const k in tsEnum) {
+    if (!Number.isNaN(Number(k))) continue;
+    if (Object.hasOwn(tsEnum, k)) {
+      if (k === key) {
+        return (<PlainObject<number>>tsEnum)[k] === value;
+      }
     }
-    return false;
+  }
+  return false;
 }
 
 /**
@@ -130,13 +129,13 @@ export function isMemberOf<T extends object>(
  * @param key 成员键
  */
 export function isKeyOf<T extends object>(tsEnum: T, key: string) {
-    for (const k in tsEnum) {
-        if (!Number.isNaN(Number(k))) continue;
-        if (Object.hasOwn(tsEnum, k)) {
-            if (k === key) return true;
-        }
+  for (const k in tsEnum) {
+    if (!Number.isNaN(Number(k))) continue;
+    if (Object.hasOwn(tsEnum, k)) {
+      if (k === key) return true;
     }
-    return false;
+  }
+  return false;
 }
 
 /**
@@ -146,13 +145,13 @@ export function isKeyOf<T extends object>(tsEnum: T, key: string) {
  * @param value 成员值
  */
 export function isValueOf<T extends object>(tsEnum: T, value: number) {
-    for (const key in tsEnum) {
-        if (Object.hasOwn(tsEnum, key)) {
-            const v = Number(tsEnum[key]);
-            if (!Number.isNaN(v)) {
-                if (v === value) return true;
-            }
-        }
+  for (const key in tsEnum) {
+    if (Object.hasOwn(tsEnum, key)) {
+      const v = Number(tsEnum[key]);
+      if (!Number.isNaN(v)) {
+        if (v === value) return true;
+      }
     }
-    return false;
+  }
+  return false;
 }

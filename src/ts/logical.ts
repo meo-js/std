@@ -1,9 +1,8 @@
 /**
  * @public
- *
  * @module
  */
-import type * as tf from "type-fest";
+import type * as tf from 'type-fest';
 
 /**
  * 条件类型
@@ -19,16 +18,15 @@ import type * as tf from "type-fest";
  * ```
  */
 export type If<Bool extends boolean, Then, Else> = Bool extends true
-    ? Then
-    : Else;
+  ? Then
+  : Else;
 
 /**
  * 逻辑与（AND）操作
  *
+ * @returns 当且仅当两个输入都为 `true` 时返回 `true`，否则返回 `false`
  * @template A - 第一个布尔值
  * @template B - 第二个布尔值
- *
- * @returns 当且仅当两个输入都为 `true` 时返回 `true`，否则返回 `false`
  *
  * @example
  * ```ts
@@ -43,10 +41,9 @@ export type And<A extends boolean, B extends boolean> = tf.And<A, B>;
 /**
  * 逻辑或（OR）操作
  *
+ * @returns 当任意一个输入为 `true` 时返回 `true`，仅当两个输入都为 `false` 时返回 `false`
  * @template A - 第一个布尔值
  * @template B - 第二个布尔值
- *
- * @returns 当任意一个输入为 `true` 时返回 `true`，仅当两个输入都为 `false` 时返回 `false`
  *
  * @example
  * ```ts
@@ -61,10 +58,9 @@ export type Or<A extends boolean, B extends boolean> = tf.Or<A, B>;
 /**
  * 逻辑异或（XOR）操作
  *
+ * @returns 当两个输入的值不同时返回 `true`，相同时返回 `false`
  * @template A - 第一个布尔值
  * @template B - 第二个布尔值
- *
- * @returns 当两个输入的值不同时返回 `true`，相同时返回 `false`
  *
  * @example
  * ```ts
@@ -75,16 +71,15 @@ export type Or<A extends boolean, B extends boolean> = tf.Or<A, B>;
  * ```
  */
 export type Xor<A extends boolean, B extends boolean> = Or<
-    And<A, Not<B>>,
-    And<Not<A>, B>
+  And<A, Not<B>>,
+  And<Not<A>, B>
 >;
 
 /**
  * 逻辑非（NOT）操作
  *
- * @template Bool - 输入的布尔值
- *
  * @returns 输入为 `true` 时返回 `false`，输入为 `false` 时返回 `true`
+ * @template Bool - 输入的布尔值
  *
  * @example
  * ```ts
@@ -97,10 +92,9 @@ export type Not<Bool extends boolean> = Bool extends true ? false : true;
 /**
  * 逻辑与非（NAND）操作
  *
+ * @returns 当且仅当两个输入都为 `true` 时返回 `false`，否则返回 `true`
  * @template A - 第一个布尔值
  * @template B - 第二个布尔值
- *
- * @returns 当且仅当两个输入都为 `true` 时返回 `false`，否则返回 `true`
  *
  * @example
  * ```ts
@@ -115,10 +109,9 @@ export type Nand<A extends boolean, B extends boolean> = Not<And<A, B>>;
 /**
  * 逻辑或非（NOR）操作
  *
+ * @returns 当且仅当两个输入都为 `false` 时返回 `true`，否则返回 `false`
  * @template A - 第一个布尔值
  * @template B - 第二个布尔值
- *
- * @returns 当且仅当两个输入都为 `false` 时返回 `true`，否则返回 `false`
  *
  * @example
  * ```ts
@@ -133,10 +126,9 @@ export type Nor<A extends boolean, B extends boolean> = Not<Or<A, B>>;
 /**
  * 逻辑同或（XNOR）操作
  *
+ * @returns 当两个输入的值相同时返回 `true`，不同时返回 `false`
  * @template A - 第一个布尔值
  * @template B - 第二个布尔值
- *
- * @returns 当两个输入的值相同时返回 `true`，不同时返回 `false`
  *
  * @example
  * ```ts

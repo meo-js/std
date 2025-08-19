@@ -1,19 +1,19 @@
-import type { Temporal } from "temporal-polyfill";
-import * as convert from "../format.js";
+import type { Temporal } from 'temporal-polyfill';
+import * as convert from '../format.js';
 import {
-    createTemporalInfo,
-    type DurationInput,
-    type DurationObject,
-    type DurationText,
-    type TemporalInfo,
-} from "../shared.js";
-import * as impl from "./impl/iso8601.js";
+  createTemporalInfo,
+  type DurationInput,
+  type DurationObject,
+  type DurationText,
+  type TemporalInfo,
+} from '../shared.js';
+import * as impl from './impl/iso8601.js';
 
 /**
  * 解析字符串为 {@link TemporalInfo}。
  */
 export function parse(input: string): Partial<TemporalInfo> {
-    return impl.parse(input, createTemporalInfo());
+  return impl.parse(input, createTemporalInfo());
 }
 
 /**
@@ -23,15 +23,15 @@ export function parse(input: string): Partial<TemporalInfo> {
  * @param opts {@link Temporal.ToStringPrecisionOptions}
  */
 export function format(
-    input: DurationInput | DurationText | DurationObject,
-    opts?: Temporal.ToStringPrecisionOptions,
+  input: DurationInput | DurationText | DurationObject,
+  opts?: Temporal.ToStringPrecisionOptions,
 ): string {
-    return convert.toDuration(input).toString(opts);
+  return convert.toDuration(input).toString(opts);
 }
 
 /**
  * 解析字符串为 {@link Temporal.Duration}。
  */
 export function toDuration(input: DurationText): Temporal.Duration {
-    return convert.toDuration(input);
+  return convert.toDuration(input);
 }

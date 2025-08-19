@@ -1,9 +1,8 @@
 /**
  * @public
- *
  * @module
  */
-import type * as tf from "type-fest";
+import type * as tf from 'type-fest';
 
 /**
  * 经过 Json 序列化后的类型
@@ -21,7 +20,7 @@ export type Jsonifiable = tf.Jsonifiable;
 export type JsonObject = tf.JsonObject;
 
 /**
- *  Json 数组
+ * Json 数组
  */
 export type JsonArray = tf.JsonArray;
 
