@@ -23,7 +23,23 @@
   "module": "./dist/default/index.js",
   "types": "./dist/default/index.d.cts",
   "exports": {
-    "./typed-array": {},
+    "./typed-array": {
+      "cocos": {
+        "require": "./dist/cocos/typed-array.cjs",
+        "import": "./dist/cocos/typed-array.js",
+        "default": "./dist/cocos/typed-array.js"
+      },
+      "node": {
+        "require": "./dist/node/typed-array.cjs",
+        "import": "./dist/node/typed-array.js",
+        "default": "./dist/node/typed-array.js"
+      },
+      "default": {
+        "require": "./dist/default/typed-array.cjs",
+        "import": "./dist/default/typed-array.js",
+        "default": "./dist/default/typed-array.js"
+      }
+    },
     "./ts": {
       "cocos": {
         "require": "./dist/cocos/ts.cjs",
@@ -75,7 +91,23 @@
         "default": "./dist/default/temporal.js"
       }
     },
-    "./string": {},
+    "./string": {
+      "cocos": {
+        "require": "./dist/cocos/string.cjs",
+        "import": "./dist/cocos/string.js",
+        "default": "./dist/cocos/string.js"
+      },
+      "node": {
+        "require": "./dist/node/string.cjs",
+        "import": "./dist/node/string.js",
+        "default": "./dist/node/string.js"
+      },
+      "default": {
+        "require": "./dist/default/string.cjs",
+        "import": "./dist/default/string.js",
+        "default": "./dist/default/string.js"
+      }
+    },
     "./serialize": {
       "cocos": {
         "require": "./dist/cocos/serialize.cjs",
@@ -433,7 +465,23 @@
         "default": "./dist/default/function.js"
       }
     },
-    "./event": {},
+    "./event": {
+      "cocos": {
+        "require": "./dist/cocos/event.cjs",
+        "import": "./dist/cocos/event.js",
+        "default": "./dist/cocos/event.js"
+      },
+      "node": {
+        "require": "./dist/node/event.cjs",
+        "import": "./dist/node/event.js",
+        "default": "./dist/node/event.js"
+      },
+      "default": {
+        "require": "./dist/default/event.cjs",
+        "import": "./dist/default/event.js",
+        "default": "./dist/default/event.js"
+      }
+    },
     "./error": {
       "cocos": {
         "require": "./dist/cocos/error.cjs",
@@ -810,19 +858,19 @@
     },
     "./event/event": {
       "cocos": {
-        "require": "./dist/cocos/event.cjs",
-        "import": "./dist/cocos/event.js",
-        "default": "./dist/cocos/event.js"
+        "require": "./dist/cocos/event/event.cjs",
+        "import": "./dist/cocos/event/event.js",
+        "default": "./dist/cocos/event/event.js"
       },
       "node": {
-        "require": "./dist/node/event.cjs",
-        "import": "./dist/node/event.js",
-        "default": "./dist/node/event.js"
+        "require": "./dist/node/event/event.cjs",
+        "import": "./dist/node/event/event.js",
+        "default": "./dist/node/event/event.js"
       },
       "default": {
-        "require": "./dist/default/event.cjs",
-        "import": "./dist/default/event.js",
-        "default": "./dist/default/event.js"
+        "require": "./dist/default/event/event.cjs",
+        "import": "./dist/default/event/event.js",
+        "default": "./dist/default/event/event.js"
       }
     },
     "./encoding/text": {
@@ -926,9 +974,9 @@
     "publish:major": "pnpm version major && pnpm publish"
   },
   "devDependencies": {
-    "@meojs/cfgs": "^2.0.56",
+    "@meojs/cfgs": "^2.0.57",
     "@meojs/types": "^1.0.1",
-    "@meojs/utc": "^1.18.17",
+    "@meojs/utc": "^1.18.20",
     "@types/node": "^20",
     "eslint": "^9.33.0",
     "prettier": "^3.6.2",

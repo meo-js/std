@@ -31,14 +31,14 @@ importers:
         version: 4.2.0
     devDependencies:
       '@meojs/cfgs':
-        specifier: ^2.0.56
-        version: 2.0.56(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))
+        specifier: ^2.0.57
+        version: 2.0.57(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))
       '@meojs/types':
         specifier: ^1.0.1
         version: 1.0.1
       '@meojs/utc':
-        specifier: ^1.18.17
-        version: 1.18.17(@types/node@20.19.11)(eslint@9.33.0(jiti@2.5.1))(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(prettier@3.6.2)(stylelint@16.23.1(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))
+        specifier: ^1.18.20
+        version: 1.18.20(@types/node@20.19.11)(eslint@9.33.0(jiti@2.5.1))(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(prettier@3.6.2)(stylelint@16.23.1(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))
       '@types/node':
         specifier: ^20
         version: 20.19.11
@@ -598,8 +598,8 @@ packages:
   '@loaderkit/resolve@1.0.4':
     resolution: {integrity: sha512-rJzYKVcV4dxJv+vW6jlvagF8zvGxHJ2+HTr1e2qOejfmGhAApgJHl8Aog4mMszxceTRiKTTbnpgmTO1bEZHV/A==}
 
-  '@meojs/cfgs@2.0.56':
-    resolution: {integrity: sha512-gkq9jpZxR3V60w+omcbKzURUcFKFihwWK4EC0gyuqjW8FX13Hq8G2DMXwq3sWSGbwi5KRRDdUXR3FqGf3WkbAg==}
+  '@meojs/cfgs@2.0.57':
+    resolution: {integrity: sha512-7StTF/OmJbHposnkDRRsQr8/HI02XLc6HCD7EkWEDvrYvNc6So0XFxZBI/65w9wf6gBVIWiynoGw27aXDQWxKQ==}
     engines: {node: '>=20'}
     peerDependencies:
       postcss-html: ^1.8.0
@@ -628,8 +628,8 @@ packages:
       typescript:
         optional: true
 
-  '@meojs/pkg-utils@1.0.4':
-    resolution: {integrity: sha512-J5eFG+4GKReXLWk15X31lkWajLEuSugUuzuaCphesPtW/u8tzd1ipBwO8nMyR7F9LzpQ54BQfwCYsU6ppJEZLg==}
+  '@meojs/pkg-utils@1.0.13':
+    resolution: {integrity: sha512-fHOr2fc6+plV4c04O4tAe90iGVIMhlkiedb+gZGQRTYi7GoZ9CqtpuvWn0hFq6gWu7v9p6p2i0mh+xEHd6OwhA==}
     engines: {node: '>=20.19.0'}
 
   '@meojs/std@1.0.9':
@@ -640,8 +640,8 @@ packages:
     resolution: {integrity: sha512-1Jf0uyyueIVGRL73p8Q9xQh1LzjNCfMWNK2//b+T/bWXrHydg4bzbtlXVSs3gj8yhu78u6XLGPn4Dgn5Mx08Ng==}
     engines: {node: '>=20'}
 
-  '@meojs/utc@1.18.17':
-    resolution: {integrity: sha512-cY2GwfH7wOPqsO8RjS8yGOO+qLDyT0ZC7s2gqUOMsGmrlOx41/v5qchJIW6/gLvCP9ReQ2oMfq9QZwYgtIa5mg==}
+  '@meojs/utc@1.18.20':
+    resolution: {integrity: sha512-3j/J2HwQCbjOFzUUauWWCJNk5vbMZwGZA+5M3pyE6YptV6e2R1LGFRjKCdGWfhcpT9BRfgVTYpZUA7HbcouS/Q==}
     engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
@@ -2896,7 +2896,7 @@ snapshots:
     dependencies:
       '@braidai/lang': 1.1.2
 
-  '@meojs/cfgs@2.0.56(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))':
+  '@meojs/cfgs@2.0.57(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))':
     dependencies:
       '@eslint-community/eslint-plugin-eslint-comments': 4.5.0(eslint@9.33.0(jiti@2.5.1))
       '@eslint/compat': 1.3.2(eslint@9.33.0(jiti@2.5.1))
@@ -2922,7 +2922,7 @@ snapshots:
       - supports-color
       - vitest
 
-  '@meojs/pkg-utils@1.0.4':
+  '@meojs/pkg-utils@1.0.13':
     dependencies:
       '@meojs/std': 1.0.9
       package-manager-detector: 1.3.0
@@ -2940,7 +2940,7 @@ snapshots:
     dependencies:
       '@types/node': 20.19.11
 
-  '@meojs/utc@1.18.17(@types/node@20.19.11)(eslint@9.33.0(jiti@2.5.1))(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(prettier@3.6.2)(stylelint@16.23.1(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))':
+  '@meojs/utc@1.18.20(@types/node@20.19.11)(eslint@9.33.0(jiti@2.5.1))(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(prettier@3.6.2)(stylelint@16.23.1(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))':
     dependencies:
       '@arethetypeswrong/core': 0.18.2
       '@commitlint/config-conventional': 19.8.1
@@ -2948,8 +2948,8 @@ snapshots:
       '@commitlint/lint': 19.8.1
       '@commitlint/load': 19.8.1(@types/node@20.19.11)(typescript@5.9.2)
       '@inquirer/prompts': 7.8.3(@types/node@20.19.11)
-      '@meojs/cfgs': 2.0.56(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))
-      '@meojs/pkg-utils': 1.0.4
+      '@meojs/cfgs': 2.0.57(jiti@2.5.1)(prettier-plugin-organize-imports@4.2.0(prettier@3.6.2)(typescript@5.9.2))(typescript@5.9.2)(vitest@4.0.0-beta.8(@types/node@20.19.11)(jiti@2.5.1))
+      '@meojs/pkg-utils': 1.0.13
       c12: 3.2.0
       glob: 11.0.3
       magic-string: 0.30.17
