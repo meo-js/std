@@ -8,5 +8,12 @@ export default config({
         external: ['cc/env', 'cc'],
       },
     },
+    test: {
+      vitest: {
+        test: {
+          setupFiles: './test/setup.ts',
+        },
+      },
+    },
   },
 });
