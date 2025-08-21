@@ -974,7 +974,7 @@
     "publish:major": "pnpm version major && pnpm publish"
   },
   "devDependencies": {
-    "@meojs/cfgs": "^2.0.58",
+    "@meojs/cfgs": "^2.0.60",
     "@meojs/types": "^1.0.1",
     "@meojs/utc": "^1.18.30",
     "@types/node": "^20",
