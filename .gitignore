@@ -43,3 +43,6 @@ out-tsc
 
 # Exclude Cocos Creator Files
 *.meta
+
+# Vitest Coverage Report
+/coverage
