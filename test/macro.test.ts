@@ -1,8 +1,12 @@
-import { COCOS } from 'compile-constant';
+import { COCOS, DEFAULT, NODE } from 'compile-constant';
 import { expect, test } from 'vitest';
-import { DEBUG } from '../src/macro.js';
+import { DEBUG, ROOKIE, USE_LEGACY_DECORATOR } from '../src/macro.js';
 
 test('The Environment is default.', () => {
   expect(COCOS).toBe(false);
-  expect(DEBUG).toBe(process.env.NODE_ENV === 'production');
+  expect(DEFAULT).toBe(true);
+  expect(NODE).toBe(false);
+  expect(DEBUG).toBe(false);
+  expect(ROOKIE).toBe(false);
+  expect(USE_LEGACY_DECORATOR).toBe(false);
 });

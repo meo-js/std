@@ -974,9 +974,9 @@
     "publish:major": "pnpm version major && pnpm publish"
   },
   "devDependencies": {
-    "@meojs/cfgs": "^2.0.57",
+    "@meojs/cfgs": "^2.0.58",
     "@meojs/types": "^1.0.1",
-    "@meojs/utc": "^1.18.22",
+    "@meojs/utc": "^1.18.30",
     "@types/node": "^20",
     "eslint": "^9.33.0",
     "prettier": "^3.6.2",
