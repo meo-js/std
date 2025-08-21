@@ -1,9 +1,0 @@
-{
-    "extends": "@meojs/cfgs/ts/general.json",
-    "compilerOptions": {
-        "lib": [
-            "ESNext",
-            "DOM"
-        ]
-    }
-}
