@@ -976,7 +976,7 @@
   "devDependencies": {
     "@meojs/cfgs": "^2.0.62",
     "@meojs/types": "^1.0.1",
-    "@meojs/utc": "^1.18.41",
+    "@meojs/utc": "^1.18.42",
     "@types/node": "^20",
     "@vitest/coverage-v8": "4.0.0-beta.8",
     "eslint": "^9.34.0",
