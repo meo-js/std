@@ -890,40 +890,6 @@
         "default": "./dist/default/crypto/digest.js"
       }
     },
-    "./collection/set": {
-      "cocos": {
-        "require": "./dist/cocos/collection/set.cjs",
-        "import": "./dist/cocos/collection/set.js",
-        "default": "./dist/cocos/collection/set.js"
-      },
-      "node": {
-        "require": "./dist/node/collection/set.cjs",
-        "import": "./dist/node/collection/set.js",
-        "default": "./dist/node/collection/set.js"
-      },
-      "default": {
-        "require": "./dist/default/collection/set.cjs",
-        "import": "./dist/default/collection/set.js",
-        "default": "./dist/default/collection/set.js"
-      }
-    },
-    "./collection/map": {
-      "cocos": {
-        "require": "./dist/cocos/collection/map.cjs",
-        "import": "./dist/cocos/collection/map.js",
-        "default": "./dist/cocos/collection/map.js"
-      },
-      "node": {
-        "require": "./dist/node/collection/map.cjs",
-        "import": "./dist/node/collection/map.js",
-        "default": "./dist/node/collection/map.js"
-      },
-      "default": {
-        "require": "./dist/default/collection/map.cjs",
-        "import": "./dist/default/collection/map.js",
-        "default": "./dist/default/collection/map.js"
-      }
-    },
     "./encoding/text": {
       "cocos": {
         "require": "./dist/cocos/encoding/text.cjs",
@@ -958,6 +924,40 @@
         "default": "./dist/default/encoding/byte.js"
       }
     },
+    "./collection/set": {
+      "cocos": {
+        "require": "./dist/cocos/collection/set.cjs",
+        "import": "./dist/cocos/collection/set.js",
+        "default": "./dist/cocos/collection/set.js"
+      },
+      "node": {
+        "require": "./dist/node/collection/set.cjs",
+        "import": "./dist/node/collection/set.js",
+        "default": "./dist/node/collection/set.js"
+      },
+      "default": {
+        "require": "./dist/default/collection/set.cjs",
+        "import": "./dist/default/collection/set.js",
+        "default": "./dist/default/collection/set.js"
+      }
+    },
+    "./collection/map": {
+      "cocos": {
+        "require": "./dist/cocos/collection/map.cjs",
+        "import": "./dist/cocos/collection/map.js",
+        "default": "./dist/cocos/collection/map.js"
+      },
+      "node": {
+        "require": "./dist/node/collection/map.cjs",
+        "import": "./dist/node/collection/map.js",
+        "default": "./dist/node/collection/map.js"
+      },
+      "default": {
+        "require": "./dist/default/collection/map.cjs",
+        "import": "./dist/default/collection/map.js",
+        "default": "./dist/default/collection/map.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -976,7 +976,7 @@
   "devDependencies": {
     "@meojs/cfgs": "^2.0.62",
     "@meojs/types": "^1.0.1",
-    "@meojs/utc": "^1.18.43",
+    "@meojs/utc": "^1.18.44",
     "@types/node": "^20",
     "@vitest/coverage-v8": "4.0.0-beta.8",
     "eslint": "^9.34.0",
