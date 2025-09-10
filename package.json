@@ -822,6 +822,40 @@
         "default": "./dist/default/pipe/string.js"
       }
     },
+    "./encoding/text": {
+      "cocos": {
+        "require": "./dist/cocos/encoding/text.cjs",
+        "import": "./dist/cocos/encoding/text.js",
+        "default": "./dist/cocos/encoding/text.js"
+      },
+      "node": {
+        "require": "./dist/node/encoding/text.cjs",
+        "import": "./dist/node/encoding/text.js",
+        "default": "./dist/node/encoding/text.js"
+      },
+      "default": {
+        "require": "./dist/default/encoding/text.cjs",
+        "import": "./dist/default/encoding/text.js",
+        "default": "./dist/default/encoding/text.js"
+      }
+    },
+    "./encoding/byte": {
+      "cocos": {
+        "require": "./dist/cocos/encoding/byte.cjs",
+        "import": "./dist/cocos/encoding/byte.js",
+        "default": "./dist/cocos/encoding/byte.js"
+      },
+      "node": {
+        "require": "./dist/node/encoding/byte.cjs",
+        "import": "./dist/node/encoding/byte.js",
+        "default": "./dist/node/encoding/byte.js"
+      },
+      "default": {
+        "require": "./dist/default/encoding/byte.cjs",
+        "import": "./dist/default/encoding/byte.js",
+        "default": "./dist/default/encoding/byte.js"
+      }
+    },
     "./math/float": {
       "cocos": {
         "require": "./dist/cocos/math/float.cjs",
@@ -873,57 +907,6 @@
         "default": "./dist/default/event/event.js"
       }
     },
-    "./encoding/text": {
-      "cocos": {
-        "require": "./dist/cocos/encoding/text.cjs",
-        "import": "./dist/cocos/encoding/text.js",
-        "default": "./dist/cocos/encoding/text.js"
-      },
-      "node": {
-        "require": "./dist/node/encoding/text.cjs",
-        "import": "./dist/node/encoding/text.js",
-        "default": "./dist/node/encoding/text.js"
-      },
-      "default": {
-        "require": "./dist/default/encoding/text.cjs",
-        "import": "./dist/default/encoding/text.js",
-        "default": "./dist/default/encoding/text.js"
-      }
-    },
-    "./encoding/byte": {
-      "cocos": {
-        "require": "./dist/cocos/encoding/byte.cjs",
-        "import": "./dist/cocos/encoding/byte.js",
-        "default": "./dist/cocos/encoding/byte.js"
-      },
-      "node": {
-        "require": "./dist/node/encoding/byte.cjs",
-        "import": "./dist/node/encoding/byte.js",
-        "default": "./dist/node/encoding/byte.js"
-      },
-      "default": {
-        "require": "./dist/default/encoding/byte.cjs",
-        "import": "./dist/default/encoding/byte.js",
-        "default": "./dist/default/encoding/byte.js"
-      }
-    },
-    "./crypto/digest": {
-      "cocos": {
-        "require": "./dist/cocos/crypto/digest.cjs",
-        "import": "./dist/cocos/crypto/digest.js",
-        "default": "./dist/cocos/crypto/digest.js"
-      },
-      "node": {
-        "require": "./dist/node/crypto/digest.cjs",
-        "import": "./dist/node/crypto/digest.js",
-        "default": "./dist/node/crypto/digest.js"
-      },
-      "default": {
-        "require": "./dist/default/crypto/digest.cjs",
-        "import": "./dist/default/crypto/digest.js",
-        "default": "./dist/default/crypto/digest.js"
-      }
-    },
     "./collection/set": {
       "cocos": {
         "require": "./dist/cocos/collection/set.cjs",
@@ -956,6 +939,23 @@
         "require": "./dist/default/collection/map.cjs",
         "import": "./dist/default/collection/map.js",
         "default": "./dist/default/collection/map.js"
+      }
+    },
+    "./crypto/digest": {
+      "cocos": {
+        "require": "./dist/cocos/crypto/digest.cjs",
+        "import": "./dist/cocos/crypto/digest.js",
+        "default": "./dist/cocos/crypto/digest.js"
+      },
+      "node": {
+        "require": "./dist/node/crypto/digest.cjs",
+        "import": "./dist/node/crypto/digest.js",
+        "default": "./dist/node/crypto/digest.js"
+      },
+      "default": {
+        "require": "./dist/default/crypto/digest.cjs",
+        "import": "./dist/default/crypto/digest.js",
+        "default": "./dist/default/crypto/digest.js"
       }
     },
     "./package.json": "./package.json"
