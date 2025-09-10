@@ -1,5 +1,6 @@
 import type { Temporal } from 'temporal-polyfill';
-import * as convert from '../format.js';
+import * as convert from '../convert.js';
+import * as impl from '../impl/iso8601.js';
 import {
   createTemporalInfo,
   type DurationInput,
@@ -7,7 +8,6 @@ import {
   type DurationText,
   type TemporalInfo,
 } from '../shared.js';
-import * as impl from './impl/iso8601.js';
 
 /**
  * 解析字符串为 {@link TemporalInfo}。

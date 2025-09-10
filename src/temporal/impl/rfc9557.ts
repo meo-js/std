@@ -14,7 +14,7 @@
 // 2. None.
 // Other: Yes or no.
 
-import type { TemporalInfo } from '../../shared.js';
+import type { TemporalInfo } from '../shared.js';
 
 const offsetIdentifierNoCapture =
   /(?:[+-](?:[01][0-9]|2[0-3])(?::?[0-5][0-9])?)/u;

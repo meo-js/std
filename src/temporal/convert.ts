@@ -9,15 +9,11 @@ import {
   isString,
   isZonedDateTime,
 } from '../predicate.js';
-import type { checked, Mutable, Simplify } from '../ts.js';
-import * as iso8601Impl from './format/impl/iso8601.js';
-import * as rfc9557Impl from './format/impl/rfc9557.js';
-import { getTemplate } from './format/impl/tr35.js';
 import {
   _tempTemporalInfo,
-  createTemporalInfo,
+  _tempTemporalInfo2,
   isDurationLike,
-  isDurationText,
+  resetTemporalInfo,
   toCalendarId,
   toTimeZoneId,
   withCalendar,
@@ -26,39 +22,36 @@ import {
   type CalendarIdLike,
   type CalendarLike,
   type DateInput,
-  type DateLike,
   type DateObject,
   type DateTimeInput,
   type DateTimeLike,
   type DateTimeObject,
   type DateTimeText,
-  type DayLike,
   type DurationInput,
   type DurationLike,
   type DurationObject,
   type DurationText,
-  type EraYearLike,
   type InstantInput,
   type InstantObject,
-  type MonthCodeLike,
-  type MonthLike,
   type TemporalInfo,
   type TemporalInfoInput,
-  type TemporalObject,
   type TemporalTemplate,
   type TemporalText,
   type TimeInput,
-  type TimeLike,
   type TimeObject,
   type Timestamp,
   type TimeZoneIdLike,
-  type UTCOffsetLike,
   type WeekLike,
-  type YearLike,
   type ZonedAssignmentOptions,
   type ZonedDateTimeInput,
   type ZonedDateTimeObject,
 } from './shared.js';
+import {
+  format,
+  parse,
+  toSingleTemporalInfo,
+  type toTemporalInfo,
+} from './subtle.js';
 
 /**
  * 解析输入为 {@link Temporal.Instant}
@@ -87,7 +80,11 @@ export function toInstant(
     case 'string': {
       if (template != null) {
         return toInstant(
-          getTemplate(template).parse(input, _tempTemporalInfo) as TemporalInfo,
+          parse(
+            input as TemporalText,
+            template,
+            _tempTemporalInfo,
+          ) as TemporalInfo,
         );
       } else {
         return Temporal.Instant.from(input as DateTimeText);
@@ -145,7 +142,11 @@ export function toDuration(
     case 'string': {
       if (template != null) {
         return toDuration(
-          getTemplate(template).parse(input, _tempTemporalInfo) as TemporalInfo,
+          parse(
+            input as TemporalText,
+            template,
+            _tempTemporalInfo,
+          ) as TemporalInfo,
         );
       } else {
         return Temporal.Duration.from(input as DurationText);
@@ -179,7 +180,11 @@ export function toDuration(
         return Temporal.Duration.from(input);
       }
 
-      const info = toSingleTemporalInfo(input, _tempTemporalInfo);
+      // Input may be _tempTemporalInfo.
+      const info = toSingleTemporalInfo(
+        input,
+        resetTemporalInfo(_tempTemporalInfo2),
+      );
       return Temporal.Duration.from({
         years: info.year,
         months: info.month,
@@ -233,7 +238,7 @@ export function toTime(
     case 'string': {
       if (isString(arg2)) {
         return toTime(
-          getTemplate(arg2).parse(input, _tempTemporalInfo) as TemporalInfo,
+          parse(input as TemporalText, arg2, _tempTemporalInfo) as TemporalInfo,
           arg3,
         );
       } else {
@@ -304,7 +309,7 @@ export function toDate(
     case 'string': {
       if (isString(arg2)) {
         return toDate(
-          getTemplate(arg2).parse(input, _tempTemporalInfo) as TemporalInfo,
+          parse(input as TemporalText, arg2, _tempTemporalInfo) as TemporalInfo,
           arg3,
         );
       } else {
@@ -378,7 +383,7 @@ export function toDateTime(
     case 'string': {
       if (isString(arg2)) {
         return toDateTime(
-          getTemplate(arg2).parse(input, _tempTemporalInfo) as TemporalInfo,
+          parse(input as TemporalText, arg2, _tempTemporalInfo) as TemporalInfo,
           arg3,
         );
       } else {
@@ -493,8 +498,9 @@ export function toZonedDateTime(
     case 'string': {
       if (isString(arg2)) {
         return toZonedDateTime(
-          getTemplate(arg2 as TemporalTemplate).parse(
-            input,
+          parse(
+            input as TemporalText,
+            arg2 as TemporalTemplate,
             _tempTemporalInfo,
           ) as TemporalInfo,
           arg3 as ZonedAssignmentOptions,
@@ -558,202 +564,20 @@ export function toZonedDateTime(
 }
 
 /**
- * 将多个输入合并为 {@link TemporalInfo} 对象。
+ * 格式化时态输入为指定模板格式的字符串
  *
- * 规则：
- * - {@link DateTimeText}: 将解析值赋值到相应的属性上。
- * - 毫秒 {@link Timestamp} & 纳秒 {@link BigIntTimestamp} & {@link Temporal.Instant} & {@link Date}: 转为 {@link Temporal.PlainDateTime} 视为挂钟时间。
- * - 其它 {@link TemporalObject} & {@link TemporalInfo}: 将相应的属性直接赋值。
- * - {@link DurationLike}: 将相应的属性直接赋值，没有的属性赋值为 `0`。
- * - 如果同时存在 {@link YearLike} 与 {@link EraYearLike} 属性，则只会保留其中一种，优先保留 {@link YearLike}。
- * - 如果同时存在 {@link MonthLike} 与 {@link MonthCodeLike} 属性，则只会保留其中一种，优先保留 {@link MonthLike}。
- * - 多个输入会像 {@link Object.assign} 函数一样依次将每个输入合并，后面的输入会覆盖前面的输入。
- *
- * 注意：该函数在合并时只是简单地覆盖属性，将不同时区或者日历的输入合并可能会令人困惑且无法得到有意义的结果。
- */
-export function toTemporalInfo<T extends TemporalInfoInput[]>(
-  ...inputs: T
-): {
-  [K in keyof MappedObject<T>]: MappedObject<T>[K];
-} {
-  const out = createTemporalInfo();
-  for (const input of inputs) {
-    toSingleTemporalInfo(input, out);
-  }
-  return out as checked;
-}
-
-/**
- * @internal
- */
-export function toSingleTemporalInfo(
-  input: TemporalInfoInput,
-  out: Partial<TemporalInfo>,
-): Partial<TemporalInfo> {
-  switch (typeof input) {
-    case 'string':
-      if (isDurationText(input)) {
-        return iso8601Impl.parse(input, out);
-      } else {
-        return rfc9557Impl.parse(input, out);
-      }
-
-    case 'number':
-    case 'bigint':
-      return _instantToInfo(input, out);
-
-    case 'object': {
-      if (isDate(input)) {
-        return _instantToInfo(input, out);
-      }
-
-      if (isInstant(input)) {
-        return _instantToInfo(input, out);
-      }
-
-      if (isDuration(input) || isDurationLike(input)) {
-        return _durationToInfo(input, out);
-      }
-
-      return _dateTimeToInfo(input, out);
-    }
-
-    default:
-      throw new TypeError(`Unsupported input type: ${typeof input}`);
-  }
-}
-
-function _instantToInfo(
-  input: InstantInput | InstantObject,
-  out: Partial<TemporalInfo>,
-) {
-  return _dateTimeToInfo(toDateTime(input as InstantInput), out);
-}
-
-function _dateTimeToInfo(
-  dateTime: Partial<TemporalInfo>,
-  out: Partial<TemporalInfo>,
-) {
-  if (dateTime.year != null) {
-    out.year = dateTime.year;
-    out.era = undefined;
-    out.eraYear = undefined;
-  } else if (dateTime.eraYear != null) {
-    out.year = undefined;
-    out.eraYear = dateTime.eraYear;
-    out.era = dateTime.era;
-  }
-
-  if (dateTime.month != null) {
-    out.month = dateTime.month;
-    out.monthCode = undefined;
-  } else if (dateTime.monthCode != null) {
-    out.month = undefined;
-    out.monthCode = dateTime.monthCode;
-  }
-
-  if (dateTime.day != null) out.day = dateTime.day;
-  if (dateTime.week != null) out.week = dateTime.week;
-
-  if (dateTime.hour != null) {
-    out.hour = dateTime.hour;
-    out.minute = dateTime.minute;
-    out.second = dateTime.second;
-    out.millisecond = dateTime.millisecond;
-    out.microsecond = dateTime.microsecond;
-    out.nanosecond = dateTime.nanosecond;
-  }
-
-  if (dateTime.offset != null) out.offset = dateTime.offset;
-
-  if (<keyof Temporal.PlainDate>'calendarId' in dateTime) {
-    if ((dateTime as Partial<Temporal.ZonedDateTime>).timeZoneId != null)
-      out.timeZone = (dateTime as Temporal.ZonedDateTime).timeZoneId;
-    out.calendar = (dateTime as Temporal.ZonedDateTime).calendarId;
-  } else {
-    if (dateTime.timeZone != null) out.timeZone = dateTime.timeZone;
-    if (dateTime.calendar != null) out.calendar = dateTime.calendar;
-  }
-
-  return out;
-}
-
-function _durationToInfo(
-  duration: Temporal.Duration | Partial<DurationLike>,
-  out: Partial<TemporalInfo>,
-) {
-  out.year = duration.years ?? 0;
-  out.era = undefined;
-  out.eraYear = undefined;
-  out.week = duration.weeks ?? 0;
-  out.month = duration.months ?? 0;
-  out.monthCode = undefined;
-  out.day = duration.days ?? 0;
-  out.hour = duration.hours ?? 0;
-  out.minute = duration.minutes ?? 0;
-  out.second = duration.seconds ?? 0;
-  out.millisecond = duration.milliseconds ?? 0;
-  out.microsecond = duration.microseconds ?? 0;
-  out.nanosecond = duration.nanoseconds ?? 0;
-  return out;
-}
-
-type MappedObject<T extends TemporalInfoInput[]> = T extends [
-  infer U extends TemporalInfoInput,
-  ...infer R extends TemporalInfoInput[],
-]
-  ? Mapping<U> & MappedObject<R>
-  : {};
-
-type Mapping<T extends TemporalInfoInput, M = InputMap> = Simplify<
-  Mutable<
-    M extends [infer U, ...infer R]
-      ? U extends [infer K, infer S]
-        ? T extends K
-          ? S
-          : Mapping<T, R>
-        : 'type is wrong: must be a tuple of tuples'
-      : T extends TemporalInfoInput
-        ? T
-        : never
-  >
->;
-
-type InputMap = [
-  [DateTimeText, TemporalInfo],
-  [
-    Timestamp | BigIntTimestamp | Temporal.Instant | Date,
-    DateTimeLike & UTCOffsetLike,
-  ],
-  [Temporal.ZonedDateTime, TemporalInfo],
-  [Temporal.Duration | DurationText, DateTimeLike & WeekLike],
-  [Temporal.PlainDate, DateLike & CalendarLike],
-  [Temporal.PlainTime, TimeLike],
-  [Temporal.PlainDateTime, DateTimeLike & CalendarLike],
-  [Temporal.PlainMonthDay, MonthCodeLike & DayLike & CalendarLike],
-  [Temporal.PlainYearMonth, YearLike & MonthLike & CalendarLike],
-];
-
-/**
- * 将时态信息格式化为指定模板格式的字符串
- *
- * @param input 时态信息输入，将使用 {@link toTemporalInfo} 转换为时态信息进行格式化。
+ * @param input 时态输入，将使用 {@link toTemporalInfo} 转换为时态信息后再进行格式化。
  * @param template 字符串模板
  */
-export function format(
+export function toTemporalText(
   input: TemporalInfoInput,
   template: TemporalTemplate,
 ): string {
-  const info = toSingleTemporalInfo(input, _tempTemporalInfo);
-  return getTemplate(template).format(info);
+  const info = toSingleTemporalInfo(
+    input,
+    resetTemporalInfo(_tempTemporalInfo),
+  );
+  return format(info, template);
 }
 
-/**
- * 解析指定模板格式的字符串为 {@link TemporalInfo}
- */
-export function parse(
-  text: TemporalText,
-  template: TemporalTemplate,
-): Partial<TemporalInfo> {
-  return getTemplate(template).parse(text, createTemporalInfo());
-}
+// TODO: toDurationText / toDateTimeText

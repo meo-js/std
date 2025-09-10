@@ -2,7 +2,7 @@
  * @internal
  * @module
  */
-import type { TemporalInfo, TemporalTemplate } from '../../shared.js';
+import type { TemporalInfo, TemporalTemplate } from '../shared.js';
 
 /**
  * 0 是 Literal, 其它是 Field，高 8 位存储字母代码，低 24 位存储字母的个数
@@ -20,16 +20,16 @@ const cache = new Map<
   }
 >();
 
-export function getTemplate(template: TemporalTemplate) {
+export function ensureTemplate(template: TemporalTemplate) {
   let formatter = cache.get(template);
   if (!formatter) {
     cache.set(template, (formatter = createTemplate(template)));
     // 确保缓存占用不会过多
-    if (cache.size > 100) {
+    if (cache.size > 128) {
       let i = 0;
       for (const key of cache.keys()) {
         cache.delete(key);
-        if (++i > 30) break;
+        if (++i > 32) break;
       }
     }
   }

@@ -2,7 +2,7 @@
  * @internal
  * @module
  */
-import type { TemporalInfo } from '../../shared.js';
+import type { TemporalInfo } from '../shared.js';
 // from https://github.com/js-temporal/temporal-polyfill/blob/main/lib/regex.ts
 
 const fraction = /(\d+)(?:[.,](\d{1,9}))?/u;

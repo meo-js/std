@@ -10,7 +10,7 @@ import type {
   toInstant,
   toTime,
   toZonedDateTime,
-} from './format.js';
+} from './convert.js';
 
 /**
  * Unix 时间戳单位
@@ -738,6 +738,7 @@ export function withCalendar<
  * @internal
  */
 export const _tempTemporalInfo = createTemporalInfo();
+export const _tempTemporalInfo2 = createTemporalInfo();
 
 /**
  * @internal
