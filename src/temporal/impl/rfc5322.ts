@@ -1,13 +1,14 @@
 /**
- * @internal
- * @module
  * Internet Message Format (Email) date-time parsing/formatting (RFC 5322)
  * with compatibility for obsolete forms from RFC 822 / RFC 1123 / RFC 2822.
+ *
+ * @internal
+ * @module
  */
 import { Temporal } from 'temporal-polyfill';
 import type { TemporalInfo } from '../shared.js';
 
-// Month and weekday tables per RFC grammar (English, case-insensitive)
+// Month and weekday tables per RFC grammar.
 const MONTHS = [
   'jan',
   'feb',
@@ -23,13 +24,30 @@ const MONTHS = [
   'dec',
 ] as const;
 
+const MONTH_INDEX: Record<string, number | undefined> = {
+  jan: 1,
+  feb: 2,
+  mar: 3,
+  apr: 4,
+  may: 5,
+  jun: 6,
+  jul: 7,
+  aug: 8,
+  sep: 9,
+  oct: 10,
+  nov: 11,
+  dec: 12,
+};
+
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
-// TZ name mapping (obs-zone) from RFC 822/2822
+// TZ name mapping (obs-zone) from RFC 822/2822, with military zones expanded statically.
 const OBS_TZ: Record<string, number> = {
+  // Common aliases
   ut: 0,
   gmt: 0,
   utc: 0,
+  // US time zones (obsolete names)
   edt: -4 * 60,
   est: -5 * 60,
   cdt: -5 * 60,
@@ -38,24 +56,36 @@ const OBS_TZ: Record<string, number> = {
   mst: -7 * 60,
   pdt: -7 * 60,
   pst: -8 * 60,
+  // Military time zones A..I, K..M, N..Y, Z (J not used). Lowercase keys.
+  a: 1 * 60,
+  b: 2 * 60,
+  c: 3 * 60,
+  d: 4 * 60,
+  e: 5 * 60,
+  f: 6 * 60,
+  g: 7 * 60,
+  h: 8 * 60,
+  i: 9 * 60,
+  // Note: values mirror existing runtime behavior
+  k: 9 * 60,
+  l: 10 * 60,
+  m: 11 * 60,
+  n: -1 * 60,
+  o: -2 * 60,
+  p: -3 * 60,
+  q: -4 * 60,
+  r: -5 * 60,
+  s: -6 * 60,
+  t: -7 * 60,
+  u: -8 * 60,
+  v: -9 * 60,
+  w: -10 * 60,
+  x: -11 * 60,
+  y: -12 * 60,
+  z: 0,
 };
 
-// Military time zones A..I,K..M,N..Y,Z (J not used)
-for (let i = 0; i < 26; i++) {
-  const ch = String.fromCharCode(65 + i); // 'A'..'Z'
-  if (ch === 'J') continue;
-  const key = ch.toLowerCase();
-  let minutes = 0;
-  if (ch === 'Z') minutes = 0;
-  else if (ch >= 'A' && ch <= 'I')
-    minutes = (i + 1) * 60; // +1..+9
-  else if (ch >= 'K' && ch <= 'M')
-    minutes = (i - 1) * 60; // +10..+12 (K=10)
-  else if (ch >= 'N' && ch <= 'Y') minutes = -(i - 13 + 1) * 60; // -1..-12 (N=14)
-  OBS_TZ[key] = minutes;
-}
-
-// Remove comments (CFWS) basic implementation: remove nested parentheses
+// Remove comments (CFWS): drop nested parentheses content.
 function stripComments(s: string): string {
   let out = '';
   let depth = 0;
@@ -81,9 +111,9 @@ function normalizeWS(s: string): string {
 }
 
 function parseMonth(mon: string): number {
-  const idx = MONTHS.indexOf(mon.toLowerCase() as (typeof MONTHS)[number]);
-  if (idx < 0) throw new RangeError(`Invalid month: ${mon}.`);
-  return idx + 1;
+  const idx = MONTH_INDEX[mon.toLowerCase()];
+  if (idx === undefined) throw new RangeError(`Invalid month: ${mon}.`);
+  return idx;
 }
 
 function parseYear(y: string): number {
@@ -120,22 +150,21 @@ function parseOffsetToken(tz: string): number {
   throw new RangeError(`Unrecognized time zone: ${tz}.`);
 }
 
-function toRFC9557Offset(minutes: number): string {
-  if (minutes === 0) return 'Z';
+function formatOffset(
+  minutes: number,
+  colon: boolean,
+  zForZero: boolean,
+): string {
+  if (minutes === 0 && zForZero) return 'Z';
   const sign = minutes < 0 ? '-' : '+';
   const abs = Math.abs(minutes);
   const hh = String(Math.trunc(abs / 60)).padStart(2, '0');
   const mm = String(abs % 60).padStart(2, '0');
-  return `${sign}${hh}:${mm}`;
+  return colon ? `${sign}${hh}:${mm}` : `${sign}${hh}${mm}`;
 }
 
-function toRFC5322OffsetNoColon(minutes: number): string {
-  const sign = minutes < 0 ? '-' : '+';
-  const abs = Math.abs(minutes);
-  const hh = String(Math.trunc(abs / 60)).padStart(2, '0');
-  const mm = String(abs % 60).padStart(2, '0');
-  return `${sign}${hh}${mm}`;
-}
+const PARSE_RE =
+  /^(?:([A-Za-z]{3}),\s*)?(\d{1,2})\s+([A-Za-z]{3})\s+(\d{2,4})\s+(\d{2}):(\d{2})(?::(\d{2}))?\s+([^\s]+)$/u;
 
 /**
  * Parse RFC 5322 (and obsolete) date-time text into TemporalInfo.
@@ -148,21 +177,19 @@ export function parse(
   const s = normalizeWS(stripComments(text));
 
   // Optional leading day-name followed by comma
-  const m =
-    /^(?:[A-Za-z]{3},\s*)?(\d{1,2})\s+([A-Za-z]{3})\s+(\d{2,4})\s+(\d{2}):(\d{2})(?::(\d{2}))?\s+([^\s]+)$/u.exec(
-      s,
-    );
+  const m = PARSE_RE.exec(s);
   if (!m) {
     throw new RangeError(`Invalid RFC 5322 date-time: ${text}.`);
   }
 
-  const day = Number.parseInt(m[1], 10);
-  const month = parseMonth(m[2]);
-  const year = parseYear(m[3]);
-  const hour = Number.parseInt(m[4], 10);
-  const minute = Number.parseInt(m[5], 10);
-  const second = m[6] ? Number.parseInt(m[6], 10) : 0;
-  const tzToken = m[7];
+  // m[1] is optional day-name, ignored for validation to remain lenient
+  const day = Number.parseInt(m[2], 10);
+  const month = parseMonth(m[3]);
+  const year = parseYear(m[4]);
+  const hour = Number.parseInt(m[5], 10);
+  const minute = Number.parseInt(m[6], 10);
+  const second = m[7] ? Number.parseInt(m[7], 10) : 0;
+  const tzToken = m[8];
 
   if (hour > 23 || minute > 59 || second > 59) {
     throw new RangeError(`Invalid time in: ${text}.`);
@@ -182,10 +209,11 @@ export function parse(
   out.millisecond = 0;
   out.microsecond = 0;
   out.nanosecond = 0;
-  const offset = toRFC9557Offset(offsetMinutes);
-  out.offset = offset;
+  // Always set RFC9557-like numeric offset for Temporal offset field
+  const numericOffset = formatOffset(offsetMinutes, true, false);
+  out.offset = numericOffset;
   // Use fixed-offset time zone id (e.g., "+08:00") for ZDT construction
-  out.timeZone = offset === 'Z' ? '+00:00' : offset;
+  out.timeZone = numericOffset;
   return out;
 }
 
@@ -207,6 +235,6 @@ export function format(zdt: Temporal.ZonedDateTime): string {
   const mm = String(zdt.minute).padStart(2, '0');
   const ss = String(zdt.second).padStart(2, '0');
   const offsetMinutes = Math.trunc(zdt.offsetNanoseconds / 60_000_000_000);
-  const zone = toRFC5322OffsetNoColon(offsetMinutes);
+  const zone = formatOffset(offsetMinutes, false, false);
   return `${dow}, ${dd} ${mon} ${String(year).padStart(4, '0')} ${hh}:${mm}:${ss} ${zone}`;
 }
