@@ -1,5 +1,5 @@
 /**
- * Provide parsing and formatting for the Internet Email Date/Time Format.
+ * Provide parsing and formatting for HTTP Cookies Date Format.
  *
  * Supports parsing of date-time formats defined in the specification,
  * including those from obsolete versions, while ensuring that all output
@@ -7,10 +7,10 @@
  *
  * @public
  * @module
- * @see [RFC822(obsoletes)](https://datatracker.ietf.org/doc/html/rfc822)
- * @see [RFC1123(obsoletes)](https://datatracker.ietf.org/doc/html/rfc1123)
- * @see [RFC2822(obsoletes)](https://datatracker.ietf.org/doc/html/rfc2822)
- * @see [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322)
+ * @see Original Netscape Cookie Specification (no RFC, described in RFC 2109 Appendix)
+ * @see [RFC2109(obsoletes)](https://datatracker.ietf.org/doc/html/rfc2109)
+ * @see [RFC2965(obsoletes)](https://datatracker.ietf.org/doc/html/rfc2965)
+ * @see [RFC6265(references: RFC1123)](https://datatracker.ietf.org/doc/html/rfc6265)
  */
 import type { Temporal } from 'temporal-polyfill';
 import {
@@ -30,7 +30,7 @@ import {
   type TimeFormatter,
   type ZonedDateTimeFormatter,
 } from '../formatter.js';
-import * as email from '../impl/email.js';
+import * as cookie from '../impl/cookie.js';
 
 export const {
   format,
@@ -68,10 +68,10 @@ export const {
 
     zdt = roundToSecond(zdt);
 
-    return email.format(zdt);
+    return cookie.format(zdt);
   },
   parse(input, _args, out) {
-    out.info = email.parse(input, out.info);
+    out.info = cookie.parse(input, out.info);
     return out;
   },
 });

@@ -1,5 +1,5 @@
 /**
- * Provide parsing and formatting for the Internet Email Date/Time Format.
+ * Provide parsing and formatting for the Usenet/Netnews Date Format.
  *
  * Supports parsing of date-time formats defined in the specification,
  * including those from obsolete versions, while ensuring that all output
@@ -7,10 +7,9 @@
  *
  * @public
  * @module
- * @see [RFC822(obsoletes)](https://datatracker.ietf.org/doc/html/rfc822)
- * @see [RFC1123(obsoletes)](https://datatracker.ietf.org/doc/html/rfc1123)
- * @see [RFC2822(obsoletes)](https://datatracker.ietf.org/doc/html/rfc2822)
- * @see [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322)
+ * @see [RFC850(obsoletes)](https://datatracker.ietf.org/doc/html/rfc850)
+ * @see [RFC1036(obsoletes)](https://datatracker.ietf.org/doc/html/rfc1036)
+ * @see [RFC5536(references: RFC5322)](https://datatracker.ietf.org/doc/html/rfc5536)
  */
 import type { Temporal } from 'temporal-polyfill';
 import {
@@ -30,7 +29,7 @@ import {
   type TimeFormatter,
   type ZonedDateTimeFormatter,
 } from '../formatter.js';
-import * as email from '../impl/email.js';
+import * as netnews from '../impl/netnews.js';
 
 export const {
   format,
@@ -68,10 +67,10 @@ export const {
 
     zdt = roundToSecond(zdt);
 
-    return email.format(zdt);
+    return netnews.format(zdt);
   },
   parse(input, _args, out) {
-    out.info = email.parse(input, out.info);
+    out.info = netnews.parse(input, out.info);
     return out;
   },
 });

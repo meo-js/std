@@ -1,5 +1,5 @@
 /**
- * Provide parsing and formatting for the Internet Email Date/Time Format.
+ * Provide parsing and formatting for HTTP Date Format.
  *
  * Supports parsing of date-time formats defined in the specification,
  * including those from obsolete versions, while ensuring that all output
@@ -7,10 +7,10 @@
  *
  * @public
  * @module
- * @see [RFC822(obsoletes)](https://datatracker.ietf.org/doc/html/rfc822)
- * @see [RFC1123(obsoletes)](https://datatracker.ietf.org/doc/html/rfc1123)
- * @see [RFC2822(obsoletes)](https://datatracker.ietf.org/doc/html/rfc2822)
- * @see [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322)
+ * @see [RFC1945(obsoletes, references: RFC822, RFC1123, RFC850, RFC1036, asctime)](https://datatracker.ietf.org/doc/html/rfc1945)
+ * @see [RFC2616(obsoletes)](https://datatracker.ietf.org/doc/html/rfc2616)
+ * @see [RFC7231(obsoletes, references: RFC5322)](https://datatracker.ietf.org/doc/html/rfc7231)
+ * @see [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110)
  */
 import type { Temporal } from 'temporal-polyfill';
 import {
@@ -30,7 +30,7 @@ import {
   type TimeFormatter,
   type ZonedDateTimeFormatter,
 } from '../formatter.js';
-import * as email from '../impl/email.js';
+import * as http from '../impl/http.js';
 
 export const {
   format,
@@ -68,10 +68,10 @@ export const {
 
     zdt = roundToSecond(zdt);
 
-    return email.format(zdt);
+    return http.format(zdt);
   },
   parse(input, _args, out) {
-    out.info = email.parse(input, out.info);
+    out.info = http.parse(input, out.info);
     return out;
   },
 });

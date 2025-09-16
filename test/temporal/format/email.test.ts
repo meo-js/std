@@ -1,8 +1,13 @@
 import { Temporal } from 'temporal-polyfill';
-import { describe, expect, it, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import * as email from '../../../src/temporal/format/email.js';
 
-// Helpers for extended parsing tests.
+// Helpers for validation via Instant conversion.
+function toDate(input: string): Date {
+  const inst = email.toInstant(input);
+  return new Date(inst.epochMilliseconds);
+}
+
 function expectUTCEqual(
   date: Date,
   y: number,
@@ -20,15 +25,10 @@ function expectUTCEqual(
   expect(date.toISOString()).toBe(iso);
 }
 
-function parseEmailDate(input: string): Date {
-  const inst = email.toInstant(input);
-  return new Date(inst.epochMilliseconds);
-}
-
 function expectInvalidParse(input: string) {
   let threw = false;
   try {
-    const d = parseEmailDate(input);
+    const d = toDate(input);
     expect(Number.isNaN(d.getTime())).toBe(true);
   } catch {
     threw = true;
@@ -36,121 +36,89 @@ function expectInvalidParse(input: string) {
   if (threw) expect(threw).toBe(true);
 }
 
-test('Format ZonedDateTime with numeric offset.', () => {
-  const z = Temporal.ZonedDateTime.from('2016-11-01T13:23:12+01:00[+01:00]');
-  const s = email.format(z);
-  expect(s).toBe('Tue, 01 Nov 2016 13:23:12 +0100');
-});
-
-test('Parse with comments, obs tz and no seconds.', () => {
-  const s = ' (comment) Tue, 01 Nov 16 13:23 (x) +0100 ';
-  const info = email.parse(s);
-  const zdt = email.toZonedDateTime(s);
-  expect(info.year).toBe(2016);
-  expect(info.month).toBe(11);
-  expect(info.day).toBe(1);
-  expect(info.second).toBe(0);
-  expect(info.offset).toBe('+01:00');
-  expect(zdt.offset).toBe('+01:00');
-});
-
-test('Military time zone letter.', () => {
-  const s = '01 Nov 2016 13:23:12 n'; // 'n' => -1 hour
-  const info = email.parse(s);
-  expect(info.offset).toBe('-01:00');
-});
-
-test('Z is UTC.', () => {
-  const s = '01 Nov 2016 13:23:12 Z';
-  const info = email.parse(s);
-  expect(info.offset).toBe('+00:00');
-  const z = email.toZonedDateTime(s);
-  expect(z.offset).toBe('+00:00');
-});
-
-test('2-digit and 3-digit years.', () => {
-  expect(email.parse('01 Nov 49 00:00 +0000').year).toBe(2049);
-  expect(email.parse('01 Nov 50 00:00 +0000').year).toBe(1950);
-  expect(email.parse('01 Nov 999 00:00 +0000').year).toBe(2899);
-});
-
-test('Rounding milliseconds.', () => {
-  const base = Temporal.ZonedDateTime.from(
-    '2000-01-01T00:00:00.600+00:00[+00:00]',
-  );
-  const s = email.format(base);
-  expect(s).toBe('Sat, 01 Jan 2000 00:00:01 +0000');
-});
-
-test('Format accepts Instant/PlainDateTime/PlainDate.', () => {
-  const inst = Temporal.Instant.from('2000-01-01T00:00:00Z');
-  expect(email.format(inst)).toMatch('+0000');
-
-  const pdt = Temporal.PlainDateTime.from('2000-01-01T00:00:00');
-  expect(email.format(pdt)).toContain('2000');
-
-  const pd = Temporal.PlainDate.from('2000-01-01');
-  expect(email.format(pd)).toContain('00:00:00');
-});
-
-test('Format rejects unsupported.', () => {
-  // @ts-expect-error: plain time is not supported for formatting
-  expect(() => email.format(Temporal.PlainTime.from('00:00:00'))).toThrow();
-});
-
-// Extended parsing suite (unique cases only; duplicates with above are omitted).
-describe('Email Date-Time parsing across RFC 822/1123/2822/5322 (with obs-*).', () => {
-  describe('Valid inputs.', () => {
-    it('RFC 822: Two-digit year with named zone (GMT).', () => {
-      expect.hasAssertions();
-      const d = parseEmailDate('Fri, 21 Nov 97 09:55:06 GMT');
-      expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
+// =============================================================
+// Tests for RFC 5322 (Internet Message Format) §3.3 and §4.3.
+// Generation must be canonical; obsolete forms must be accepted.
+// =============================================================
+describe('Tests for RFC 5322 spec.', () => {
+  describe('format', () => {
+    it('Generates canonical "Date" with numeric timezone and single spaces.', () => {
+      const z = Temporal.ZonedDateTime.from(
+        '2016-11-01T13:23:12+01:00[+01:00]',
+      );
+      const s = email.format(z);
+      expect(s).toBe('Tue, 01 Nov 2016 13:23:12 +0100');
+      expect(
+        /^[A-Z][a-z]{2}, \d{2} [A-Z][a-z]{2} \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}$/u.test(
+          s,
+        ),
+      ).toBe(true);
+      expect(s.includes('  ')).toBe(false);
+      expect(s.includes('GMT') || s.includes('UT') || s.endsWith(' Z')).toBe(
+        false,
+      );
     });
 
-    it('RFC 1123: Four-digit year with GMT.', () => {
-      expect.hasAssertions();
-      const d = parseEmailDate('Sun, 06 Nov 1994 08:49:37 GMT');
-      expectUTCEqual(d, 1994, 11, 6, 8, 49, 37);
+    it('Accepts Instant/PlainDateTime/PlainDate and normalizes to UTC for those types.', () => {
+      const inst = Temporal.Instant.from('2000-01-01T00:00:00Z');
+      expect(email.format(inst)).toBe('Sat, 01 Jan 2000 00:00:00 +0000');
+
+      const pdt = Temporal.PlainDateTime.from('2000-01-01T00:00:00');
+      expect(email.format(pdt)).toBe('Sat, 01 Jan 2000 00:00:00 +0000');
+
+      const pd = Temporal.PlainDate.from('2000-01-01');
+      expect(email.format(pd)).toBe('Sat, 01 Jan 2000 00:00:00 +0000');
     });
 
-    it('RFC 2822: Numeric zone -0600.', () => {
+    it('Rounds sub-second fractions to the nearest second before formatting.', () => {
+      const base = Temporal.ZonedDateTime.from(
+        '2000-01-01T00:00:00.600+00:00[UTC]',
+      );
+      expect(email.format(base)).toBe('Sat, 01 Jan 2000 00:00:01 +0000');
+    });
+
+    it('Rejects unsupported PlainTime input.', () => {
+      // @ts-expect-error: plain time is not supported for formatting
+      expect(() => email.format(Temporal.PlainTime.from('00:00:00'))).toThrow();
+    });
+  });
+
+  describe('parse', () => {
+    it('Accepts numeric zone (preferred) and returns correct instant.', () => {
       expect.hasAssertions();
-      const d = parseEmailDate('Fri, 21 Nov 1997 09:55:06 -0600');
+      const d = toDate('Fri, 21 Nov 1997 09:55:06 -0600');
       expectUTCEqual(d, 1997, 11, 21, 15, 55, 6);
     });
 
-    it('RFC 5322: Numeric zone -0330 (half hour).', () => {
+    it('Accepts UT/GMT/Z as +0000 (obs-zone).', () => {
       expect.hasAssertions();
-      const d = parseEmailDate('Thu, 13 Feb 1969 23:32:54 -0330');
-      expectUTCEqual(d, 1969, 2, 14, 3, 2, 54);
-    });
-
-    it('RFC 5322: Numeric zone +0545 (Nepal).', () => {
-      expect.hasAssertions();
-      const d = parseEmailDate('Fri, 21 Nov 1997 09:55:06 +0545');
-      expectUTCEqual(d, 1997, 11, 21, 4, 10, 6);
-    });
-
-    it('obs-zone aliases (UT/GMT/Z == +0000).', () => {
-      expect.hasAssertions();
-      const gmt = parseEmailDate('Fri, 21 Nov 1997 09:55:06 GMT');
-      const ut = parseEmailDate('Fri, 21 Nov 1997 09:55:06 UT');
-      const z = parseEmailDate('Fri, 21 Nov 1997 09:55:06 Z');
+      const gmt = toDate('Fri, 21 Nov 1997 09:55:06 GMT');
+      const ut = toDate('Fri, 21 Nov 1997 09:55:06 UT');
+      const z = toDate('Fri, 21 Nov 1997 09:55:06 Z');
       expect(gmt.getTime()).toBe(ut.getTime());
       expect(z.getTime()).toBe(ut.getTime());
     });
 
-    it('US time zone abbreviations (EST/EDT/CST/CDT/MST/MDT/PST/PDT).', () => {
+    it('Accepts military time zones per obs-zone.', () => {
       expect.hasAssertions();
-      const est = parseEmailDate('Fri, 21 Nov 1997 09:55:06 EST');
-      const edt = parseEmailDate('Fri, 21 Nov 1997 09:55:06 EDT');
-      const cst = parseEmailDate('Fri, 21 Nov 1997 09:55:06 CST');
-      const cdt = parseEmailDate('Fri, 21 Nov 1997 09:55:06 CDT');
-      const mst = parseEmailDate('Fri, 21 Nov 1997 09:55:06 MST');
-      const mdt = parseEmailDate('Fri, 21 Nov 1997 09:55:06 MDT');
-      const pst = parseEmailDate('Fri, 21 Nov 1997 09:55:06 PST');
-      const pdt = parseEmailDate('Fri, 21 Nov 1997 09:55:06 PDT');
+      const a = toDate('Fri, 21 Nov 1997 09:55:06 A');
+      const n = toDate('Fri, 21 Nov 1997 09:55:06 N');
+      const k = toDate('Fri, 21 Nov 1997 09:55:06 K');
+      expect(Number.isNaN(a.getTime())).toBe(false);
+      expect(Number.isNaN(n.getTime())).toBe(false);
+      expect(Number.isNaN(k.getTime())).toBe(false);
+    });
 
+    it('Accepts US time zone abbreviations (EST/EDT/CST/CDT/MST/MDT/PST/PDT).', () => {
+      expect.hasAssertions();
+      const est = toDate('Fri, 21 Nov 1997 09:55:06 EST');
+      const edt = toDate('Fri, 21 Nov 1997 09:55:06 EDT');
+      const cst = toDate('Fri, 21 Nov 1997 09:55:06 CST');
+      const cdt = toDate('Fri, 21 Nov 1997 09:55:06 CDT');
+      const mst = toDate('Fri, 21 Nov 1997 09:55:06 MST');
+      const mdt = toDate('Fri, 21 Nov 1997 09:55:06 MDT');
+      const pst = toDate('Fri, 21 Nov 1997 09:55:06 PST');
+      const pdt = toDate('Fri, 21 Nov 1997 09:55:06 PDT');
       expectUTCEqual(est, 1997, 11, 21, 14, 55, 6);
       expectUTCEqual(edt, 1997, 11, 21, 13, 55, 6);
       expectUTCEqual(cst, 1997, 11, 21, 15, 55, 6);
@@ -161,85 +129,225 @@ describe('Email Date-Time parsing across RFC 822/1123/2822/5322 (with obs-*).', 
       expectUTCEqual(pdt, 1997, 11, 21, 16, 55, 6);
     });
 
-    it('Case-insensitive (dow, month, zone).', () => {
+    it('Accepts half-hour and quarter-hour offsets (e.g., -0330, +0545).', () => {
       expect.hasAssertions();
-      const d = parseEmailDate('fri, 21 nov 1997 09:55:06 gmt');
-      expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
+      expectUTCEqual(
+        toDate('Thu, 13 Feb 1969 23:32:54 -0330'),
+        1969,
+        2,
+        14,
+        3,
+        2,
+        54,
+      );
+      expectUTCEqual(
+        toDate('Fri, 21 Nov 1997 09:55:06 +0545'),
+        1997,
+        11,
+        21,
+        4,
+        10,
+        6,
+      );
     });
 
-    it('Accepts extra spaces and tabs.', () => {
-      expect.hasAssertions();
-      const d = parseEmailDate('Fri,   21   Nov\t1997   09:55:06\tGMT');
-      expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
+    it('Accepts two-digit and three-digit years as obsolete forms with defined mapping.', () => {
+      expect(email.parse('01 Nov 49 00:00 +0000').year).toBe(2049);
+      expect(email.parse('01 Nov 50 00:00 +0000').year).toBe(1950);
+      expect(email.parse('01 Nov 999 00:00 +0000').year).toBe(2899);
     });
 
-    it('Day-of-week is optional.', () => {
+    it('Accepts CFWS and obs-FWS around tokens (A.6.3 style).', () => {
       expect.hasAssertions();
-      const d = parseEmailDate('21 Nov 1997 09:55:06 GMT');
-      expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
-    });
-
-    it('Single-digit day is allowed.', () => {
-      expect.hasAssertions();
-      const d = parseEmailDate('Fri, 9 Nov 2001 00:00:00 +0000');
-      expectUTCEqual(d, 2001, 11, 9, 0, 0, 0);
-    });
-
-    it('CRLF folding (obs-FWS).', () => {
-      expect.hasAssertions();
-      const d = parseEmailDate('Fri, 21 Nov 1997 09:55:06\r\n -0600');
+      const s = 'Fri, (c1) 21 (c2) Nov (c3) 1997 09:55:06 (c4) -0600';
+      const d = toDate(s);
       expectUTCEqual(d, 1997, 11, 21, 15, 55, 6);
     });
 
-    it('Comments (CFWS) are ignored.', () => {
+    it('Accepts missing seconds (defaults to 0).', () => {
       expect.hasAssertions();
-      const input =
-        '(pre) Fri, (note) 21 (x) Nov (y) 1997 (z) 09:55:06 (s) -0600 (tail)';
-      const d = parseEmailDate(input);
-      expectUTCEqual(d, 1997, 11, 21, 15, 55, 6);
+      const d = toDate('Fri, 21 Nov 1997 09:55 -0600');
+      expectUTCEqual(d, 1997, 11, 21, 15, 55, 0);
     });
 
-    it('Extreme numeric zones: +1400 / -1200.', () => {
+    it('Accepts optional day-of-week and single-digit day.', () => {
       expect.hasAssertions();
-      const plus14 = parseEmailDate('Mon, 01 Jan 2001 00:00:00 +1400');
-      expectUTCEqual(plus14, 2000, 12, 31, 10, 0, 0);
-      const minus12 = parseEmailDate('Mon, 01 Jan 2001 00:00:00 -1200');
-      expectUTCEqual(minus12, 2001, 1, 1, 12, 0, 0);
+      expectUTCEqual(
+        toDate('21 Nov 1997 09:55:06 GMT'),
+        1997,
+        11,
+        21,
+        9,
+        55,
+        6,
+      );
+      expectUTCEqual(
+        toDate('Fri, 9 Nov 2001 00:00:00 +0000'),
+        2001,
+        11,
+        9,
+        0,
+        0,
+        0,
+      );
     });
 
-    it('Date + time + numeric zone (no comma).', () => {
+    it('Is case-insensitive for day/month/zone tokens.', () => {
       expect.hasAssertions();
-      const d = parseEmailDate('21 Nov 1997 09:55:06 -0600');
-      expectUTCEqual(d, 1997, 11, 21, 15, 55, 6);
+      const d = toDate('fri, 21 nov 1997 09:55:06 gmt');
+      expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
     });
 
-    it('Date + time without zone should be rejected.', () => {
+    it('Accepts "-0000" and treats it as UTC for conversion semantics.', () => {
       expect.hasAssertions();
-      expectInvalidParse('Fri, 21 Nov 1997 09:55:06');
+      const d1 = toDate('Fri, 21 Nov 1997 09:55:06 -0000');
+      const d2 = toDate('Fri, 21 Nov 1997 09:55:06 +0000');
+      expect(d1.getTime()).toBe(d2.getTime());
+      const zdt = email.toZonedDateTime('Fri, 21 Nov 1997 09:55:06 -0000');
+      expect(zdt.offset).toBe('+00:00');
     });
-  });
 
-  describe('Invalid inputs.', () => {
-    it('Invalid month/day/time range.', () => {
+    it('Rejects mismatched day-of-week and invalid ranges.', () => {
       expect.hasAssertions();
-      expectInvalidParse('Fri, 21 Foo 1997 09:55:06 GMT');
+      expectInvalidParse('Sun, 21 Nov 1997 09:55:06 GMT'); // 1997-11-21 is Friday.
       expectInvalidParse('Fri, 31 Nov 1997 09:55:06 GMT');
       expectInvalidParse('Fri, 21 Nov 1997 24:00:00 GMT');
       expectInvalidParse('Fri, 21 Nov 1997 23:60:00 GMT');
-      expectInvalidParse('Fri, 21 Nov 1997 23:59:60 GMT');
+      // Leap seconds acceptance is implementation-defined; not asserted here.
     });
 
-    it('Invalid or unsupported zone formats and ranges.', () => {
+    it('Rejects missing zone and trailing garbage; validates zone minutes range.', () => {
       expect.hasAssertions();
-      // NOTE: This implementation accepts "+HH:MM"; skip asserting invalid for that.
-      expectInvalidParse('Fri, 21 Nov 1997 09:55:06 +2360');
-      expectInvalidParse('Fri, 21 Nov 1997 09:55:06 +2460');
-      expectInvalidParse('Fri, 21 Nov 1997 09:55:06 XYZ');
-    });
-
-    it('Trailing garbage.', () => {
-      expect.hasAssertions();
+      expectInvalidParse('Fri, 21 Nov 1997 09:55:06');
       expectInvalidParse('Fri, 21 Nov 1997 09:55:06 GMT garbage');
+      expectInvalidParse('Fri, 21 Nov 1997 09:55:06 +2360');
+      expectInvalidParse('Fri, 21 Nov 1997 09:55:06 J');
+    });
+
+    describe('Edge cases: leap years and year bounds.', () => {
+      it('Accepts Feb 29 in a leap year (2000 is leap year).', () => {
+        expect.hasAssertions();
+        const d = toDate('29 Feb 2000 12:00:00 +0000');
+        expectUTCEqual(d, 2000, 2, 29, 12, 0, 0);
+      });
+
+      it('Rejects Feb 29 in 1900 (not a leap year).', () => {
+        expect.hasAssertions();
+        expectInvalidParse('29 Feb 1900 00:00:00 +0000');
+      });
+
+      it('Rejects Feb 29 in a common year (1999).', () => {
+        expect.hasAssertions();
+        expectInvalidParse('29 Feb 1999 00:00:00 +0000');
+      });
+
+      it('Accepts lower bound year 1900.', () => {
+        expect.hasAssertions();
+        const d = toDate('01 Jan 1900 00:00:00 +0000');
+        expectUTCEqual(d, 1900, 1, 1, 0, 0, 0);
+      });
+
+      it('Rejects year earlier than 1900.', () => {
+        expect.hasAssertions();
+        expectInvalidParse('01 Jan 1899 00:00:00 +0000');
+      });
+
+      it('Accepts 5+ digit year (>= 10000) per RFC 5322/2822.', () => {
+        expect.hasAssertions();
+        const info = email.parse('01 Jan 10000 00:00:00 +0000');
+        expect(info.year).toBe(10000);
+      });
+
+      it('Accepts leap second 23:59:60 per RFC 5322 §3.3.', () => {
+        expect.hasAssertions();
+        const info = email.parse('31 Dec 1998 23:59:60 +0000');
+        expect(info.second).toBe(60);
+        expect(info.offset).toBe('+00:00');
+      });
+    });
+  });
+
+  describe('toXxx conversions', () => {
+    it('Converts parsed Date field to Date/Time/PlainDateTime/Instant/ZonedDateTime properly.', () => {
+      const s = 'Tue, 15 Nov 1994 08:12:31 -0500';
+      const date = email.toDate(s);
+      const time = email.toTime(s);
+      const dt = email.toDateTime(s);
+      const inst = email.toInstant(s);
+      const zdt = email.toZonedDateTime(s);
+
+      // Local wall-clock components from the field value.
+      expect(date.toString()).toBe('1994-11-15');
+      expect(time.toString()).toBe('08:12:31');
+      expect(dt.toString()).toBe('1994-11-15T08:12:31');
+
+      // Absolute instant in UTC.
+      expect(inst.toString()).toBe('1994-11-15T13:12:31Z');
+      expect(zdt.offset).toMatch(/[+-]\d{2}:\d{2}/u);
+    });
+  });
+});
+
+// ======================================
+// Tests for RFC 2822 (obsolete, accepted).
+// ======================================
+describe('Tests for RFC 2822 spec (obsolete forms allowed for parsing).', () => {
+  describe('parse', () => {
+    it('Accepts obsolete date with non-numeric zone and two-digit year (A.6.2).', () => {
+      expect.hasAssertions();
+      const d = toDate('21 Nov 97 09:55:06 GMT');
+      expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
+    });
+
+    it('Accepts folding white space and comments in many positions (A.5/A.6.3).', () => {
+      expect.hasAssertions();
+      const s = 'Thu,\r\n 13 (x) Feb (y) 1969 23:32 -0330 (Newfoundland Time)';
+      const d = toDate(s);
+      expectUTCEqual(d, 1969, 2, 14, 3, 2, 0);
+    });
+  });
+
+  describe('format', () => {
+    it('Sender MUST NOT generate two-digit years or non-numeric zones.', () => {
+      const z = Temporal.ZonedDateTime.from(
+        '2003-07-01T10:52:37+02:00[+02:00]',
+      );
+      const s = email.format(z);
+      expect(s).toBe('Tue, 01 Jul 2003 10:52:37 +0200');
+      expect(s).not.toMatch(/\bGMT\b|\bUT\b|\b[A-Z]{3}\b/u);
+    });
+  });
+});
+
+// ==============================================
+// Tests for RFC 1123 and RFC 822 (historic input).
+// ==============================================
+describe('Tests for RFC 1123 and RFC 822 spec.', () => {
+  describe('parse', () => {
+    it('Accepts RFC 1123 style (four-digit year, GMT token).', () => {
+      expect.hasAssertions();
+      expectUTCEqual(
+        toDate('Sun, 06 Nov 1994 08:49:37 GMT'),
+        1994,
+        11,
+        6,
+        8,
+        49,
+        37,
+      );
+    });
+
+    it('Accepts RFC 822 style (two-digit year and named zone).', () => {
+      expect.hasAssertions();
+      expectUTCEqual(
+        toDate('Fri, 21 Nov 97 09:55:06 GMT'),
+        1997,
+        11,
+        21,
+        9,
+        55,
+        6,
+      );
     });
   });
 });

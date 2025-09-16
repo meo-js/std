@@ -30,8 +30,8 @@ export class PoolItemHandle<out T extends PoolItem = object>
    */
   [Symbol.dispose](): void {
     const item = this.item;
-    if (this.item) {
-      this.pool.put(this.item);
+    if (item) {
+      this.pool.put(item);
       this.item = null;
     }
   }
