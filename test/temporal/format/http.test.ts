@@ -84,19 +84,16 @@ describe('Tests for RFC 9110 spec.', () => {
 
   describe('parse', () => {
     it('Accepts IMF-fixdate (preferred format).', () => {
-      expect.hasAssertions();
       const d = toDate('Sun, 06 Nov 1994 08:49:37 GMT');
       expectUTCEqual(d, 1994, 11, 6, 8, 49, 37);
     });
 
     it('Accepts obs-date: RFC 850 date with two-digit year.', () => {
-      expect.hasAssertions();
       const d = toDate('Sunday, 06-Nov-94 08:49:37 GMT');
       expectUTCEqual(d, 1994, 11, 6, 8, 49, 37);
     });
 
     it('Accepts obs-date: asctime date; assumes UTC.', () => {
-      expect.hasAssertions();
       const s = 'Sun Nov  6 08:49:37 1994';
       const d = toDate(s);
       expectUTCEqual(d, 1994, 11, 6, 8, 49, 37);
@@ -105,7 +102,6 @@ describe('Tests for RFC 9110 spec.', () => {
     });
 
     it('Accepts leap second value 60 and maps to the next UTC second.', () => {
-      expect.hasAssertions();
       // Known positive leap seconds (UTC): 2012-06-30, 2016-12-31.
       const d1 = toDate('Sat, 30 Jun 2012 23:59:60 GMT');
       expectUTCEqual(d1, 2012, 7, 1, 0, 0, 0);
@@ -114,14 +110,12 @@ describe('Tests for RFC 9110 spec.', () => {
     });
 
     it('Ignores leading/trailing whitespace around the field value.', () => {
-      expect.hasAssertions();
       const s = '  Sun, 06 Nov 1994 08:49:37 GMT  ';
       const d = toDate(s);
       expectUTCEqual(d, 1994, 11, 6, 8, 49, 37);
     });
 
     it('Is case sensitive and requires literal GMT token.', () => {
-      expect.hasAssertions();
       expectInvalidParse('sun, 06 Nov 1994 08:49:37 GMT'); // Day-name case.
       expectInvalidParse('Sun, 06 nov 1994 08:49:37 GMT'); // Month case.
       expectInvalidParse('Sun, 06 Nov 1994 08:49:37 gmt'); // GMT case.
@@ -129,7 +123,6 @@ describe('Tests for RFC 9110 spec.', () => {
     });
 
     it('Rejects invalid ranges and malformed inputs.', () => {
-      expect.hasAssertions();
       expectInvalidParse('Sun, 31 Nov 1994 08:49:37 GMT'); // Invalid date.
       expectInvalidParse('Sun, 06 Nov 1994 24:00:00 GMT'); // Invalid hour.
       expectInvalidParse('Sun, 06 Nov 1994 23:60:00 GMT'); // Invalid minute.
@@ -138,19 +131,16 @@ describe('Tests for RFC 9110 spec.', () => {
     });
 
     it('Rejects weekday that does not match the calendar date.', () => {
-      expect.hasAssertions();
       // 1994-11-06 is Sunday, so label as Monday should be rejected.
       expectInvalidParse('Mon, 06 Nov 1994 08:49:37 GMT');
     });
 
     it('Requires exactly one SP after the comma in IMF-fixdate.', () => {
-      expect.hasAssertions();
       expectInvalidParse('Sun,06 Nov 1994 08:49:37 GMT'); // No space.
       expectInvalidParse('Sun,  06 Nov 1994 08:49:37 GMT'); // Double space.
     });
 
     it('Rejects single-digit day in IMF-fixdate form.', () => {
-      expect.hasAssertions();
       expectInvalidParse('Sun, 6 Nov 1994 08:49:37 GMT');
     });
   });
@@ -179,7 +169,6 @@ describe('Tests for RFC 9110 spec.', () => {
 describe('Tests for RFC 7231 spec.', () => {
   describe('parse', () => {
     it('Recipient MUST accept all three formats.', () => {
-      expect.hasAssertions();
       expectUTCEqual(
         toDate('Sun, 06 Nov 1994 08:49:37 GMT'),
         1994,
@@ -210,7 +199,6 @@ describe('Tests for RFC 7231 spec.', () => {
     });
 
     it('HTTP-date is case sensitive.', () => {
-      expect.hasAssertions();
       expectInvalidParse('Sun, 06 Nov 1994 08:49:37 gmt');
       expectInvalidParse('sun, 06 Nov 1994 08:49:37 GMT');
     });
@@ -233,7 +221,6 @@ describe('Tests for RFC 7231 spec.', () => {
 describe('Tests for RFC 2616 spec.', () => {
   describe('parse', () => {
     it('All HTTP-date stamps MUST be in GMT (asctime assumed UTC).', () => {
-      expect.hasAssertions();
       const d1 = toDate('Friday, 19-Nov-82 16:14:55 GMT');
       expectUTCEqual(d1, 1982, 11, 19, 16, 14, 55);
       const d2 = toDate('Fri Nov 19 16:14:55 1982');
@@ -241,7 +228,6 @@ describe('Tests for RFC 2616 spec.', () => {
     });
 
     it('Rejects additional whitespace beyond SP in IMF-fixdate.', () => {
-      expect.hasAssertions();
       expectInvalidParse('Sun, 06  Nov 1994 08:49:37 GMT');
       expectInvalidParse('Sun, 06 Nov 1994 08:49:37  GMT');
     });
@@ -254,7 +240,6 @@ describe('Tests for RFC 2616 spec.', () => {
 describe('Tests for RFC 1945 spec.', () => {
   describe('parse', () => {
     it('Should accept RFC 1123/RFC 850/asctime formats.', () => {
-      expect.hasAssertions();
       expectUTCEqual(
         toDate('Sun, 06 Nov 1994 08:49:37 GMT'),
         1994,
@@ -285,7 +270,6 @@ describe('Tests for RFC 1945 spec.', () => {
     });
 
     it('Rejects lowercase weekday/month names in RFC 850 (case sensitive).', () => {
-      expect.hasAssertions();
       expectInvalidParse('sunday, 06-Nov-94 08:49:37 GMT');
       expectInvalidParse('Sunday, 06-nov-94 08:49:37 GMT');
     });

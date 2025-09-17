@@ -42,19 +42,16 @@ function expectInvalidParse(input: string) {
 describe('Tests for RFC2109 spec (historic Netscape Expires compatibility).', () => {
   describe('parse', () => {
     it('Parses the fixed-length Netscape format with two-digit year.', () => {
-      expect.hasAssertions();
       const d = parseCookieDate('Wed, 09-Jun-21 10:18:14 GMT');
       expectUTCEqual(d, 2021, 6, 9, 10, 18, 14);
     });
 
     it('Accepts full weekday names and hyphenated date tokens.', () => {
-      expect.hasAssertions();
       const d = parseCookieDate('Wednesday, 09-Jun-99 23:59:59 GMT');
       expectUTCEqual(d, 1999, 6, 9, 23, 59, 59);
     });
 
     it('Is case-insensitive for tokens and tolerates extra whitespace.', () => {
-      expect.hasAssertions();
       const d = parseCookieDate('wEdNeSdAy,  09-jUn-21   10:18:14   gMt');
       expectUTCEqual(d, 2021, 6, 9, 10, 18, 14);
     });
@@ -62,7 +59,6 @@ describe('Tests for RFC2109 spec (historic Netscape Expires compatibility).', ()
 
   describe('format', () => {
     it('Formats to RFC 1123 style with GMT (canonical output).', () => {
-      expect.hasAssertions();
       const z = Temporal.ZonedDateTime.from('2021-06-09T10:18:14+00:00[UTC]');
       const s = cookie.format(z);
       expect(s).toBe('Wed, 09 Jun 2021 10:18:14 GMT');
@@ -76,7 +72,6 @@ describe('Tests for RFC2109 spec (historic Netscape Expires compatibility).', ()
 describe('Tests for RFC2965 spec (historic compatibility).', () => {
   describe('parse', () => {
     it('Parses two-digit years per compatibility guidance.', () => {
-      expect.hasAssertions();
       const y49 = cookie.parse('Wed, 01 Nov 49 00:00:00 GMT');
       const y50 = cookie.parse('Wed, 01 Nov 50 00:00:00 GMT');
       expect(y49.year).toBe(2049);
@@ -84,7 +79,6 @@ describe('Tests for RFC2965 spec (historic compatibility).', () => {
     });
 
     it('Parses with varied separators and optional comma.', () => {
-      expect.hasAssertions();
       const d1 = parseCookieDate('Wed, 09 Jun 2021 10:18:14 GMT');
       expectUTCEqual(d1, 2021, 6, 9, 10, 18, 14);
       const d2 = parseCookieDate('09 Jun 2021 10:18:14 GMT');
@@ -94,7 +88,6 @@ describe('Tests for RFC2965 spec (historic compatibility).', () => {
 
   describe('format', () => {
     it('Always emits four-digit year and GMT zone in output.', () => {
-      expect.hasAssertions();
       const z = Temporal.ZonedDateTime.from(
         '1999-06-09T23:59:59-05:00[-05:00]',
       );
@@ -111,44 +104,37 @@ describe('Tests for RFC2965 spec (historic compatibility).', () => {
 describe('Tests for RFC6265 spec.', () => {
   describe('parse', () => {
     it('Parses standard RFC 1123 date.', () => {
-      expect.hasAssertions();
       const d = parseCookieDate('Sun, 06 Nov 1994 08:49:37 GMT');
       expectUTCEqual(d, 1994, 11, 6, 8, 49, 37);
     });
 
     it('Parses with single-digit day.', () => {
-      expect.hasAssertions();
       const d = parseCookieDate('Sun, 6 Nov 1994 08:49:37 GMT');
       expectUTCEqual(d, 1994, 11, 6, 8, 49, 37);
     });
 
     it('Parses case-insensitively for month and weekday names.', () => {
-      expect.hasAssertions();
       const d = parseCookieDate('sun, 06 nov 1994 08:49:37 gmt');
       expectUTCEqual(d, 1994, 11, 6, 8, 49, 37);
     });
 
     it('Parses tokenized variants per algorithm (extra tokens and tabs).', () => {
-      expect.hasAssertions();
       const d = parseCookieDate('\tSun, 06 Nov 1994 08:49:37 GMT foo bar');
       expectUTCEqual(d, 1994, 11, 6, 8, 49, 37);
     });
 
     it('Ignores incorrect weekday token and still parses.', () => {
-      expect.hasAssertions();
       // 2021-06-09 is actually Wednesday, but the weekday token says "Sun".
       const d = parseCookieDate('Sun, 09 Jun 2021 10:18:14 GMT');
       expectUTCEqual(d, 2021, 6, 9, 10, 18, 14);
     });
 
     it('Accepts missing comma after weekday per non-alnum tokenization.', () => {
-      expect.hasAssertions();
       const d = parseCookieDate('Wed 09 Jun 2021 10:18:14 GMT');
       expectUTCEqual(d, 2021, 6, 9, 10, 18, 14);
     });
 
     it('Maps two-digit years: 70-99 => 1970-1999, 00-69 => 2000-2069.', () => {
-      expect.hasAssertions();
       const y70 = cookie.parse('Sun, 06 Nov 70 00:00:00 GMT');
       const y99 = cookie.parse('Sun, 06 Nov 99 00:00:00 GMT');
       const y00 = cookie.parse('Sun, 06 Nov 00 00:00:00 GMT');
@@ -160,7 +146,6 @@ describe('Tests for RFC6265 spec.', () => {
     });
 
     it('Rejects invalid ranges and years < 1601 per RFC6265.', () => {
-      expect.hasAssertions();
       expectInvalidParse('Sun, 06 Nov 1500 08:49:37 GMT');
       expectInvalidParse('Sun, 06 Nov 1994 24:00:00 GMT');
       expectInvalidParse('Sun, 06 Nov 1994 23:60:00 GMT');
@@ -171,19 +156,16 @@ describe('Tests for RFC6265 spec.', () => {
     });
 
     it('Accepts lower bound year 1601 and rejects 1600.', () => {
-      expect.hasAssertions();
       const ok = parseCookieDate('Mon, 01 Jan 1601 00:00:00 GMT');
       expectUTCEqual(ok, 1601, 1, 1, 0, 0, 0);
       expectInvalidParse('Mon, 01 Jan 1600 00:00:00 GMT');
     });
 
     it('Rejects five-digit year (more than four digits).', () => {
-      expect.hasAssertions();
       expectInvalidParse('Wed, 01 Jan 10000 00:00:00 GMT');
     });
 
     it('Ignores timezone tokens; treats time as UTC.', () => {
-      expect.hasAssertions();
       const gmt = parseCookieDate('Wed, 09 Jun 2021 10:18:14 GMT');
       const utc = parseCookieDate('Wed, 09 Jun 2021 10:18:14 UTC');
       expect(gmt.getTime()).toBe(utc.getTime());
@@ -192,7 +174,6 @@ describe('Tests for RFC6265 spec.', () => {
 
   describe('format', () => {
     it('Always outputs GMT with four-digit year and zero-padded fields.', () => {
-      expect.hasAssertions();
       const z = Temporal.ZonedDateTime.from(
         '2016-11-01T13:23:12+01:00[+01:00]',
       );
@@ -206,7 +187,6 @@ describe('Tests for RFC6265 spec.', () => {
     });
 
     it('Formats {@link Temporal.Instant}, {@link Temporal.PlainDateTime}, and {@link Temporal.PlainDate}.', () => {
-      expect.hasAssertions();
       const inst = Temporal.Instant.from('2000-01-01T00:00:00Z');
       expect(cookie.format(inst)).toBe('Sat, 01 Jan 2000 00:00:00 GMT');
 
@@ -218,7 +198,6 @@ describe('Tests for RFC6265 spec.', () => {
     });
 
     it('Rounds to whole seconds when formatting.', () => {
-      expect.hasAssertions();
       const up = Temporal.ZonedDateTime.from(
         '2000-01-01T00:00:00.600+00:00[+00:00]',
       );
@@ -232,7 +211,6 @@ describe('Tests for RFC6265 spec.', () => {
 
   describe('conversions', () => {
     it('toZonedDateTime/toInstant/toDate work and are UTC-based.', () => {
-      expect.hasAssertions();
       const s = 'Wed, 09 Jun 2021 10:18:14 GMT';
       const zdt = cookie.toZonedDateTime(s);
       expect(zdt.offset).toBe('+00:00');
@@ -245,7 +223,6 @@ describe('Tests for RFC6265 spec.', () => {
     });
 
     it('toDateTime/toTime extract logical components.', () => {
-      expect.hasAssertions();
       const s = 'Sun, 06 Nov 1994 08:49:37 GMT';
       const dt = cookie.toDateTime(s);
       expect(dt.year).toBe(1994);

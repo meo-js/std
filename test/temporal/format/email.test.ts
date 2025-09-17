@@ -85,13 +85,11 @@ describe('Tests for RFC 5322 spec.', () => {
 
   describe('parse', () => {
     it('Accepts numeric zone (preferred) and returns correct instant.', () => {
-      expect.hasAssertions();
       const d = toDate('Fri, 21 Nov 1997 09:55:06 -0600');
       expectUTCEqual(d, 1997, 11, 21, 15, 55, 6);
     });
 
     it('Accepts UT/GMT/Z as +0000 (obs-zone).', () => {
-      expect.hasAssertions();
       const gmt = toDate('Fri, 21 Nov 1997 09:55:06 GMT');
       const ut = toDate('Fri, 21 Nov 1997 09:55:06 UT');
       const z = toDate('Fri, 21 Nov 1997 09:55:06 Z');
@@ -100,7 +98,6 @@ describe('Tests for RFC 5322 spec.', () => {
     });
 
     it('Accepts military time zones per obs-zone.', () => {
-      expect.hasAssertions();
       const a = toDate('Fri, 21 Nov 1997 09:55:06 A');
       const n = toDate('Fri, 21 Nov 1997 09:55:06 N');
       const k = toDate('Fri, 21 Nov 1997 09:55:06 K');
@@ -110,7 +107,6 @@ describe('Tests for RFC 5322 spec.', () => {
     });
 
     it('Accepts US time zone abbreviations (EST/EDT/CST/CDT/MST/MDT/PST/PDT).', () => {
-      expect.hasAssertions();
       const est = toDate('Fri, 21 Nov 1997 09:55:06 EST');
       const edt = toDate('Fri, 21 Nov 1997 09:55:06 EDT');
       const cst = toDate('Fri, 21 Nov 1997 09:55:06 CST');
@@ -130,7 +126,6 @@ describe('Tests for RFC 5322 spec.', () => {
     });
 
     it('Accepts half-hour and quarter-hour offsets (e.g., -0330, +0545).', () => {
-      expect.hasAssertions();
       expectUTCEqual(
         toDate('Thu, 13 Feb 1969 23:32:54 -0330'),
         1969,
@@ -158,20 +153,17 @@ describe('Tests for RFC 5322 spec.', () => {
     });
 
     it('Accepts CFWS and obs-FWS around tokens (A.6.3 style).', () => {
-      expect.hasAssertions();
       const s = 'Fri, (c1) 21 (c2) Nov (c3) 1997 09:55:06 (c4) -0600';
       const d = toDate(s);
       expectUTCEqual(d, 1997, 11, 21, 15, 55, 6);
     });
 
     it('Accepts missing seconds (defaults to 0).', () => {
-      expect.hasAssertions();
       const d = toDate('Fri, 21 Nov 1997 09:55 -0600');
       expectUTCEqual(d, 1997, 11, 21, 15, 55, 0);
     });
 
     it('Accepts optional day-of-week and single-digit day.', () => {
-      expect.hasAssertions();
       expectUTCEqual(
         toDate('21 Nov 1997 09:55:06 GMT'),
         1997,
@@ -193,18 +185,15 @@ describe('Tests for RFC 5322 spec.', () => {
     });
 
     it('Is case-insensitive for day/month/zone tokens.', () => {
-      expect.hasAssertions();
       const d = toDate('fri, 21 nov 1997 09:55:06 gmt');
       expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
     });
 
     it('Requires a comma after day-of-week when present.', () => {
-      expect.hasAssertions();
       expectInvalidParse('Fri 21 Nov 1997 09:55:06 +0000');
     });
 
     it('Treats unknown alphabetic zones as "-0000" (handle as UTC for conversion).', () => {
-      expect.hasAssertions();
       const cet = toDate('Fri, 21 Nov 1997 09:55:06 CET');
       expectUTCEqual(cet, 1997, 11, 21, 9, 55, 6);
       const xyz = toDate('Fri, 21 Nov 1997 09:55:06 XYZ');
@@ -212,13 +201,11 @@ describe('Tests for RFC 5322 spec.', () => {
     });
 
     it('Is tolerant of case for month and zone abbreviations.', () => {
-      expect.hasAssertions();
       const d = toDate('Fri, 21 NOV 1997 09:55:06 gMt');
       expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
     });
 
     it('Accepts "-0000" and treats it as UTC for conversion semantics.', () => {
-      expect.hasAssertions();
       const d1 = toDate('Fri, 21 Nov 1997 09:55:06 -0000');
       const d2 = toDate('Fri, 21 Nov 1997 09:55:06 +0000');
       expect(d1.getTime()).toBe(d2.getTime());
@@ -227,7 +214,6 @@ describe('Tests for RFC 5322 spec.', () => {
     });
 
     it('Rejects mismatched day-of-week and invalid ranges.', () => {
-      expect.hasAssertions();
       expectInvalidParse('Sun, 21 Nov 1997 09:55:06 GMT'); // 1997-11-21 is Friday.
       expectInvalidParse('Fri, 31 Nov 1997 09:55:06 GMT');
       expectInvalidParse('Fri, 21 Nov 1997 24:00:00 GMT');
@@ -236,7 +222,6 @@ describe('Tests for RFC 5322 spec.', () => {
     });
 
     it('Rejects missing zone and trailing garbage; validates zone minutes range.', () => {
-      expect.hasAssertions();
       expectInvalidParse('Fri, 21 Nov 1997 09:55:06');
       expectInvalidParse('Fri, 21 Nov 1997 09:55:06 GMT garbage');
       expectInvalidParse('Fri, 21 Nov 1997 09:55:06 +2360');
@@ -245,41 +230,34 @@ describe('Tests for RFC 5322 spec.', () => {
 
     describe('Edge cases: leap years and year bounds.', () => {
       it('Accepts Feb 29 in a leap year (2000 is leap year).', () => {
-        expect.hasAssertions();
-        const d = toDate('29 Feb 2000 12:00:00 +0000');
+          const d = toDate('29 Feb 2000 12:00:00 +0000');
         expectUTCEqual(d, 2000, 2, 29, 12, 0, 0);
       });
 
       it('Rejects Feb 29 in 1900 (not a leap year).', () => {
-        expect.hasAssertions();
-        expectInvalidParse('29 Feb 1900 00:00:00 +0000');
+          expectInvalidParse('29 Feb 1900 00:00:00 +0000');
       });
 
       it('Rejects Feb 29 in a common year (1999).', () => {
-        expect.hasAssertions();
-        expectInvalidParse('29 Feb 1999 00:00:00 +0000');
+          expectInvalidParse('29 Feb 1999 00:00:00 +0000');
       });
 
       it('Accepts lower bound year 1900.', () => {
-        expect.hasAssertions();
-        const d = toDate('01 Jan 1900 00:00:00 +0000');
+          const d = toDate('01 Jan 1900 00:00:00 +0000');
         expectUTCEqual(d, 1900, 1, 1, 0, 0, 0);
       });
 
       it('Rejects year earlier than 1900.', () => {
-        expect.hasAssertions();
-        expectInvalidParse('01 Jan 1899 00:00:00 +0000');
+          expectInvalidParse('01 Jan 1899 00:00:00 +0000');
       });
 
       it('Accepts 5+ digit year (>= 10000) per RFC 5322/2822.', () => {
-        expect.hasAssertions();
-        const info = email.parse('01 Jan 10000 00:00:00 +0000');
+          const info = email.parse('01 Jan 10000 00:00:00 +0000');
         expect(info.year).toBe(10000);
       });
 
       it('Accepts leap second 23:59:60 per RFC 5322 §3.3.', () => {
-        expect.hasAssertions();
-        const info = email.parse('31 Dec 1998 23:59:60 +0000');
+          const info = email.parse('31 Dec 1998 23:59:60 +0000');
         expect(info.second).toBe(60);
         expect(info.offset).toBe('+00:00');
       });
@@ -313,13 +291,11 @@ describe('Tests for RFC 5322 spec.', () => {
 describe('Tests for RFC 2822 spec (obsolete forms allowed for parsing).', () => {
   describe('parse', () => {
     it('Accepts obsolete date with non-numeric zone and two-digit year (A.6.2).', () => {
-      expect.hasAssertions();
       const d = toDate('21 Nov 97 09:55:06 GMT');
       expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
     });
 
     it('Accepts folding white space and comments in many positions (A.5/A.6.3).', () => {
-      expect.hasAssertions();
       const s = 'Thu,\r\n 13 (x) Feb (y) 1969 23:32 -0330 (Newfoundland Time)';
       const d = toDate(s);
       expectUTCEqual(d, 1969, 2, 14, 3, 2, 0);
@@ -344,7 +320,6 @@ describe('Tests for RFC 2822 spec (obsolete forms allowed for parsing).', () => 
 describe('Tests for RFC 1123 and RFC 822 spec.', () => {
   describe('parse', () => {
     it('Accepts RFC 1123 style (four-digit year, GMT token).', () => {
-      expect.hasAssertions();
       expectUTCEqual(
         toDate('Sun, 06 Nov 1994 08:49:37 GMT'),
         1994,
@@ -357,7 +332,6 @@ describe('Tests for RFC 1123 and RFC 822 spec.', () => {
     });
 
     it('Accepts RFC 822 style (two-digit year and named zone).', () => {
-      expect.hasAssertions();
       expectUTCEqual(
         toDate('Fri, 21 Nov 97 09:55:06 GMT'),
         1997,
