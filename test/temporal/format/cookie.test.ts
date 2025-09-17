@@ -134,6 +134,19 @@ describe('Tests for RFC6265 spec.', () => {
       expectUTCEqual(d, 1994, 11, 6, 8, 49, 37);
     });
 
+    it('Ignores incorrect weekday token and still parses.', () => {
+      expect.hasAssertions();
+      // 2021-06-09 is actually Wednesday, but the weekday token says "Sun".
+      const d = parseCookieDate('Sun, 09 Jun 2021 10:18:14 GMT');
+      expectUTCEqual(d, 2021, 6, 9, 10, 18, 14);
+    });
+
+    it('Accepts missing comma after weekday per non-alnum tokenization.', () => {
+      expect.hasAssertions();
+      const d = parseCookieDate('Wed 09 Jun 2021 10:18:14 GMT');
+      expectUTCEqual(d, 2021, 6, 9, 10, 18, 14);
+    });
+
     it('Maps two-digit years: 70-99 => 1970-1999, 00-69 => 2000-2069.', () => {
       expect.hasAssertions();
       const y70 = cookie.parse('Sun, 06 Nov 70 00:00:00 GMT');
@@ -155,6 +168,18 @@ describe('Tests for RFC6265 spec.', () => {
       expectInvalidParse('Sun, 32 Nov 1994 08:49:37 GMT');
       expectInvalidParse('Sun, 06 Foo 1994 08:49:37 GMT');
       expectInvalidParse('Sun, 06 Nov 1994 08:49 GMT'); // Missing seconds.
+    });
+
+    it('Accepts lower bound year 1601 and rejects 1600.', () => {
+      expect.hasAssertions();
+      const ok = parseCookieDate('Mon, 01 Jan 1601 00:00:00 GMT');
+      expectUTCEqual(ok, 1601, 1, 1, 0, 0, 0);
+      expectInvalidParse('Mon, 01 Jan 1600 00:00:00 GMT');
+    });
+
+    it('Rejects five-digit year (more than four digits).', () => {
+      expect.hasAssertions();
+      expectInvalidParse('Wed, 01 Jan 10000 00:00:00 GMT');
     });
 
     it('Ignores timezone tokens; treats time as UTC.', () => {

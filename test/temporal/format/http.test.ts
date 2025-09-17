@@ -136,6 +136,23 @@ describe('Tests for RFC 9110 spec.', () => {
       expectInvalidParse('Sun, 06 Nov 1994 23:59:61 GMT'); // Invalid second beyond leap.
       expectInvalidParse('Sun, 06 Nov 1994 08:49:37 GMT garbage'); // Trailing garbage.
     });
+
+    it('Rejects weekday that does not match the calendar date.', () => {
+      expect.hasAssertions();
+      // 1994-11-06 is Sunday, so label as Monday should be rejected.
+      expectInvalidParse('Mon, 06 Nov 1994 08:49:37 GMT');
+    });
+
+    it('Requires exactly one SP after the comma in IMF-fixdate.', () => {
+      expect.hasAssertions();
+      expectInvalidParse('Sun,06 Nov 1994 08:49:37 GMT'); // No space.
+      expectInvalidParse('Sun,  06 Nov 1994 08:49:37 GMT'); // Double space.
+    });
+
+    it('Rejects single-digit day in IMF-fixdate form.', () => {
+      expect.hasAssertions();
+      expectInvalidParse('Sun, 6 Nov 1994 08:49:37 GMT');
+    });
   });
 
   describe('toXxx conversions', () => {

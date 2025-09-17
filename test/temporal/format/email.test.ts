@@ -198,6 +198,25 @@ describe('Tests for RFC 5322 spec.', () => {
       expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
     });
 
+    it('Requires a comma after day-of-week when present.', () => {
+      expect.hasAssertions();
+      expectInvalidParse('Fri 21 Nov 1997 09:55:06 +0000');
+    });
+
+    it('Treats unknown alphabetic zones as "-0000" (handle as UTC for conversion).', () => {
+      expect.hasAssertions();
+      const cet = toDate('Fri, 21 Nov 1997 09:55:06 CET');
+      expectUTCEqual(cet, 1997, 11, 21, 9, 55, 6);
+      const xyz = toDate('Fri, 21 Nov 1997 09:55:06 XYZ');
+      expectUTCEqual(xyz, 1997, 11, 21, 9, 55, 6);
+    });
+
+    it('Is tolerant of case for month and zone abbreviations.', () => {
+      expect.hasAssertions();
+      const d = toDate('Fri, 21 NOV 1997 09:55:06 gMt');
+      expectUTCEqual(d, 1997, 11, 21, 9, 55, 6);
+    });
+
     it('Accepts "-0000" and treats it as UTC for conversion semantics.', () => {
       expect.hasAssertions();
       const d1 = toDate('Fri, 21 Nov 1997 09:55:06 -0000');

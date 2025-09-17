@@ -67,6 +67,12 @@ describe('Tests for RFC850 spec.', () => {
       expectInvalidParse('Friday 19-Nov-82 16:14:55 EST'); // Missing comma.
       expectInvalidParse('Friday, 19/Nov/82 16:14:55 EST'); // Wrong separators.
     });
+
+    it('Rejects weekday that does not match the calendar date (RFC 850).', () => {
+      expect.hasAssertions();
+      // 1982-11-19 is Friday; labeling as Thursday should be rejected.
+      expectInvalidParse('Thursday, 19-Nov-82 16:14:55 EST');
+    });
   });
 
   describe('format', () => {
@@ -104,6 +110,17 @@ describe('Tests for RFC1036 spec.', () => {
       expect.hasAssertions();
       const d = parseNetnewsDate('Fri, 19 Nov 82 16:14 GMT');
       expectUTCEqual(d, 1982, 11, 19, 16, 14, 0);
+    });
+
+    it('Rejects missing comma after weekday (RFC 1036).', () => {
+      expect.hasAssertions();
+      expectInvalidParse('Fri 19 Nov 82 16:14:55 GMT');
+    });
+
+    it('Rejects weekday that does not match the calendar date (RFC 1036).', () => {
+      expect.hasAssertions();
+      // 1982-11-19 is Friday; labeling as Thursday should be rejected.
+      expectInvalidParse('Thu, 19 Nov 82 16:14:55 GMT');
     });
 
     it('Interprets two-digit years per RFC 5322 obsolete rules.', () => {
@@ -209,7 +226,6 @@ describe('Tests for RFC5536 spec.', () => {
       expectInvalidParse('Fri, 21 Nov 1997 24:00:00 GMT');
       expectInvalidParse('Fri, 21 Nov 1997 23:60:00 GMT');
       expectInvalidParse('1997-11-21T09:55:06Z');
-      expectInvalidParse('01 Nov 999 00:00 +0000');
     });
 
     it('Interprets three-digit years per RFC 5322 obsolete rules.', () => {
@@ -217,6 +233,25 @@ describe('Tests for RFC5536 spec.', () => {
       const info = netnews.parse('01 Nov 999 00:00 +0000');
       // 999 should be interpreted as 999 + 1900 = 2899.
       expect(info.year).toBe(2899);
+    });
+
+    it('Maps year 099 to 1999 per three-digit rule.', () => {
+      expect.hasAssertions();
+      const info = netnews.parse('Fri, 01 Jan 099 00:00:00 +0000');
+      expect(info.year).toBe(1999);
+    });
+
+    it('Accepts leap second with second value 60.', () => {
+      expect.hasAssertions();
+      const info = netnews.parse('Wed, 31 Dec 1998 23:59:60 +0000');
+      expect(info.second).toBe(60);
+      expect(info.offset).toBe('+00:00');
+    });
+
+    it('Rejects weekday that does not match the calendar date (RFC 5536).', () => {
+      expect.hasAssertions();
+      // 1997-11-21 is Friday; labeling as Thursday should be rejected.
+      expectInvalidParse('Thu, 21 Nov 1997 09:55:06 +0000');
     });
 
     it('Parses RFC 5322 official example with half-hour offset.', () => {

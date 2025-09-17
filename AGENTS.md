@@ -21,6 +21,7 @@ It is like a JavaScript version of the Boost library that follows the UNIX philo
 
 - Create test cases in the `test` directory to ensure that the code coverage of the new code meets the standard.
 - Use Vitest for testing.
+- The `expect.requireAssertions` configuration is enabled, so there's no need to call `expect.hasAssertions()`.
 - Do not attempt to build for testing (e.g. `pnpm build`, `npx tsc`).
 
 # Team Rules
