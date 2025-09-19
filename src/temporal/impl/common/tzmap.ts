@@ -101,6 +101,11 @@ export function parseTimezone(tz: string): {
     };
   }
 
+  // Per RFC 5322, unknown alphabetic timezones should be treated as "-0000" (UTC)
+  if (/^[A-Za-z]+$/u.test(tz)) {
+    return { offsetMinutes: 0, sourceTz: 'obs-name' };
+  }
+
   throw new RangeError(`Unrecognized timezone: ${tz}.`);
 }
 
