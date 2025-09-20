@@ -333,7 +333,8 @@ function toDateImpl(
   ...args: readonly unknown[]
 ): Temporal.PlainDate {
   const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
-  return toDate(output.info as TemporalInfo, output.opts);
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toDate(info as TemporalInfo, output.opts);
 }
 
 function toTimeImpl(
@@ -343,7 +344,8 @@ function toTimeImpl(
   ...args: readonly unknown[]
 ): Temporal.PlainTime {
   const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
-  return toTime(output.info as TemporalInfo, output.opts);
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toTime(info as TemporalInfo, output.opts);
 }
 
 function toDurationImpl(
@@ -353,7 +355,8 @@ function toDurationImpl(
   ...args: readonly unknown[]
 ): Temporal.Duration {
   const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
-  return toDuration(output.info as TemporalInfo);
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toDuration(info as TemporalInfo);
 }
 
 function toDateTimeImpl(
@@ -363,7 +366,8 @@ function toDateTimeImpl(
   ...args: readonly unknown[]
 ): Temporal.PlainDateTime {
   const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
-  return toDateTime(output.info as TemporalInfo, output.opts);
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toDateTime(info as TemporalInfo, output.opts);
 }
 
 function toInstantImpl(
@@ -373,7 +377,8 @@ function toInstantImpl(
   ...args: readonly unknown[]
 ): Temporal.Instant {
   const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
-  return toInstant(output.info as TemporalInfo);
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toInstant(info as TemporalInfo);
 }
 
 function toZonedDateTimeImpl(
@@ -383,5 +388,22 @@ function toZonedDateTimeImpl(
   ...args: readonly unknown[]
 ): Temporal.ZonedDateTime {
   const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
-  return toZonedDateTime(output.info as TemporalInfo, output.opts);
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toZonedDateTime(info as TemporalInfo, output.opts);
+}
+
+function clampLeapSecond(
+  tempInfo: Partial<TemporalInfo>,
+  info: Partial<TemporalInfo>,
+): Partial<TemporalInfo> {
+  if (info.second !== 60) return info;
+
+  if (tempInfo === info) {
+    tempInfo.second = 59;
+    return tempInfo;
+  } else {
+    const clone = { ...info };
+    clone.second = 59;
+    return clone;
+  }
 }

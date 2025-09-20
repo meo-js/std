@@ -8,7 +8,7 @@
  */
 import type { Temporal } from 'temporal-polyfill';
 import { formatMonth, formatWeekday, parseMonth } from './tokens.js';
-import { normalizeLeapSecond, validateDateTime } from './validate.js';
+import { validateDateTime } from './validate.js';
 import { formatYear } from './y2k.js';
 
 /**
@@ -102,19 +102,13 @@ export function parseImfFixdate(text: string): {
     allowLeapSecond: true,
   });
 
-  // Handle leap seconds by mapping second=60 to the next UTC second.
-  const normalized = normalizeLeapSecond(
+  return {
     year,
     month,
     day,
     hour,
     minute,
     second,
-  );
-
-  // IMF-fixdate is always GMT (UTC+0)
-  return {
-    ...normalized,
     offsetMinutes: 0,
     sourceTz: 'numeric',
   };

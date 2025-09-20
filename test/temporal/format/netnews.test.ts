@@ -224,6 +224,12 @@ describe('Tests for RFC5536 spec.', () => {
       expect(info.offset).toBe('+00:00');
     });
 
+    it('Clamps Temporal conversions for leap second inputs.', () => {
+      const sample = 'Wed, 31 Dec 1998 23:59:60 +0000';
+      expect(netnews.toTime(sample).second).toBe(59);
+      expect(netnews.toInstant(sample).toString()).toBe('1998-12-31T23:59:59Z');
+    });
+
     it('Rejects weekday that does not match the calendar date (RFC 5536).', () => {
       // 1997-11-21 is Friday; labeling as Thursday should be rejected.
       expectInvalidParse('Thu, 21 Nov 1997 09:55:06 +0000');

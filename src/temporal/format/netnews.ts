@@ -29,6 +29,7 @@ import {
   type TimeFormatter,
   type ZonedDateTimeFormatter,
 } from '../formatter.js';
+import { roundToSecond } from '../impl/common/round.js';
 import * as netnews from '../impl/netnews.js';
 
 export const {
@@ -74,14 +75,3 @@ export const {
     return out;
   },
 });
-
-function roundToSecond(zdt: Temporal.ZonedDateTime): Temporal.ZonedDateTime {
-  const ns = zdt.nanosecond + zdt.microsecond * 1e3 + zdt.millisecond * 1e6;
-  if (ns === 0) return zdt;
-
-  // Round to the nearest second.
-  const carry = ns >= 500_000_000 ? 1 : 0;
-  return zdt
-    .add({ seconds: carry })
-    .with({ millisecond: 0, microsecond: 0, nanosecond: 0 });
-}

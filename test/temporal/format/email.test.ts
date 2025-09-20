@@ -218,7 +218,14 @@ describe('Tests for RFC 5322 spec.', () => {
       expectInvalidParse('Fri, 31 Nov 1997 09:55:06 GMT');
       expectInvalidParse('Fri, 21 Nov 1997 24:00:00 GMT');
       expectInvalidParse('Fri, 21 Nov 1997 23:60:00 GMT');
-      // Leap seconds acceptance is implementation-defined; not asserted here.
+    });
+
+    it('Preserves second value 60 in parse results and clamps Temporal conversions.', () => {
+      const sample = 'Sat, 31 Dec 2016 23:59:60 +0000';
+      const info = email.parse(sample);
+      expect(info.second).toBe(60);
+      expect(email.toInstant(sample).toString()).toBe('2016-12-31T23:59:59Z');
+      expect(email.toTime(sample).second).toBe(59);
     });
 
     it('Rejects missing zone and trailing garbage; validates zone minutes range.', () => {

@@ -101,12 +101,19 @@ describe('Tests for RFC 9110 spec.', () => {
       expect(z.offset).toBe('+00:00');
     });
 
-    it('Accepts leap second value 60 and maps to the next UTC second.', () => {
-      // Known positive leap seconds (UTC): 2012-06-30, 2016-12-31.
+    it('Accepts leap second value 60 and clamps conversions to 59 seconds.', () => {
       const d1 = toDate('Sat, 30 Jun 2012 23:59:60 GMT');
-      expectUTCEqual(d1, 2012, 7, 1, 0, 0, 0);
+      expectUTCEqual(d1, 2012, 6, 30, 23, 59, 59);
       const d2 = toDate('Sat, 31 Dec 2016 23:59:60 GMT');
-      expectUTCEqual(d2, 2017, 1, 1, 0, 0, 0);
+      expectUTCEqual(d2, 2016, 12, 31, 23, 59, 59);
+    });
+
+    it('Returns second value 60 from parse while clamping Temporal conversions.', () => {
+      const sample = 'Sat, 31 Dec 2016 23:59:60 GMT';
+      const info = http.parse(sample);
+      expect(info.second).toBe(60);
+      expect(http.toTime(sample).second).toBe(59);
+      expect(http.toInstant(sample).toString()).toBe('2016-12-31T23:59:59Z');
     });
 
     it('Ignores leading/trailing whitespace around the field value.', () => {
@@ -196,6 +203,11 @@ describe('Tests for RFC 7231 spec.', () => {
         49,
         37,
       );
+    });
+
+    it('Rejects leap second values in legacy RFC 850 and asctime forms.', () => {
+      expectInvalidParse('Sunday, 06-Nov-94 08:49:60 GMT');
+      expectInvalidParse('Sun Nov  6 08:49:60 1994');
     });
 
     it('HTTP-date is case sensitive.', () => {
