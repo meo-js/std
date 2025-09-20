@@ -1,6 +1,6 @@
 {
   "name": "@meojs/std",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "packageManager": "pnpm@10.14.0",
   "engines": {
     "node": ">=20"
