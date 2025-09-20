@@ -7,7 +7,12 @@
  * @module
  */
 import type { Temporal } from 'temporal-polyfill';
-import { formatMonth, formatWeekday, parseMonth } from './tokens.js';
+import {
+  formatMonth,
+  formatWeekday,
+  parseMonth,
+  parseWeekday,
+} from './tokens.js';
 import { validateDateTime } from './validate.js';
 import { formatYear } from './y2k.js';
 
@@ -81,7 +86,7 @@ export function parseImfFixdate(text: string): {
 
   const [
     ,
-    _weekdayStr,
+    weekdayStr,
     dayStr,
     monthStr,
     yearStr,
@@ -100,6 +105,8 @@ export function parseImfFixdate(text: string): {
 
   validateDateTime(year, month, day, hour, minute, second, {
     allowLeapSecond: true,
+    weekday: parseWeekday(weekdayStr),
+    strictWeekday: true,
   });
 
   return {

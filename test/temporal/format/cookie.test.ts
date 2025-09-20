@@ -170,6 +170,19 @@ describe('Tests for RFC6265 spec.', () => {
       const utc = parseCookieDate('Wed, 09 Jun 2021 10:18:14 UTC');
       expect(gmt.getTime()).toBe(utc.getTime());
     });
+
+    it('Ignores numeric timezone offsets like +HHMM or +HH:MM and treats as UTC.', () => {
+      const base = parseCookieDate('Wed, 09 Jun 2021 10:18:14 GMT');
+      const plus = parseCookieDate('Wed, 09 Jun 2021 10:18:14 +0330');
+      const colon = parseCookieDate('Wed, 09 Jun 2021 10:18:14 +03:30');
+      const minus = parseCookieDate('Wed, 09 Jun 2021 10:18:14 -0700');
+      expect(base.getTime()).toBe(
+        Date.UTC(2021, 5, 9, 10, 18, 14),
+      );
+      expect(plus.getTime()).toBe(base.getTime());
+      expect(colon.getTime()).toBe(base.getTime());
+      expect(minus.getTime()).toBe(base.getTime());
+    });
   });
 
   describe('format', () => {

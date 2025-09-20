@@ -235,6 +235,13 @@ describe('Tests for RFC 5322 spec.', () => {
       expectInvalidParse('Fri, 21 Nov 1997 09:55:06 J');
     });
 
+    it('Accepts unknown multi-letter alphabetic time zones as -0000.', () => {
+      const info = email.parse('Fri, 21 Nov 1997 09:55:06 XYZ');
+      expect(info.offset).toBe('+00:00');
+      const zdt = email.toZonedDateTime('Fri, 21 Nov 1997 09:55:06 XYZ');
+      expect(zdt.offset).toBe('+00:00');
+    });
+
     describe('Edge cases: leap years and year bounds.', () => {
       it('Accepts Feb 29 in a leap year (2000 is leap year).', () => {
           const d = toDate('29 Feb 2000 12:00:00 +0000');

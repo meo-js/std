@@ -129,6 +129,11 @@ describe('Tests for RFC 9110 spec.', () => {
       expectInvalidParse('Sun, 06 Nov 1994 08:49:37 UTC'); // Not allowed token.
     });
 
+    it('Rejects numeric timezone offsets (HTTP-date requires literal GMT).', () => {
+      expectInvalidParse('Sun, 06 Nov 1994 08:49:37 +0000');
+      expectInvalidParse('Sun, 06 Nov 1994 08:49:37 +00:00');
+    });
+
     it('Rejects invalid ranges and malformed inputs.', () => {
       expectInvalidParse('Sun, 31 Nov 1994 08:49:37 GMT'); // Invalid date.
       expectInvalidParse('Sun, 06 Nov 1994 24:00:00 GMT'); // Invalid hour.

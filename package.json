@@ -822,40 +822,6 @@
         "default": "./dist/default/pipe/string.js"
       }
     },
-    "./encoding/text": {
-      "cocos": {
-        "require": "./dist/cocos/encoding/text.cjs",
-        "import": "./dist/cocos/encoding/text.js",
-        "default": "./dist/cocos/encoding/text.js"
-      },
-      "node": {
-        "require": "./dist/node/encoding/text.cjs",
-        "import": "./dist/node/encoding/text.js",
-        "default": "./dist/node/encoding/text.js"
-      },
-      "default": {
-        "require": "./dist/default/encoding/text.cjs",
-        "import": "./dist/default/encoding/text.js",
-        "default": "./dist/default/encoding/text.js"
-      }
-    },
-    "./encoding/byte": {
-      "cocos": {
-        "require": "./dist/cocos/encoding/byte.cjs",
-        "import": "./dist/cocos/encoding/byte.js",
-        "default": "./dist/cocos/encoding/byte.js"
-      },
-      "node": {
-        "require": "./dist/node/encoding/byte.cjs",
-        "import": "./dist/node/encoding/byte.js",
-        "default": "./dist/node/encoding/byte.js"
-      },
-      "default": {
-        "require": "./dist/default/encoding/byte.cjs",
-        "import": "./dist/default/encoding/byte.js",
-        "default": "./dist/default/encoding/byte.js"
-      }
-    },
     "./math/float": {
       "cocos": {
         "require": "./dist/cocos/math/float.cjs",
@@ -907,6 +873,57 @@
         "default": "./dist/default/event/event.js"
       }
     },
+    "./encoding/text": {
+      "cocos": {
+        "require": "./dist/cocos/encoding/text.cjs",
+        "import": "./dist/cocos/encoding/text.js",
+        "default": "./dist/cocos/encoding/text.js"
+      },
+      "node": {
+        "require": "./dist/node/encoding/text.cjs",
+        "import": "./dist/node/encoding/text.js",
+        "default": "./dist/node/encoding/text.js"
+      },
+      "default": {
+        "require": "./dist/default/encoding/text.cjs",
+        "import": "./dist/default/encoding/text.js",
+        "default": "./dist/default/encoding/text.js"
+      }
+    },
+    "./encoding/byte": {
+      "cocos": {
+        "require": "./dist/cocos/encoding/byte.cjs",
+        "import": "./dist/cocos/encoding/byte.js",
+        "default": "./dist/cocos/encoding/byte.js"
+      },
+      "node": {
+        "require": "./dist/node/encoding/byte.cjs",
+        "import": "./dist/node/encoding/byte.js",
+        "default": "./dist/node/encoding/byte.js"
+      },
+      "default": {
+        "require": "./dist/default/encoding/byte.cjs",
+        "import": "./dist/default/encoding/byte.js",
+        "default": "./dist/default/encoding/byte.js"
+      }
+    },
+    "./crypto/digest": {
+      "cocos": {
+        "require": "./dist/cocos/crypto/digest.cjs",
+        "import": "./dist/cocos/crypto/digest.js",
+        "default": "./dist/cocos/crypto/digest.js"
+      },
+      "node": {
+        "require": "./dist/node/crypto/digest.cjs",
+        "import": "./dist/node/crypto/digest.js",
+        "default": "./dist/node/crypto/digest.js"
+      },
+      "default": {
+        "require": "./dist/default/crypto/digest.cjs",
+        "import": "./dist/default/crypto/digest.js",
+        "default": "./dist/default/crypto/digest.js"
+      }
+    },
     "./collection/set": {
       "cocos": {
         "require": "./dist/cocos/collection/set.cjs",
@@ -941,21 +958,72 @@
         "default": "./dist/default/collection/map.js"
       }
     },
-    "./crypto/digest": {
+    "./temporal/format/netnews": {
       "cocos": {
-        "require": "./dist/cocos/crypto/digest.cjs",
-        "import": "./dist/cocos/crypto/digest.js",
-        "default": "./dist/cocos/crypto/digest.js"
+        "require": "./dist/cocos/temporal/format/netnews.cjs",
+        "import": "./dist/cocos/temporal/format/netnews.js",
+        "default": "./dist/cocos/temporal/format/netnews.js"
       },
       "node": {
-        "require": "./dist/node/crypto/digest.cjs",
-        "import": "./dist/node/crypto/digest.js",
-        "default": "./dist/node/crypto/digest.js"
+        "require": "./dist/node/temporal/format/netnews.cjs",
+        "import": "./dist/node/temporal/format/netnews.js",
+        "default": "./dist/node/temporal/format/netnews.js"
       },
       "default": {
-        "require": "./dist/default/crypto/digest.cjs",
-        "import": "./dist/default/crypto/digest.js",
-        "default": "./dist/default/crypto/digest.js"
+        "require": "./dist/default/temporal/format/netnews.cjs",
+        "import": "./dist/default/temporal/format/netnews.js",
+        "default": "./dist/default/temporal/format/netnews.js"
+      }
+    },
+    "./temporal/format/http": {
+      "cocos": {
+        "require": "./dist/cocos/temporal/format/http.cjs",
+        "import": "./dist/cocos/temporal/format/http.js",
+        "default": "./dist/cocos/temporal/format/http.js"
+      },
+      "node": {
+        "require": "./dist/node/temporal/format/http.cjs",
+        "import": "./dist/node/temporal/format/http.js",
+        "default": "./dist/node/temporal/format/http.js"
+      },
+      "default": {
+        "require": "./dist/default/temporal/format/http.cjs",
+        "import": "./dist/default/temporal/format/http.js",
+        "default": "./dist/default/temporal/format/http.js"
+      }
+    },
+    "./temporal/format/email": {
+      "cocos": {
+        "require": "./dist/cocos/temporal/format/email.cjs",
+        "import": "./dist/cocos/temporal/format/email.js",
+        "default": "./dist/cocos/temporal/format/email.js"
+      },
+      "node": {
+        "require": "./dist/node/temporal/format/email.cjs",
+        "import": "./dist/node/temporal/format/email.js",
+        "default": "./dist/node/temporal/format/email.js"
+      },
+      "default": {
+        "require": "./dist/default/temporal/format/email.cjs",
+        "import": "./dist/default/temporal/format/email.js",
+        "default": "./dist/default/temporal/format/email.js"
+      }
+    },
+    "./temporal/format/cookie": {
+      "cocos": {
+        "require": "./dist/cocos/temporal/format/cookie.cjs",
+        "import": "./dist/cocos/temporal/format/cookie.js",
+        "default": "./dist/cocos/temporal/format/cookie.js"
+      },
+      "node": {
+        "require": "./dist/node/temporal/format/cookie.cjs",
+        "import": "./dist/node/temporal/format/cookie.js",
+        "default": "./dist/node/temporal/format/cookie.js"
+      },
+      "default": {
+        "require": "./dist/default/temporal/format/cookie.cjs",
+        "import": "./dist/default/temporal/format/cookie.js",
+        "default": "./dist/default/temporal/format/cookie.js"
       }
     },
     "./package.json": "./package.json"
