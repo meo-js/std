@@ -14,7 +14,6 @@ import {
   _tempTemporalInfo2,
   isDurationLike,
   resetTemporalInfo,
-  toCalendarId,
   toTimeZoneId,
   withCalendar,
   type AssignmentOptions,
@@ -53,6 +52,54 @@ import {
   type toTemporalInfo,
 } from './subtle.js';
 
+// Internal helpers to collapse repeated string-template branches and
+// keep all conversions fast and consistent.
+function _fromStringWithTemplate<T>(
+  text: string,
+  tOrOpts: unknown,
+  opts: unknown,
+  // Re-entry that accepts already-parsed {@link TemporalInfo}.
+  reentry: (info: TemporalInfo, opts?: unknown) => T,
+  // Direct constructor for native string forms.
+  from: (text: string, opts?: unknown) => T,
+): T {
+  if (isString(tOrOpts)) {
+    const info = parse(
+      text as TemporalText,
+      tOrOpts as TemporalTemplate,
+      _tempTemporalInfo,
+    ) as TemporalInfo;
+    return reentry(info, opts);
+  }
+  return from(text, tOrOpts);
+}
+
+function _instantToUTCDateTime(input: InstantInput | InstantObject) {
+  // Convert any epoch/Instant/Date to UTC plain date-time cheaply.
+  // Using Temporal API avoids extra allocations beyond the required conversions.
+  if (typeof input === 'number') {
+    return Temporal.Instant.fromEpochMilliseconds(input)
+      .toZonedDateTimeISO('UTC')
+      .toPlainDateTime();
+  }
+  if (typeof input === 'bigint') {
+    return Temporal.Instant.fromEpochNanoseconds(input)
+      .toZonedDateTimeISO('UTC')
+      .toPlainDateTime();
+  }
+  if (isInstant(input)) {
+    return input.toZonedDateTimeISO('UTC').toPlainDateTime();
+  }
+  if (isDate(input)) {
+    return toTemporalInstant
+      .call(input)
+      .toZonedDateTimeISO('UTC')
+      .toPlainDateTime();
+  }
+  // ZonedDateTime -> PlainDateTime
+  return input.toPlainDateTime();
+}
+
 /**
  * 解析输入为 {@link Temporal.Instant}
  *
@@ -78,17 +125,14 @@ export function toInstant(
 ): Temporal.Instant {
   switch (typeof input) {
     case 'string': {
-      if (template != null) {
-        return toInstant(
-          parse(
-            input as TemporalText,
-            template,
-            _tempTemporalInfo,
-          ) as TemporalInfo,
-        );
-      } else {
-        return Temporal.Instant.from(input as DateTimeText);
-      }
+      return _fromStringWithTemplate(
+        input,
+        template,
+        undefined,
+        // Parsed {@link TemporalInfo} always contains a time zone or offset.
+        info => toInstant(info as unknown as ZonedDateTimeInput),
+        text => Temporal.Instant.from(text as DateTimeText),
+      );
     }
 
     case 'number': {
@@ -140,17 +184,13 @@ export function toDuration(
 ): Temporal.Duration {
   switch (typeof input) {
     case 'string': {
-      if (template != null) {
-        return toDuration(
-          parse(
-            input as TemporalText,
-            template,
-            _tempTemporalInfo,
-          ) as TemporalInfo,
-        );
-      } else {
-        return Temporal.Duration.from(input as DurationText);
-      }
+      return _fromStringWithTemplate(
+        input,
+        template,
+        undefined,
+        info => toDuration(info as unknown as DurationLike),
+        text => Temporal.Duration.from(text as DurationText),
+      );
     }
 
     case 'number': {
@@ -236,14 +276,15 @@ export function toTime(
     }
 
     case 'string': {
-      if (isString(arg2)) {
-        return toTime(
-          parse(input as TemporalText, arg2, _tempTemporalInfo) as TemporalInfo,
-          arg3,
-        );
-      } else {
-        return Temporal.PlainTime.from(input, arg2);
-      }
+      return _fromStringWithTemplate(
+        input,
+        arg2,
+        arg3,
+        (info, opts) =>
+          toTime(info as unknown as TimeInput, opts as AssignmentOptions),
+        (text, opts) =>
+          Temporal.PlainTime.from(text, opts as AssignmentOptions),
+      );
     }
 
     default: {
@@ -307,14 +348,15 @@ export function toDate(
     }
 
     case 'string': {
-      if (isString(arg2)) {
-        return toDate(
-          parse(input as TemporalText, arg2, _tempTemporalInfo) as TemporalInfo,
-          arg3,
-        );
-      } else {
-        return Temporal.PlainDate.from(input, arg2);
-      }
+      return _fromStringWithTemplate(
+        input,
+        arg2,
+        arg3,
+        (info, opts) =>
+          toDate(info as unknown as DateInput, opts as AssignmentOptions),
+        (text, opts) =>
+          Temporal.PlainDate.from(text, opts as AssignmentOptions),
+      );
     }
 
     default: {
@@ -381,20 +423,24 @@ export function toDateTime(
     }
 
     case 'string': {
-      if (isString(arg2)) {
-        return toDateTime(
-          parse(input as TemporalText, arg2, _tempTemporalInfo) as TemporalInfo,
-          arg3,
-        );
-      } else {
-        return Temporal.PlainDateTime.from(input, arg2);
-      }
+      return _fromStringWithTemplate(
+        input,
+        arg2,
+        arg3,
+        (info, opts) =>
+          toDateTime(
+            info as unknown as DateTimeInput,
+            opts as AssignmentOptions,
+          ),
+        (text, opts) =>
+          Temporal.PlainDateTime.from(text, opts as AssignmentOptions),
+      );
     }
 
     default: {
-      if (isInstant(input)) {
+      if (isInstant(input) || isDate(input)) {
         return withCalendar(
-          input.toZonedDateTimeISO('UTC').toPlainDateTime(),
+          _instantToUTCDateTime(input as InstantInput | Date),
           (<Partial<CalendarLike> | undefined>arg2)?.calendar,
         );
       }
@@ -403,15 +449,7 @@ export function toDateTime(
         return input.toPlainDateTime();
       }
 
-      if (isDate(input)) {
-        return withCalendar(
-          toTemporalInstant
-            .call(input)
-            .toZonedDateTimeISO('UTC')
-            .toPlainDateTime(),
-          (<Partial<CalendarLike> | undefined>arg2)?.calendar,
-        );
-      }
+      // Handled above with the Instant/Date branch.
 
       if (isPlainDateTime(input)) {
         return input;
@@ -479,38 +517,29 @@ export function toZonedDateTime(
   arg3?: CalendarIdLike | ZonedAssignmentOptions,
 ): Temporal.ZonedDateTime {
   switch (typeof input) {
-    case 'number': {
-      return toZonedDateTime(
-        Temporal.Instant.fromEpochMilliseconds(input),
-        arg2 as TimeZoneIdLike,
-        arg3 as CalendarIdLike,
-      );
-    }
-
+    case 'number':
     case 'bigint': {
-      return new Temporal.ZonedDateTime(
-        input,
-        toTimeZoneId(arg2 as TimeZoneIdLike),
-        toCalendarId(arg3 as CalendarIdLike),
+      // Fast path: go through Instant conversion, then attach TZ/Calendar.
+      const tz = toTimeZoneId(arg2 as TimeZoneIdLike);
+      return withCalendar(
+        toInstant(input).toZonedDateTimeISO(tz),
+        arg3 as CalendarIdLike | undefined,
       );
     }
 
     case 'string': {
-      if (isString(arg2)) {
-        return toZonedDateTime(
-          parse(
-            input as TemporalText,
-            arg2 as TemporalTemplate,
-            _tempTemporalInfo,
-          ) as TemporalInfo,
-          arg3 as ZonedAssignmentOptions,
-        );
-      } else {
-        return Temporal.ZonedDateTime.from(
-          input,
-          arg2 as ZonedAssignmentOptions,
-        );
-      }
+      return _fromStringWithTemplate(
+        input,
+        arg2,
+        arg3,
+        (info, opts) =>
+          toZonedDateTime(
+            info as unknown as ZonedDateTimeInput,
+            opts as ZonedAssignmentOptions,
+          ),
+        (text, opts) =>
+          Temporal.ZonedDateTime.from(text, opts as ZonedAssignmentOptions),
+      );
     }
 
     default: {
