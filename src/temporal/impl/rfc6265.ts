@@ -1,20 +1,14 @@
 /**
- * Cookie date-time parsing and formatting implementation.
- * Supports RFC 6265 specification with compatibility for legacy formats.
- *
- * Parsing: Implements RFC 6265 §5.1.1 lenient parsing algorithm
- * Formatting: Always outputs sane-cookie-date (IMF-fixdate + GMT)
- *
  * @internal
  * @module
  */
 import type { Temporal } from 'temporal-polyfill';
 import type { TemporalInfo } from '../shared.js';
-import { formatImfFixdate } from './common/imf_fixdate.js';
 import { tokenizeCookie } from './common/scanner.js';
 import { parseMonth } from './common/tokens.js';
 import { validateDateTime } from './common/validate.js';
 import { parseCookieYear } from './common/y2k.js';
+import * as imf_fixdate from './imf_fixdate.js';
 
 /**
  * Format ZonedDateTime as Cookie date string.
@@ -24,7 +18,7 @@ import { parseCookieYear } from './common/y2k.js';
  * @returns Cookie date string
  */
 export function format(zdt: Temporal.ZonedDateTime): string {
-  return formatImfFixdate(zdt);
+  return imf_fixdate.format(zdt);
 }
 
 /**

@@ -7,17 +7,19 @@
  * @module
  */
 import type { Temporal } from 'temporal-polyfill';
-import { formatOffset, normalizeRfc5322 } from './scanner.js';
+import type { TemporalInfo } from '../shared.js';
+import { roundToSecond } from './common/round.js';
+import { formatOffset, normalizeRfc5322 } from './common/scanner.js';
 import {
   formatMonth,
   formatWeekday,
   parseMonth,
   parseWeekday,
-} from './tokens.js';
-import type { FormatOptions } from './types.js';
-import { parseTimezone } from './tzmap.js';
-import { validateDateTime } from './validate.js';
-import { formatYear, parseEmailYear } from './y2k.js';
+} from './common/tokens.js';
+import type { FormatOptions } from './common/types.js';
+import { parseTimezone } from './common/tzmap.js';
+import { validateDateTime } from './common/validate.js';
+import { formatYear, parseEmailYear } from './common/y2k.js';
 
 /**
  * Format a ZonedDateTime as RFC 5322 string.
@@ -30,7 +32,7 @@ import { formatYear, parseEmailYear } from './y2k.js';
  * @returns RFC 5322 string
  * @throws {RangeError} If date components are invalid
  */
-export function formatRfc5322(
+export function format(
   zdt: Temporal.ZonedDateTime,
   options: FormatOptions = {},
 ): string {
@@ -39,6 +41,8 @@ export function formatRfc5322(
     includeSeconds = true,
     colonInOffset = false,
   } = options;
+
+  zdt = roundToSecond(zdt);
 
   // Validate components
   validateDateTime(
@@ -94,19 +98,11 @@ export function formatRfc5322(
  * @returns Parsed date-time components
  * @throws {RangeError} If format is invalid
  */
-export function parseRfc5322(
+export function parse(
   text: string,
+  out: Partial<TemporalInfo>,
   allowLeapSecond = true,
-): {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  second: number;
-  offsetMinutes: number;
-  sourceTz: 'numeric' | 'obs-name';
-} {
+): Partial<TemporalInfo> {
   // Normalize whitespace and comments
   const normalized = normalizeRfc5322(text);
 
@@ -149,14 +145,25 @@ export function parseRfc5322(
     strictWeekday: false, // Be lenient with weekday mismatches
   });
 
-  return {
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    second,
-    offsetMinutes,
-    sourceTz,
-  };
+  out.year = year;
+  out.era = undefined;
+  out.eraYear = undefined;
+  out.month = month;
+  out.monthCode = undefined;
+  out.day = day;
+  out.hour = hour;
+  out.minute = minute;
+  out.second = second;
+  out.millisecond = 0;
+  out.microsecond = 0;
+  out.nanosecond = 0;
+
+  // Convert offset to RFC 9557 format
+  const numericOffset = formatOffset(offsetMinutes, true, false);
+  out.offset = numericOffset;
+
+  // Use fixed-offset timezone for ZDT construction
+  out.timeZone = numericOffset;
+
+  return out;
 }

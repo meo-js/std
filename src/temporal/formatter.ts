@@ -297,17 +297,15 @@ export function createFormatter<T extends object = BaseFormatter>(
       },
     });
   } else {
-    // Collapse identical glue logic via small factories to avoid repetition.
-    const self = arg;
     return {
-      parse: parseImpl.bind(self),
-      format: formatImpl.bind(self),
-      toDate: createToXWithOpts(self, tempInfo, toDate),
-      toTime: createToXWithOpts(self, tempInfo, toTime),
-      toDuration: createToX(self, tempInfo, toDuration),
-      toDateTime: createToXWithOpts(self, tempInfo, toDateTime),
-      toInstant: createToX(self, tempInfo, toInstant),
-      toZonedDateTime: createToXWithOpts(self, tempInfo, toZonedDateTime),
+      parse: parseImpl.bind(arg),
+      format: formatImpl.bind(arg),
+      toDate: toDateImpl.bind(arg, tempInfo),
+      toTime: toTimeImpl.bind(arg, tempInfo),
+      toDuration: toDurationImpl.bind(arg, tempInfo),
+      toDateTime: toDateTimeImpl.bind(arg, tempInfo),
+      toInstant: toInstantImpl.bind(arg, tempInfo),
+      toZonedDateTime: toZonedDateTimeImpl.bind(arg, tempInfo),
     } as T;
   }
 }
@@ -328,35 +326,70 @@ function formatImpl(
   return this.format(input, args);
 }
 
-function createToX<Y>(
-  self: FormatterHandler,
+function toDateImpl(
+  this: FormatterHandler,
   tempInfo: Partial<TemporalInfo>,
-  convert: (info: TemporalInfo) => Y,
-) {
-  return function toX(input: string, ...args: readonly unknown[]): Y {
-    const output = self.parse(input, args, {
-      info: resetTemporalInfo(tempInfo),
-    });
-    const info = clampLeapSecond(tempInfo, output.info);
-    return convert(info as TemporalInfo);
-  };
+  input: string,
+  ...args: readonly unknown[]
+): Temporal.PlainDate {
+  const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toDate(info as TemporalInfo, output.opts);
 }
 
-function createToXWithOpts<Y>(
-  self: FormatterHandler,
+function toTimeImpl(
+  this: FormatterHandler,
   tempInfo: Partial<TemporalInfo>,
-  convert: (
-    info: TemporalInfo,
-    opts?: AssignmentOptions | ZonedAssignmentOptions,
-  ) => Y,
-) {
-  return function toX(input: string, ...args: readonly unknown[]): Y {
-    const output = self.parse(input, args, {
-      info: resetTemporalInfo(tempInfo),
-    });
-    const info = clampLeapSecond(tempInfo, output.info);
-    return convert(info as TemporalInfo, output.opts);
-  };
+  input: string,
+  ...args: readonly unknown[]
+): Temporal.PlainTime {
+  const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toTime(info as TemporalInfo, output.opts);
+}
+
+function toDurationImpl(
+  this: FormatterHandler,
+  tempInfo: Partial<TemporalInfo>,
+  input: string,
+  ...args: readonly unknown[]
+): Temporal.Duration {
+  const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toDuration(info as TemporalInfo);
+}
+
+function toDateTimeImpl(
+  this: FormatterHandler,
+  tempInfo: Partial<TemporalInfo>,
+  input: string,
+  ...args: readonly unknown[]
+): Temporal.PlainDateTime {
+  const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toDateTime(info as TemporalInfo, output.opts);
+}
+
+function toInstantImpl(
+  this: FormatterHandler,
+  tempInfo: Partial<TemporalInfo>,
+  input: string,
+  ...args: readonly unknown[]
+): Temporal.Instant {
+  const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toInstant(info as TemporalInfo);
+}
+
+function toZonedDateTimeImpl(
+  this: FormatterHandler,
+  tempInfo: Partial<TemporalInfo>,
+  input: string,
+  ...args: readonly unknown[]
+): Temporal.ZonedDateTime {
+  const output = this.parse(input, args, { info: resetTemporalInfo(tempInfo) });
+  const info = clampLeapSecond(tempInfo, output.info);
+  return toZonedDateTime(info as TemporalInfo, output.opts);
 }
 
 function clampLeapSecond(

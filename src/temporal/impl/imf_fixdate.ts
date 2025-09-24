@@ -7,14 +7,16 @@
  * @module
  */
 import type { Temporal } from 'temporal-polyfill';
+import type { TemporalInfo } from '../shared.js';
+import { roundToSecond } from './common/round.js';
 import {
   formatMonth,
   formatWeekday,
   parseMonth,
   parseWeekday,
-} from './tokens.js';
-import { validateDateTime } from './validate.js';
-import { formatYear } from './y2k.js';
+} from './common/tokens.js';
+import { validateDateTime } from './common/validate.js';
+import { formatYear } from './common/y2k.js';
 
 /**
  * Format a ZonedDateTime as IMF-fixdate string.
@@ -28,9 +30,9 @@ import { formatYear } from './y2k.js';
  * @returns IMF-fixdate string
  * @throws {RangeError} If date components are invalid
  */
-export function formatImfFixdate(zdt: Temporal.ZonedDateTime): string {
+export function format(zdt: Temporal.ZonedDateTime): string {
   // Convert to UTC for consistent output
-  const utc = zdt.withTimeZone('UTC');
+  const utc = roundToSecond(zdt.withTimeZone('UTC'));
 
   // Validate components
   validateDateTime(
@@ -65,16 +67,10 @@ export function formatImfFixdate(zdt: Temporal.ZonedDateTime): string {
  * @returns Parsed date-time components
  * @throws {RangeError} If format is invalid
  */
-export function parseImfFixdate(text: string): {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  second: number;
-  offsetMinutes: number;
-  sourceTz: 'numeric' | 'obs-name';
-} {
+export function parse(
+  text: string,
+  out: Partial<TemporalInfo>,
+): Partial<TemporalInfo> {
   // Regex for IMF-fixdate: "Sun, 06 Nov 1994 08:49:37 GMT"
   const pattern =
     /^([A-Za-z]{3}),\s+(\d{2})\s+([A-Za-z]{3})\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+GMT$/u;
@@ -109,14 +105,22 @@ export function parseImfFixdate(text: string): {
     strictWeekday: true,
   });
 
-  return {
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    second,
-    offsetMinutes: 0,
-    sourceTz: 'numeric',
-  };
+  out.year = year;
+  out.era = undefined;
+  out.eraYear = undefined;
+  out.month = month;
+  out.monthCode = undefined;
+  out.day = day;
+  out.hour = hour;
+  out.minute = minute;
+  out.second = second;
+  out.millisecond = 0;
+  out.microsecond = 0;
+  out.nanosecond = 0;
+
+  // HTTP dates are always GMT/UTC
+  out.offset = '+00:00';
+  out.timeZone = 'UTC';
+
+  return out;
 }

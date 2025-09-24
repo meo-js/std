@@ -6,9 +6,10 @@
  * @internal
  * @module
  */
-import { normalizeAsctime } from './scanner.js';
-import { parseMonth, parseWeekday } from './tokens.js';
-import { validateDateTime } from './validate.js';
+import type { TemporalInfo } from '../shared.js';
+import { normalizeAsctime } from './common/scanner.js';
+import { parseMonth, parseWeekday } from './common/tokens.js';
+import { validateDateTime } from './common/validate.js';
 
 /**
  * Parse asctime format string to date-time components.
@@ -21,16 +22,10 @@ import { validateDateTime } from './validate.js';
  * @returns Parsed date-time components (always UTC)
  * @throws {RangeError} If format is invalid
  */
-export function parseAsctime(text: string): {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  second: number;
-  offsetMinutes: number;
-  sourceTz: 'numeric' | 'obs-name';
-} {
+export function parse(
+  text: string,
+  out: Partial<TemporalInfo>,
+): Partial<TemporalInfo> {
   // Normalize spaces while preserving structure
   const normalized = normalizeAsctime(text);
 
@@ -70,29 +65,22 @@ export function parseAsctime(text: string): {
     strictWeekday: false, // Be lenient with weekday mismatches
   });
 
-  // Asctime has no timezone info, interpret as GMT/UTC
-  return {
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    second,
-    offsetMinutes: 0,
-    sourceTz: 'numeric', // GMT is considered numeric
-  };
-}
+  out.year = year;
+  out.era = undefined;
+  out.eraYear = undefined;
+  out.month = month;
+  out.monthCode = undefined;
+  out.day = day;
+  out.hour = hour;
+  out.minute = minute;
+  out.second = second;
+  out.millisecond = 0;
+  out.microsecond = 0;
+  out.nanosecond = 0;
 
-/**
- * Check if a string might be in asctime format.
- * This is a quick heuristic check, not a full validation.
- *
- * @param text Text to check
- * @returns True if text might be asctime format
- */
-export function looksLikeAsctime(text: string): boolean {
-  // Quick pattern check: starts with 3-letter weekday, no commas
-  return /^[A-Za-z]{3}\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+\d{4}$/u.test(
-    text.trim(),
-  );
+  // Asctime has no timezone info, interpret as GMT/UTC
+  out.offset = '+00:00';
+  out.timeZone = 'UTC';
+
+  return out;
 }

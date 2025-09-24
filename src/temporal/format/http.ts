@@ -12,15 +12,6 @@
  * @see [RFC7231(obsoletes, references: RFC5322)](https://datatracker.ietf.org/doc/html/rfc7231)
  * @see [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110)
  */
-import type { Temporal } from 'temporal-polyfill';
-import {
-  isInstant,
-  isPlainDate,
-  isPlainDateTime,
-  isZonedDateTime,
-} from '../../predicate.js';
-import { getStringTag } from '../../primitive.js';
-import * as convert from '../convert.js';
 import {
   type BaseFormatter,
   createFormatter,
@@ -30,8 +21,10 @@ import {
   type TimeFormatter,
   type ZonedDateTimeFormatter,
 } from '../formatter.js';
-import { roundToSecond } from '../impl/common/round.js';
-import * as http from '../impl/http.js';
+import * as asctime from '../impl/asctime.js';
+import { toZonedDateTimeWithDefaults } from '../impl/common/convert.js';
+import * as imf_fixdate from '../impl/imf_fixdate.js';
+import * as rfc850 from '../impl/rfc850.js';
 
 export const {
   format,
@@ -50,29 +43,42 @@ export const {
     & TimeFormatter.Parse
 >({
   format(input, _args) {
-    let zdt: Temporal.ZonedDateTime;
-
-    if (isZonedDateTime(input)) {
-      zdt = input;
-    } else if (isInstant(input)) {
-      zdt = input.toZonedDateTimeISO('UTC');
-    } else if (isPlainDateTime(input)) {
-      zdt = convert.toZonedDateTime(input, 'UTC');
-    } else if (isPlainDate(input)) {
-      zdt = convert.toZonedDateTime(
-        input.toPlainDateTime({ hour: 0, minute: 0, second: 0 }),
-        'UTC',
-      );
-    } else {
-      throw new Error(`Unsupported temporal type: ${getStringTag(input)}.`);
-    }
-
-    zdt = roundToSecond(zdt);
-
-    return http.format(zdt);
+    return imf_fixdate.format(toZonedDateTimeWithDefaults(input, 'UTC'));
   },
   parse(input, _args, out) {
-    out.info = http.parse(input, out.info);
-    return out;
+    const trimmed = input.trim();
+
+    // Try IMF-fixdate first (most common)
+    try {
+      out.info = imf_fixdate.parse(trimmed, out.info);
+      return out;
+    } catch {
+      // Continue to next format
+    }
+
+    // Try RFC 850 format
+    try {
+      // Populate out directly via unified RFC 850 parser with explicit options.
+      out.info = rfc850.parse(trimmed, out.info, {
+        requireGMT: true,
+        enforceTwoDigitDay: true,
+        caseSensitiveTokens: true,
+        allowLeapSecond: false,
+        useHttpTwoDigitYear: true,
+      });
+      return out;
+    } catch {
+      // Continue to next format
+    }
+
+    // Try asctime format
+    try {
+      out.info = asctime.parse(trimmed, out.info);
+      return out;
+    } catch {
+      // All formats failed
+    }
+
+    throw new RangeError(`Invalid HTTP-date format: ${input}.`);
   },
 });

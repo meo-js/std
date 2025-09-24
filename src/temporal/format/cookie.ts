@@ -12,15 +12,6 @@
  * @see [RFC2965(obsoletes)](https://datatracker.ietf.org/doc/html/rfc2965)
  * @see [RFC6265(references: RFC1123)](https://datatracker.ietf.org/doc/html/rfc6265)
  */
-import type { Temporal } from 'temporal-polyfill';
-import {
-  isInstant,
-  isPlainDate,
-  isPlainDateTime,
-  isZonedDateTime,
-} from '../../predicate.js';
-import { getStringTag } from '../../primitive.js';
-import * as convert from '../convert.js';
 import {
   type BaseFormatter,
   createFormatter,
@@ -30,8 +21,8 @@ import {
   type TimeFormatter,
   type ZonedDateTimeFormatter,
 } from '../formatter.js';
-import { roundToSecond } from '../impl/common/round.js';
-import * as cookie from '../impl/cookie.js';
+import { toZonedDateTimeWithDefaults } from '../impl/common/convert.js';
+import * as rfc6265 from '../impl/rfc6265.js';
 
 export const {
   format,
@@ -50,29 +41,10 @@ export const {
     & TimeFormatter.Parse
 >({
   format(input, _args) {
-    let zdt: Temporal.ZonedDateTime;
-
-    if (isZonedDateTime(input)) {
-      zdt = input;
-    } else if (isInstant(input)) {
-      zdt = input.toZonedDateTimeISO('UTC');
-    } else if (isPlainDateTime(input)) {
-      zdt = convert.toZonedDateTime(input, 'UTC');
-    } else if (isPlainDate(input)) {
-      zdt = convert.toZonedDateTime(
-        input.toPlainDateTime({ hour: 0, minute: 0, second: 0 }),
-        'UTC',
-      );
-    } else {
-      throw new Error(`Unsupported temporal type: ${getStringTag(input)}.`);
-    }
-
-    zdt = roundToSecond(zdt);
-
-    return cookie.format(zdt);
+    return rfc6265.format(toZonedDateTimeWithDefaults(input, 'UTC'));
   },
   parse(input, _args, out) {
-    out.info = cookie.parse(input, out.info);
+    out.info = rfc6265.parse(input, out.info);
     return out;
   },
 });

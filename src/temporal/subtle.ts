@@ -1,7 +1,6 @@
-import type { Temporal } from 'temporal-polyfill';
+import { Temporal, toTemporalInstant } from 'temporal-polyfill';
 import { isDate, isDuration, isInstant } from '../predicate.js';
 import type { checked, Mutable, Simplify } from '../ts.js';
-import { toDateTime } from './convert.js';
 import * as iso8601Impl from './impl/iso8601.js';
 import * as rfc9557Impl from './impl/rfc9557.js';
 import { ensureTemplate } from './impl/tr35.js';
@@ -24,6 +23,7 @@ import {
   resetTemporalInfo,
   type TemporalInfo,
   type TemporalInfoInput,
+  type TemporalObject,
   type TemporalTemplate,
   type TemporalText,
   type TimeLike,
@@ -166,7 +166,28 @@ function _instantToInfo(
   input: InstantInput | InstantObject,
   out: Partial<TemporalInfo>,
 ) {
-  return _dateTimeToInfo(toDateTime(input as InstantInput), out);
+  let dateTime: Temporal.PlainDateTime;
+  const type = typeof input;
+  if (type === 'number') {
+    dateTime = Temporal.Instant.fromEpochMilliseconds(input as number)
+      .toZonedDateTimeISO('UTC')
+      .toPlainDateTime();
+  } else if (type === 'bigint') {
+    dateTime = Temporal.Instant.fromEpochNanoseconds(input as bigint)
+      .toZonedDateTimeISO('UTC')
+      .toPlainDateTime();
+  } else if (isInstant(input)) {
+    dateTime = input.toZonedDateTimeISO('UTC').toPlainDateTime();
+  } else if (isDate(input)) {
+    dateTime = toTemporalInstant
+      .call(input)
+      .toZonedDateTimeISO('UTC')
+      .toPlainDateTime();
+  } else {
+    dateTime = (<Temporal.ZonedDateTime>input).toPlainDateTime();
+  }
+
+  return _dateTimeToInfo(dateTime, out);
 }
 
 function _dateTimeToInfo(

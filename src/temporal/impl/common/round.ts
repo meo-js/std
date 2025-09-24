@@ -1,3 +1,7 @@
+/**
+ * @internal
+ * @module
+ */
 import type { Temporal } from 'temporal-polyfill';
 
 export function roundToSecond(

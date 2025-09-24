@@ -12,15 +12,6 @@
  * @see [RFC2822(obsoletes)](https://datatracker.ietf.org/doc/html/rfc2822)
  * @see [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322)
  */
-import type { Temporal } from 'temporal-polyfill';
-import {
-  isInstant,
-  isPlainDate,
-  isPlainDateTime,
-  isZonedDateTime,
-} from '../../predicate.js';
-import { getStringTag } from '../../primitive.js';
-import * as convert from '../convert.js';
 import {
   type BaseFormatter,
   createFormatter,
@@ -30,8 +21,8 @@ import {
   type TimeFormatter,
   type ZonedDateTimeFormatter,
 } from '../formatter.js';
-import { roundToSecond } from '../impl/common/round.js';
-import * as email from '../impl/email.js';
+import { toZonedDateTimeWithDefaults } from '../impl/common/convert.js';
+import * as rfc5322 from '../impl/rfc5322.js';
 
 export const {
   format,
@@ -50,29 +41,14 @@ export const {
     & TimeFormatter.Parse
 >({
   format(input, _args) {
-    let zdt: Temporal.ZonedDateTime;
-
-    if (isZonedDateTime(input)) {
-      zdt = input;
-    } else if (isInstant(input)) {
-      zdt = input.toZonedDateTimeISO('UTC');
-    } else if (isPlainDateTime(input)) {
-      zdt = convert.toZonedDateTime(input, 'UTC');
-    } else if (isPlainDate(input)) {
-      zdt = convert.toZonedDateTime(
-        input.toPlainDateTime({ hour: 0, minute: 0, second: 0 }),
-        'UTC',
-      );
-    } else {
-      throw new Error(`Unsupported temporal type: ${getStringTag(input)}.`);
-    }
-
-    zdt = roundToSecond(zdt);
-
-    return email.format(zdt);
+    return rfc5322.format(toZonedDateTimeWithDefaults(input, 'UTC'), {
+      includeDayOfWeek: true,
+      includeSeconds: true,
+      colonInOffset: false,
+    });
   },
   parse(input, _args, out) {
-    out.info = email.parse(input, out.info);
+    out.info = rfc5322.parse(input, out.info, true);
     return out;
   },
 });
