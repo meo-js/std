@@ -3,6 +3,11 @@
  */
 export class SafeIterArray<T> implements Iterable<T> {
   /**
+   * @internal
+   */
+  items: (T | undefined)[];
+
+  /**
    * 是否已锁定
    */
   get locked() {
@@ -15,11 +20,11 @@ export class SafeIterArray<T> implements Iterable<T> {
    * 注意：无法在遍历中设置长度
    */
   get length() {
-    return this.arr.length;
+    return this.items.length;
   }
   set length(value: number) {
     if (!this.locked) {
-      this.arr.length = value;
+      this.items.length = value;
     }
   }
 
@@ -28,33 +33,46 @@ export class SafeIterArray<T> implements Iterable<T> {
    */
   get count() {
     if (this.dirty) {
-      const arr = this.arr;
+      const items = this.items;
       let count = 0;
-      for (let index = 0; index < arr.length; index++) {
-        if (arr[index] !== undefined) {
+      for (let index = 0; index < items.length; index++) {
+        if (items[index] !== undefined) {
           count++;
         }
       }
       return count;
     } else {
-      return this.arr.length;
+      return this.items.length;
     }
   }
 
   /**
    * 是否有未清除的无效值
    */
-  dirty: boolean = false;
+  get dirty(): boolean {
+    return (this.state & 1) === 0;
+  }
+  private set dirty(value: boolean) {
+    this.state = value ? this.state & 0xfffffffe : this.state | 1;
+  }
+
+  private get lockerCount(): number {
+    return this.state >>> 1;
+  }
+  private set lockerCount(v: number) {
+    this.state = ((v & 0x7fffffff) << 1) | (this.state & 1);
+  }
 
   /**
-   * @internal
+   * Internal packed state:
+   *
+   * - Bit 0 for {@link dirty}, `0` means true.
+   * - Bits 1..31 for {@link lockerCount}.
    */
-  arr: (T | undefined)[];
-
-  private lockerCount = 0;
+  private state = 1;
 
   constructor(arrayLength?: number) {
-    this.arr = new Array<T | undefined>(arrayLength ?? 0);
+    this.items = new Array<T | undefined>(arrayLength ?? 0);
   }
 
   /**
@@ -70,10 +88,9 @@ export class SafeIterArray<T> implements Iterable<T> {
    */
   unlock() {
     this.lockerCount--;
-    if (this.lockerCount === 0) {
-      if (this.dirty) {
-        this.clearInvalidValues();
-      }
+    // `state` 0 means that `dirty` is true and `lockerCount` is 0.
+    if (this.state === 0) {
+      this.clearInvalidValues();
     }
   }
 
@@ -81,14 +98,14 @@ export class SafeIterArray<T> implements Iterable<T> {
    * 获取指定下标元素
    */
   at(index: number) {
-    return this.arr.at(index);
+    return this.items.at(index);
   }
 
   /**
    * {@link Array.push}
    */
   push(...items: T[]) {
-    return this.arr.push(...items);
+    return this.items.push(...items);
   }
 
   /**
@@ -103,7 +120,7 @@ export class SafeIterArray<T> implements Iterable<T> {
     if (this.locked) {
       return false;
     }
-    this.arr.splice(index, 0, v);
+    this.items.splice(index, 0, v);
     return true;
   }
 
@@ -113,7 +130,7 @@ export class SafeIterArray<T> implements Iterable<T> {
    * @param v 元素
    */
   remove(v: T) {
-    const i = this.arr.indexOf(v);
+    const i = this.items.indexOf(v);
     if (i !== -1) {
       this.locked ? this.delayRemove(i) : this.immedRemove(i);
       return true;
@@ -128,31 +145,31 @@ export class SafeIterArray<T> implements Iterable<T> {
    * @param index 数组下标
    */
   removeAt(index: number) {
-    if (index >= 0 && index < this.arr.length) {
+    if (index >= 0 && index < this.items.length) {
       this.locked ? this.delayRemove(index) : this.immedRemove(index);
     }
   }
 
   private delayRemove(i: number) {
-    this.arr[i] = undefined;
+    this.items[i] = undefined;
     this.dirty = true;
   }
 
   private immedRemove(i: number) {
-    this.arr.splice(i, 1);
+    this.items.splice(i, 1);
   }
 
   private clearInvalidValues() {
     if (!this.locked) {
       this.dirty = false;
-      const list = this.arr;
+      const items = this.items;
       let emptyIndex = -1;
 
-      for (let i = 0; i < list.length; i++) {
-        if (list[i] !== undefined) {
+      for (let i = 0; i < items.length; i++) {
+        if (items[i] !== undefined) {
           if (emptyIndex !== -1) {
-            list[emptyIndex] = list[i];
-            list[i] = undefined;
+            items[emptyIndex] = items[i];
+            items[i] = undefined;
             emptyIndex++;
           }
         } else {
@@ -163,7 +180,7 @@ export class SafeIterArray<T> implements Iterable<T> {
       }
 
       if (emptyIndex !== -1) {
-        list.length = emptyIndex;
+        items.length = emptyIndex;
       }
     }
   }
@@ -173,10 +190,10 @@ export class SafeIterArray<T> implements Iterable<T> {
    */
   clear() {
     if (this.locked) {
-      this.arr.fill(undefined);
+      this.items.fill(undefined);
       this.dirty = true;
     } else {
-      this.arr.length = 0;
+      this.items.length = 0;
     }
   }
 
@@ -191,14 +208,14 @@ export class SafeIterArray<T> implements Iterable<T> {
     ) => void | boolean,
     thisArg?: unknown,
   ) {
-    const array = this.arr;
-    const len = array.length;
+    const items = this.items;
+    const len = items.length;
 
     this.lock();
 
     try {
       for (let i = 0; i < len; i++) {
-        const value = array[i];
+        const value = items[i];
         if (value !== undefined) {
           const cond = callback.call(thisArg, value, i, this);
           if (cond === false) {
@@ -235,7 +252,7 @@ class SafeIterator<T> extends Iterator<T, BuiltinIteratorReturn, unknown> {
     const { len, array } = this;
 
     while (this.i < len) {
-      const value = array.arr[this.i++];
+      const value = array.items[this.i++];
       if (value !== undefined) {
         return {
           value,

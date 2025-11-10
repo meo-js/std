@@ -11,7 +11,7 @@ let _callbackForRemove: unknown = null;
 let _thisArgForRemove: unknown = null;
 
 /**
- * 事件类
+ * {@link Event} 用于管理单一事件的监听与触发。
  */
 export class Event<Arguments extends readonly unknown[] = []>
   implements PromiseLike<Arguments>

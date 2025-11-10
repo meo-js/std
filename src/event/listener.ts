@@ -1,5 +1,4 @@
 import type { fn } from '../function.js';
-import { Pool } from '../pool.js';
 import type { Poolable } from '../protocol.js';
 import { recycle, reuse } from '../protocol/symbols.js';
 import type { checked, uncertain } from '../ts.js';
@@ -10,11 +9,6 @@ import type { checked, uncertain } from '../ts.js';
 export class EventListener<Arguments extends readonly unknown[] = uncertain>
   implements Poolable
 {
-  /**
-   * 对象池
-   */
-  static pool = Pool.fromClass(this, 32);
-
   constructor(
     /**
      * @internal
