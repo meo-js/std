@@ -1,8 +1,6 @@
 import type { fn } from '../function.js';
 import { Observable } from '../polyfill/observable.js';
-import type { IsUnknown } from '../predicate.js';
-import type { checked, unreachable } from '../ts.js';
-import type { If } from '../ts/logical.js';
+import type { checked } from '../ts.js';
 import { Event } from './event.js';
 import { EventListener } from './listener.js';
 
@@ -276,12 +274,7 @@ export type TypeOf<T extends EventMap> = keyof T;
 /**
  * 获取 {@link T} 中 {@link Type} 事件的参数类型
  */
-export type ArgumentsOf<T extends EventMap, Type extends PropertyKey> = (
-  T extends Record<Type, infer V> ? V : readonly unknown[]
-) extends infer V
-  ? // 奇怪不知为何 keyof T 是 unknown
-    If<IsUnknown<V>, unknown[], V>
-  : unreachable;
+export type ArgumentsOf<T extends EventMap, Type extends PropertyKey> = T[Type];
 
 /**
  * 获取 {@link T} 中 {@link Type} 事件的回调类型
@@ -290,9 +283,12 @@ export type CallbackOf<T extends EventMap, Type extends PropertyKey> = (
   ...args: ArgumentsOf<T, Type>
 ) => void;
 
-const e = new EventEmitter();
+// TODO 测试一下 key & EventMap
+// TODO 解决垃圾回收问题
+// const e = new EventEmitter<{key:[a:number]}>();
 
-e.emit('key');
-e.on('type', () => {
-  // test.
-});
+// e.emit('key');
+// e.emit('');
+// e.on('key', () => {
+//   // test.
+// });
