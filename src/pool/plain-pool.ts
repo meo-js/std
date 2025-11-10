@@ -121,7 +121,9 @@ export class PlainPool<out T extends PoolItem = object> implements Disposable {
   /**
    * 返还对象
    *
-   * 与 {@link put} 方法不同的是，此方法不会打乱内部对象的存储，但性能较差。
+   * 此方法会判断对象是否已经在池内以正确处理，所以不会打乱内部对象的存储，但性能较差。
+   *
+   * 如果无需使用 {@link reset}，则推荐改用 {@link put} 以获得最好的性能。
    *
    * @returns 返回是否成功返还，如果对象重复返还则返回 `false`。
    */
@@ -142,11 +144,11 @@ export class PlainPool<out T extends PoolItem = object> implements Disposable {
   }
 
   /**
-   * 返还所有对象
+   * 重置对象池，相当于所有对象已经返还
    *
-   * 注意：使用 {@link put} 方法会打乱内部存储，请勿与此方法同时使用，可改用 {@link putInplace} 方法。
+   * 此方法要求对象池的内部存储未被打乱，所以请勿使用 {@link put}，而是改用 {@link putInplace}。
    */
-  putAll() {
+  reset() {
     this.ptr = 0;
   }
 

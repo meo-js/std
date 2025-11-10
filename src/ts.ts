@@ -165,3 +165,10 @@ export type uncertain = any;
  * 请勿滥用，一般用于类型的边缘情况。
  */
 export type checked = never;
+
+/**
+ * 类型 `never` 的别名
+ *
+ * 代表该位置或分支永远不可达。
+ */
+export type unreachable = never;

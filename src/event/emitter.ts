@@ -1,7 +1,7 @@
 import type { fn } from '../function.js';
 import { Observable } from '../polyfill/observable.js';
 import type { IsUnknown } from '../predicate.js';
-import type { checked, uncertain } from '../ts.js';
+import type { checked, unreachable } from '../ts.js';
 import type { If } from '../ts/logical.js';
 import { Event } from './event.js';
 import { EventListener } from './listener.js';
@@ -16,11 +16,6 @@ export class EventEmitter<T extends EventMap = EventMap> {
   readonly unsafe = this as unknown as EventEmitter;
 
   private listeners = new Map<TypeOf<T>, Event<ArgumentsOf<T, TypeOf<T>>>>();
-  private autoClean: boolean;
-
-  constructor(autoClean: boolean = false) {
-    this.autoClean = autoClean;
-  }
 
   /**
    * 添加监听器
@@ -44,7 +39,7 @@ export class EventEmitter<T extends EventMap = EventMap> {
     if (event) {
       const result = event.removeListener(listener as checked);
 
-      if (this.autoClean && event.listenerCount === 0) {
+      if (event.listenerCount === 0) {
         this.deleteEvent(type);
       }
 
@@ -75,18 +70,14 @@ export class EventEmitter<T extends EventMap = EventMap> {
       const event = this.getEvent(eventType);
       if (event) {
         event.removeAllListeners();
-        if (this.autoClean) {
-          this.deleteEvent(eventType);
-        }
+        this.deleteEvent(eventType);
       }
     } else {
       for (const event of this.listeners.values()) {
         event.removeAllListeners();
       }
 
-      if (this.autoClean) {
-        this.listeners.clear();
-      }
+      this.listeners.clear();
     }
   }
 
@@ -150,7 +141,7 @@ export class EventEmitter<T extends EventMap = EventMap> {
     if (event) {
       event.off(callback, thisArg);
 
-      if (this.autoClean && event.listenerCount === 0) {
+      if (event.listenerCount === 0) {
         this.deleteEvent(type);
       }
     }
@@ -167,7 +158,7 @@ export class EventEmitter<T extends EventMap = EventMap> {
     if (event) {
       event.offThisArg(thisArg);
 
-      if (this.autoClean && event.listenerCount === 0) {
+      if (event.listenerCount === 0) {
         this.deleteEvent(type);
       }
     }
@@ -183,7 +174,7 @@ export class EventEmitter<T extends EventMap = EventMap> {
     for (const [type, event] of this.listeners) {
       event.off(callback as fn<ArgumentsOf<T, TypeOf<T>>>, thisArg);
 
-      if (this.autoClean && event.listenerCount === 0) {
+      if (event.listenerCount === 0) {
         this.deleteEvent(type);
       }
     }
@@ -198,7 +189,7 @@ export class EventEmitter<T extends EventMap = EventMap> {
     for (const [type, event] of this.listeners) {
       event.offThisArg(thisArg);
 
-      if (this.autoClean && event.listenerCount === 0) {
+      if (event.listenerCount === 0) {
         this.deleteEvent(type);
       }
     }
@@ -236,17 +227,6 @@ export class EventEmitter<T extends EventMap = EventMap> {
     return event.when();
   }
 
-  /**
-   * 清理所有未监听的事件
-   */
-  cleanUnuseEvents() {
-    for (const [type, event] of this.listeners) {
-      if (event.listenerCount === 0) {
-        this.deleteEvent(type);
-      }
-    }
-  }
-
   private getEvent<Type extends TypeOf<T>>(
     type: Type,
   ): Event<ArgumentsOf<T, Type>> | undefined {
@@ -275,7 +255,7 @@ export class EventEmitter<T extends EventMap = EventMap> {
   ) {
     const result = event.removeListener(listener as checked);
 
-    if (this.autoClean && event.listenerCount === 0) {
+    if (event.listenerCount === 0) {
       this.deleteEvent(type);
     }
 
@@ -297,11 +277,11 @@ export type TypeOf<T extends EventMap> = keyof T;
  * 获取 {@link T} 中 {@link Type} 事件的参数类型
  */
 export type ArgumentsOf<T extends EventMap, Type extends PropertyKey> = (
-  T extends Record<Type, infer V> ? V : uncertain
+  T extends Record<Type, infer V> ? V : readonly unknown[]
 ) extends infer V
   ? // 奇怪不知为何 keyof T 是 unknown
     If<IsUnknown<V>, unknown[], V>
-  : never;
+  : unreachable;
 
 /**
  * 获取 {@link T} 中 {@link Type} 事件的回调类型
@@ -309,3 +289,10 @@ export type ArgumentsOf<T extends EventMap, Type extends PropertyKey> = (
 export type CallbackOf<T extends EventMap, Type extends PropertyKey> = (
   ...args: ArgumentsOf<T, Type>
 ) => void;
+
+const e = new EventEmitter();
+
+e.emit('key');
+e.on('type', () => {
+  // test.
+});
