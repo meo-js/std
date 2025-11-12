@@ -5,7 +5,7 @@
  * @module
  */
 import { isFunction } from './predicate.js';
-import type { uncertain } from './ts.js';
+import type { checked, uncertain } from './ts.js';
 
 /**
  * Represents a Class.
@@ -178,4 +178,20 @@ export function isDirectSubClass(
   superClass: AbstractClass,
 ): boolean {
   return getSuperClass(targetClass) === superClass;
+}
+
+/**
+ * Determine if an object is an instance of a specific class.
+ *
+ * Unlike `instanceof`, it does not check subclasses.
+ *
+ * @param object The object instance to check.
+ * @param targetClass The class constructor to compare against.
+ * @returns `true` if the {@link object} is an instance of the {@link targetClass}, otherwise `false`.
+ */
+export function isInstance<T extends object>(
+  object: object,
+  targetClass: AbstractClass<T>,
+): object is T {
+  return getClass<T>(object as checked) === targetClass;
 }

@@ -1,19 +1,27 @@
 import type { fn } from '../function.js';
 import { Observable } from '../polyfill/observable.js';
-import type { checked } from '../ts.js';
-import { Event } from './event.js';
+import { isFunction, isObject } from '../predicate.js';
+import type { LiteralKeyOf } from '../ts.js';
 import { EventListener } from './listener.js';
+import {
+  type InternalStore,
+  addListener,
+  emit,
+  getListenerCount,
+  off,
+  offThisArg,
+  removeAllListeners,
+  removeListener,
+} from './shared.js';
 
 /**
  * {@link EventEmitter} 用于管理多个事件的监听与触发。
  */
 export class EventEmitter<T extends EventMap = EventMap> {
-  /**
-   * 关闭严格类型检查
-   */
-  readonly unsafe = this as unknown as EventEmitter;
-
-  private listeners = new Map<TypeOf<T>, Event<ArgumentsOf<T, TypeOf<T>>>>();
+  private _eventListeners = new Map<
+    TypeOf<T>,
+    InternalStore<ArgumentsOf<T, TypeOf<T>>>
+  >();
 
   /**
    * 添加监听器
@@ -22,8 +30,13 @@ export class EventEmitter<T extends EventMap = EventMap> {
     type: Type,
     listener: EventListener<ArgumentsOf<T, Type>>,
   ) {
-    const event = this.obtainEvent(type);
-    event.addListener(listener as checked);
+    const map = this._eventListeners;
+    const store = map.get(type);
+    const newStore = addListener(store, listener as EventListener);
+    // eslint-disable-next-line eqeqeq -- treat null/undefined equally.
+    if (store != newStore) {
+      map.set(type, newStore);
+    }
   }
 
   /**
@@ -32,50 +45,48 @@ export class EventEmitter<T extends EventMap = EventMap> {
   removeListener<Type extends TypeOf<T>>(
     type: Type,
     listener: EventListener<ArgumentsOf<T, Type>>,
+  ): void;
+  removeListener<Type extends TypeOf<T>>(
+    listener: EventListener<ArgumentsOf<T, Type>>,
+  ): void;
+  removeListener<Type extends TypeOf<T>>(
+    arg1: Type | EventListener<ArgumentsOf<T, Type>>,
+    arg2?: EventListener<ArgumentsOf<T, Type>>,
   ) {
-    const event = this.getEvent(type);
-    if (event) {
-      const result = event.removeListener(listener as checked);
-
-      if (event.listenerCount === 0) {
-        this.deleteEvent(type);
+    const map = this._eventListeners;
+    if (isObject(arg1)) {
+      for (const [type, store] of map) {
+        const newStore = removeListener(store, arg1 as EventListener);
+        updelStore(type, map, store, newStore);
       }
-
-      return result;
     } else {
-      return false;
-    }
-  }
-
-  /**
-   * 移除所有指定监听器
-   *
-   * @param listener 指定监听器，默认移除所有监听器
-   */
-  removeAllByListener(listener: EventListener<ArgumentsOf<T, TypeOf<T>>>) {
-    for (const [type, event] of this.listeners) {
-      this.removeListenerFromEvent(type, event, listener);
+      const type = arg1;
+      const store = map.get(type);
+      if (store != null) {
+        const newStore = removeListener(store, arg2 as EventListener);
+        updelStore(type, map, store, newStore);
+      }
     }
   }
 
   /**
    * 移除所有监听器
    *
-   * @param eventType 指定标识，默认移除所有监听器
+   * @param type 指定标识，默认移除所有监听器
    */
-  removeAllListeners(eventType?: TypeOf<T>) {
-    if (eventType != null) {
-      const event = this.getEvent(eventType);
-      if (event) {
-        event.removeAllListeners();
-        this.deleteEvent(eventType);
+  removeAllListeners(type?: TypeOf<T>) {
+    const map = this._eventListeners;
+    if (type != null) {
+      const store = map.get(type);
+      if (store != null) {
+        removeAllListeners(store);
+        map.delete(type);
       }
     } else {
-      for (const event of this.listeners.values()) {
-        event.removeAllListeners();
+      for (const store of map.values()) {
+        removeAllListeners(store);
       }
-
-      this.listeners.clear();
+      map.clear();
     }
   }
 
@@ -134,13 +145,28 @@ export class EventEmitter<T extends EventMap = EventMap> {
     type: Type,
     callback: CallbackOf<T, Type>,
     thisArg?: unknown,
+  ): void;
+  off<Type extends TypeOf<T>>(
+    callback: CallbackOf<T, Type>,
+    thisArg?: unknown,
+  ): void;
+  off<Type extends TypeOf<T>>(
+    arg1: Type | CallbackOf<T, Type>,
+    arg2?: unknown,
+    arg3?: unknown,
   ) {
-    const event = this.getEvent(type);
-    if (event) {
-      event.off(callback, thisArg);
-
-      if (event.listenerCount === 0) {
-        this.deleteEvent(type);
+    const map = this._eventListeners;
+    if (isFunction(arg1)) {
+      for (const [type, store] of map) {
+        const newStore = off(store, arg1 as fn, arg2);
+        updelStore(type, map, store, newStore);
+      }
+    } else {
+      const type = arg1;
+      const store = map.get(type);
+      if (store != null) {
+        const newStore = off(store, arg2 as fn, arg3);
+        updelStore(type, map, store, newStore);
       }
     }
   }
@@ -151,44 +177,23 @@ export class EventEmitter<T extends EventMap = EventMap> {
    * @param type 事件标识
    * @param thisArg 函数作用域
    */
-  offThisArg<Type extends TypeOf<T>>(type: Type, thisArg: unknown) {
-    const event = this.getEvent(type);
-    if (event) {
-      event.offThisArg(thisArg);
-
-      if (event.listenerCount === 0) {
-        this.deleteEvent(type);
+  offThisArg<Type extends TypeOf<T>>(type: Type, thisArg: unknown): void;
+  offThisArg<Type extends TypeOf<T>>(thisArg: unknown): void;
+  offThisArg(arg1: unknown, arg2?: unknown) {
+    const map = this._eventListeners;
+    if (arguments.length === 1) {
+      const thisArg = arg1;
+      for (const [type, store] of map) {
+        const newStore = offThisArg(store, thisArg);
+        updelStore(type, map, store, newStore);
       }
-    }
-  }
-
-  /**
-   * 移除所有相同回调函数的监听
-   *
-   * @param callback 回调函数
-   * @param thisArg 函数作用域
-   */
-  offAllBy(callback: CallbackOf<T, TypeOf<T>>, thisArg?: unknown) {
-    for (const [type, event] of this.listeners) {
-      event.off(callback as fn<ArgumentsOf<T, TypeOf<T>>>, thisArg);
-
-      if (event.listenerCount === 0) {
-        this.deleteEvent(type);
-      }
-    }
-  }
-
-  /**
-   * 移除所有相同函数作用域的监听
-   *
-   * @param thisArg 函数作用域
-   */
-  offAllByThisArg(thisArg: unknown) {
-    for (const [type, event] of this.listeners) {
-      event.offThisArg(thisArg);
-
-      if (event.listenerCount === 0) {
-        this.deleteEvent(type);
+    } else {
+      const type = arg1 as TypeOf<T>;
+      const thisArg = arg2;
+      const store = map.get(type);
+      if (store != null) {
+        const newStore = offThisArg(store, thisArg);
+        updelStore(type, map, store, newStore);
       }
     }
   }
@@ -196,10 +201,10 @@ export class EventEmitter<T extends EventMap = EventMap> {
   /**
    * 取消所有监听
    *
-   * @param eventType 指定事件标识，默认移除所有事件的所有监听
+   * @param type 指定事件标识，默认移除所有事件的所有监听
    */
-  offAll(eventType?: TypeOf<T>) {
-    this.removeAllListeners(eventType);
+  offAll(type?: TypeOf<T>) {
+    this.removeAllListeners(type);
   }
 
   /**
@@ -209,9 +214,11 @@ export class EventEmitter<T extends EventMap = EventMap> {
    * @param args 事件参数
    */
   emit<Type extends TypeOf<T>>(type: Type, ...args: ArgumentsOf<T, Type>) {
-    const event = this.getEvent(type);
-    if (event) {
-      event.emit(...args);
+    const map = this._eventListeners;
+    const store = map.get(type);
+    if (store != null) {
+      const newStore = emit(store, args as ArgumentsOf<T, TypeOf<T>>);
+      updelStore(type, map, store, newStore);
     }
   }
 
@@ -221,43 +228,21 @@ export class EventEmitter<T extends EventMap = EventMap> {
    * @param type 事件标识
    */
   when<Type extends TypeOf<T>>(type: Type): Observable<ArgumentsOf<T, Type>> {
-    const event = this.obtainEvent(type);
-    return event.when();
-  }
+    return new Observable(subscriber => {
+      if (subscriber.signal.aborted) return;
 
-  private getEvent<Type extends TypeOf<T>>(
-    type: Type,
-  ): Event<ArgumentsOf<T, Type>> | undefined {
-    return this.listeners.get(type) as checked;
-  }
+      const listener = new EventListener((...args: ArgumentsOf<T, Type>) => {
+        subscriber.next(args);
+      }, this);
 
-  private obtainEvent<Type extends TypeOf<T>>(
-    type: Type,
-  ): Event<ArgumentsOf<T, Type>> {
-    let event = this.listeners.get(type);
-    if (event == null) {
-      event = new Event<ArgumentsOf<T, TypeOf<T>>>();
-      this.listeners.set(type, event);
-    }
-    return event as checked;
-  }
+      subscriber.signal.addEventListener(
+        'abort',
+        // @ts-expect-error -- removeListener(overload function) causes the number of parameters to be falsely reported.
+        this.removeListener.bind(this, type, listener),
+      );
 
-  private deleteEvent<Type extends TypeOf<T>>(type: Type) {
-    this.listeners.delete(type);
-  }
-
-  private removeListenerFromEvent(
-    type: TypeOf<T>,
-    event: Event<ArgumentsOf<T, TypeOf<T>>>,
-    listener: EventListener<ArgumentsOf<T, TypeOf<T>>>,
-  ) {
-    const result = event.removeListener(listener as checked);
-
-    if (event.listenerCount === 0) {
-      this.deleteEvent(type);
-    }
-
-    return result;
+      this.addListener(type, listener);
+    });
   }
 }
 
@@ -269,7 +254,7 @@ export type EventMap = Record<PropertyKey, readonly unknown[]>;
 /**
  * 获取 {@link T} 的所有事件标识
  */
-export type TypeOf<T extends EventMap> = keyof T;
+export type TypeOf<T extends EventMap> = LiteralKeyOf<T>;
 
 /**
  * 获取 {@link T} 中 {@link Type} 事件的参数类型
@@ -283,12 +268,19 @@ export type CallbackOf<T extends EventMap, Type extends PropertyKey> = (
   ...args: ArgumentsOf<T, Type>
 ) => void;
 
-// TODO 测试一下 key & EventMap
-// TODO 解决垃圾回收问题
-// const e = new EventEmitter<{key:[a:number]}>();
-
-// e.emit('key');
-// e.emit('');
-// e.on('key', () => {
-//   // test.
-// });
+function updelStore<T extends EventMap>(
+  type: TypeOf<T>,
+  map: Map<TypeOf<T>, InternalStore<ArgumentsOf<T, TypeOf<T>>>>,
+  store: InternalStore<ArgumentsOf<T, TypeOf<T>>>,
+  newStore: InternalStore<ArgumentsOf<T, TypeOf<T>>> | null,
+) {
+  // TODO 如果 dirty 则延迟删除？
+  if (getListenerCount(newStore) === 0) {
+    map.delete(type);
+  } else {
+    // eslint-disable-next-line eqeqeq -- treat null/undefined equally.
+    if (store != newStore) {
+      map.set(type, newStore!);
+    }
+  }
+}

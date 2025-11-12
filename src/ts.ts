@@ -41,11 +41,24 @@ export type Invariant<T> = tf.InvariantOf<T>;
 /**
  * 允许组合原始类型和字面量类型，同时不会失去 IDE 的自动完成功能
  *
- * 这是解决 [TypeScript#29729](https://github.com/Microsoft/TypeScript/issues/29729) 问题的一种方法，一旦不再需要，它将被移除。
+ * 这是解决 [TypeScript#29729](https://github.com/Microsoft/TypeScript/issues/29729) 问题的方法，一旦不再需要，它将被移除。
  */
 export type Literal<T, BaseType extends Primitive> = tf.LiteralUnion<
   T,
   BaseType
+>;
+
+/**
+ * 提取对象中字面量名称的键，以保证不会失去 IDE 的自动完成功能
+ *
+ * 解决类似 [TypeScript#29729](https://github.com/Microsoft/TypeScript/issues/29729) 问题的方法，一旦不再需要，它将被移除。
+ */
+// FIXME: 目前 TypeScript 对于模板字符串的自动完成支持不完善，后续更进 [TypeScript#41620](https://github.com/microsoft/TypeScript/issues/41620)
+export type LiteralKeyOf<T> = Literal<
+  keyof {
+    [K in keyof T as IsLiteral<K> extends true ? K : never]-?: never;
+  },
+  keyof tf.PickIndexSignature<T>
 >;
 
 /**
