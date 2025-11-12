@@ -14,6 +14,18 @@ export type InternalStore<Arguments extends readonly unknown[]> =
   | EventListener<Arguments>
   | SafeIterArray<EventListener<Arguments>>;
 
+export function isStrictEmpty<Arguments extends readonly unknown[]>(
+  store: InternalStore<Arguments> | null,
+) {
+  if (store == null) {
+    return true;
+  } else if (isInstance(store, SafeIterArray)) {
+    return store.dirty ? false : store.count === 0;
+  } else {
+    return false;
+  }
+}
+
 export function getListenerCount<Arguments extends readonly unknown[]>(
   store: InternalStore<Arguments> | null,
 ): number {

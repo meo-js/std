@@ -15,7 +15,7 @@ export class SafeIterArray<T> implements Iterable<T> {
   }
 
   /**
-   * 长度
+   * 内部存储长度
    *
    * 注意：无法在遍历中设置长度
    */
@@ -277,8 +277,23 @@ class SafeIterator<T> extends Iterator<T, BuiltinIteratorReturn, unknown> {
       done: true,
     };
   }
-
-  override throw(e?: unknown): IteratorResult<T, undefined> {
-    return this.return();
-  }
 }
+
+// another unordered implementation idea:
+// in loop, len is keep, so add is ok.
+// [a, b, c, d, e, f, g]
+//  |
+// if remove self(a), we can switch with last(g), and pop.
+// [a, b, c, d, e, f, g]
+//        |
+// if remove a, we can put c to a, and put g to c, and pop.
+// the i and len need sync this change, so it should be class var.
+// in comparison to the current implementation:
+// 1. there is no need to judge whether the value is valid.
+// 2. there is no need to clean up invalid data afterward.
+// 3. recursive calls are not allowed.
+// does recursive call activate the call stack?
+// TODO
+// version
+// listener { callback, thisArg } or callback
+// listener state { once, version }

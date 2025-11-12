@@ -7,7 +7,7 @@ import {
   type InternalStore,
   addListener,
   emit,
-  getListenerCount,
+  isStrictEmpty,
   off,
   offThisArg,
   removeAllListeners,
@@ -274,8 +274,7 @@ function updelStore<T extends EventMap>(
   store: InternalStore<ArgumentsOf<T, TypeOf<T>>>,
   newStore: InternalStore<ArgumentsOf<T, TypeOf<T>>> | null,
 ) {
-  // TODO 如果 dirty 则延迟删除？
-  if (getListenerCount(newStore) === 0) {
+  if (isStrictEmpty(store)) {
     map.delete(type);
   } else {
     // eslint-disable-next-line eqeqeq -- treat null/undefined equally.
