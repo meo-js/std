@@ -10,6 +10,11 @@ import { EventListener } from './listener.js';
  */
 export class EventEmitter<T extends EventMap = EventMap> {
   private _events = new Map<TypeOf<T>, Event<ArgumentsOf<T, TypeOf<T>>>>();
+  private _unusedEventThreshold = 0;
+
+  constructor(clearThreshold: number = 32) {
+    this._unusedEventThreshold = clearThreshold;
+  }
 
   /**
    * 添加监听器
@@ -42,12 +47,13 @@ export class EventEmitter<T extends EventMap = EventMap> {
     arg2?: EventListener<ArgumentsOf<T, Type>>,
   ) {
     const map = this._events;
+    const threshould = this._unusedEventThreshold;
     if (isObject(arg1)) {
       for (const [type, event] of map) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- checked.
         event.removeListener(arg1 as EventListener);
-        if (event.listenerCount === 0) {
-          map.delete(type);
+        if (event.listenerCount === 0 && map.size > threshould) {
+          this._unusedEventThreshold = clearUnusedEvents(map, threshould);
         }
       }
     } else {
@@ -56,8 +62,8 @@ export class EventEmitter<T extends EventMap = EventMap> {
       if (event != null) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- checked.
         event.removeListener(arg2 as EventListener);
-        if (event.listenerCount === 0) {
-          map.delete(type);
+        if (event.listenerCount === 0 && map.size > threshould) {
+          this._unusedEventThreshold = clearUnusedEvents(map, threshould);
         }
       }
     }
@@ -150,11 +156,12 @@ export class EventEmitter<T extends EventMap = EventMap> {
     arg3?: unknown,
   ) {
     const map = this._events;
+    const threshould = this._unusedEventThreshold;
     if (isFunction(arg1)) {
       for (const [type, event] of map) {
         event.off(arg1 as fn, arg2);
-        if (event.listenerCount === 0) {
-          map.delete(type);
+        if (event.listenerCount === 0 && map.size > threshould) {
+          this._unusedEventThreshold = clearUnusedEvents(map, threshould);
         }
       }
     } else {
@@ -162,8 +169,8 @@ export class EventEmitter<T extends EventMap = EventMap> {
       const event = map.get(type);
       if (event != null) {
         event.off(arg2 as fn, arg3);
-        if (event.listenerCount === 0) {
-          map.delete(type);
+        if (event.listenerCount === 0 && map.size > threshould) {
+          this._unusedEventThreshold = clearUnusedEvents(map, threshould);
         }
       }
     }
@@ -179,12 +186,13 @@ export class EventEmitter<T extends EventMap = EventMap> {
   offThisArg<Type extends TypeOf<T>>(thisArg: unknown): void;
   offThisArg(arg1: unknown, arg2?: unknown) {
     const map = this._events;
+    const threshould = this._unusedEventThreshold;
     if (arguments.length === 1) {
       const thisArg = arg1;
       for (const [type, event] of map) {
         event.offThisArg(thisArg);
-        if (event.listenerCount === 0) {
-          map.delete(type);
+        if (event.listenerCount === 0 && map.size > threshould) {
+          this._unusedEventThreshold = clearUnusedEvents(map, threshould);
         }
       }
     } else {
@@ -193,8 +201,8 @@ export class EventEmitter<T extends EventMap = EventMap> {
       const event = map.get(type);
       if (event != null) {
         event.offThisArg(thisArg);
-        if (event.listenerCount === 0) {
-          map.delete(type);
+        if (event.listenerCount === 0 && map.size > threshould) {
+          this._unusedEventThreshold = clearUnusedEvents(map, threshould);
         }
       }
     }
@@ -217,11 +225,12 @@ export class EventEmitter<T extends EventMap = EventMap> {
    */
   emit<Type extends TypeOf<T>>(type: Type, ...args: ArgumentsOf<T, Type>) {
     const map = this._events;
+    const threshould = this._unusedEventThreshold;
     const event = map.get(type);
     if (event != null) {
       event.emit(...(args as checked));
-      if (event.listenerCount === 0) {
-        map.delete(type);
+      if (event.listenerCount === 0 && map.size > threshould) {
+        this._unusedEventThreshold = clearUnusedEvents(map, threshould);
       }
     }
   }
@@ -271,3 +280,26 @@ export type ArgumentsOf<T extends EventMap, Type extends PropertyKey> = T[Type];
 export type CallbackOf<T extends EventMap, Type extends PropertyKey> = (
   ...args: ArgumentsOf<T, Type>
 ) => void;
+
+function clearUnusedEvents<T extends EventMap = EventMap>(
+  _events: Map<TypeOf<T>, Event<ArgumentsOf<T, TypeOf<T>>>>,
+  threadhold: number = 32,
+) {
+  // Strategy:
+  // 0. Assume a cleaning threshold of 32 and perform one cleaning.
+  // 1. If the remaining is more than half (16), double the threshold.
+  // 2. If the remaining is less than 1/4 (8), halve the threshold, with a minimum of 16.
+  const map = _events;
+  for (const [type, event] of map) {
+    if (event.listenerCount === 0) {
+      map.delete(type);
+    }
+  }
+  const size = map.size;
+  if (size > threadhold / 2) {
+    threadhold *= 2;
+  } else if (size < threadhold / 4) {
+    threadhold = Math.max(threadhold / 2, 16);
+  }
+  return threadhold;
+}

@@ -239,7 +239,7 @@ export class Event<Arguments extends readonly unknown[] = []>
         root
         && this.listenerCount !== (<EventListener[]>this.listeners).length
       ) {
-        this.cleanInvalidListeners();
+        this.clearInvalidListeners();
       }
     } else {
       if (listeners.once) {
@@ -292,7 +292,7 @@ export class Event<Arguments extends readonly unknown[] = []>
     });
   }
 
-  private cleanInvalidListeners() {
+  private clearInvalidListeners() {
     const listeners = this.listeners;
     if (isArray(listeners)) {
       let len = listeners.length;
