@@ -2,7 +2,7 @@ import { removeAtBySwap } from '../array.js';
 import { noop, type fn } from '../function.js';
 import { Observable } from '../polyfill/observable.js';
 import { isArray } from '../predicate.js';
-import type { uncertain } from '../ts.js';
+import type { checked, uncertain } from '../ts.js';
 import { EventListener } from './listener.js';
 
 const INVALID_LISTENER = new EventListener<uncertain>(noop, {}, true);
@@ -167,7 +167,6 @@ export class Event<Arguments extends readonly unknown[] = []>
             i--;
             len--;
           }
-          return;
         }
       }
     } else {
@@ -208,15 +207,18 @@ export class Event<Arguments extends readonly unknown[] = []>
           const canRemove = root && this.lockCount === 1;
           if (listener === INVALID_LISTENER) {
             if (canRemove) {
-              removeAtBySwap(listeners, i);
-              i--;
               len--;
+              listeners[i] = listeners[len];
+              listeners.length = len;
+              i--;
             }
+            continue;
           } else {
             if (canRemove) {
-              removeAtBySwap(listeners, i);
-              i--;
               len--;
+              listeners[i] = listeners[len];
+              listeners.length = len;
+              i--;
             } else {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- checked.
               listeners[i] = INVALID_LISTENER;
@@ -224,16 +226,31 @@ export class Event<Arguments extends readonly unknown[] = []>
             this.listenerCount--;
           }
         }
-        listener.call(args);
+        try {
+          listener.callback.apply(listener.thisArg, args as checked);
+        } catch (err) {
+          reportError(err);
+        }
       }
 
       this.lockCount--;
+
+      if (
+        root
+        && this.listenerCount !== (<EventListener[]>this.listeners).length
+      ) {
+        this.cleanInvalidListeners();
+      }
     } else {
       if (listeners.once) {
         this.listeners = null;
         this.listenerCount = 0;
       }
-      listeners.call(args);
+      try {
+        listeners.callback.apply(listeners.thisArg, args as checked);
+      } catch (err) {
+        reportError(err);
+      }
     }
   }
 
@@ -273,5 +290,20 @@ export class Event<Arguments extends readonly unknown[] = []>
         );
       });
     });
+  }
+
+  private cleanInvalidListeners() {
+    const listeners = this.listeners;
+    if (isArray(listeners)) {
+      let len = listeners.length;
+      for (let i = 0; i < len; i++) {
+        if (listeners[i] === INVALID_LISTENER) {
+          len--;
+          listeners[i] = listeners[len];
+          i--;
+        }
+      }
+      listeners.length = len;
+    }
   }
 }

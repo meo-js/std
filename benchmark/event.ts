@@ -185,7 +185,7 @@ async function run() {
     const event = new Event<unknown[]>();
     const emitter = new EventEmitter();
     const bench = new Bench({ time: 500 });
-    bench.add('Event', () => {
+    bench.add('Event with single.', () => {
       let acc = 0;
       for (let i = 0; i < REPEAT; i++) {
         event.once(() => {
@@ -194,9 +194,33 @@ async function run() {
         event.emit(1);
       }
     });
-    bench.add('EventEmitter', () => {
+    bench.add('Event with multiple.', () => {
       let acc = 0;
       for (let i = 0; i < REPEAT; i++) {
+        event.once(() => {
+          acc++;
+        });
+        event.once(() => {
+          acc++;
+        });
+        event.emit(1);
+      }
+    });
+    bench.add('EventEmitter with single.', () => {
+      let acc = 0;
+      for (let i = 0; i < REPEAT; i++) {
+        emitter.once('a', () => {
+          acc++;
+        });
+        emitter.emit('a', 1);
+      }
+    });
+    bench.add('EventEmitter with multiple.', () => {
+      let acc = 0;
+      for (let i = 0; i < REPEAT; i++) {
+        emitter.once('a', () => {
+          acc++;
+        });
         emitter.once('a', () => {
           acc++;
         });
