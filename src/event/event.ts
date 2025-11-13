@@ -1,16 +1,11 @@
-import type { fn } from '../function.js';
+import { removeAtBySwap } from '../array.js';
+import { noop, type fn } from '../function.js';
 import { Observable } from '../polyfill/observable.js';
+import { isArray } from '../predicate.js';
+import type { uncertain } from '../ts.js';
 import { EventListener } from './listener.js';
-import {
-  addListener,
-  emit,
-  getListenerCount,
-  type InternalStore,
-  off,
-  offThisArg,
-  removeAllListeners,
-  removeListener,
-} from './shared.js';
+
+const INVALID_LISTENER = new EventListener<uncertain>(noop, {}, true);
 
 /**
  * {@link Event} 用于管理单一事件的监听与触发。
@@ -19,33 +14,72 @@ export class Event<Arguments extends readonly unknown[] = []>
   implements PromiseLike<Arguments>
 {
   /**
-   * 当前监听器数量
+   * 监听器数量。
    */
-  get listenerCount() {
-    return getListenerCount(this.listeners);
-  }
+  listenerCount: number = 0;
 
-  private listeners: InternalStore<Arguments> | null = null;
+  private listeners:
+    | EventListener<Arguments>
+    | EventListener<Arguments>[]
+    | null = null;
+  private lockCount = 0;
 
   /**
    * 添加监听器
    */
   addListener(listener: EventListener<Arguments>) {
-    this.listeners = addListener(this.listeners, listener);
+    const listeners = this.listeners;
+    if (listeners == null) {
+      this.listeners = listener;
+    } else if (isArray(listeners)) {
+      listeners.push(listener);
+    } else {
+      this.listeners = [listeners, listener];
+    }
+    this.listenerCount++;
   }
 
   /**
    * 移除监听器
    */
   removeListener(listener: EventListener<Arguments>) {
-    this.listeners = removeListener(this.listeners, listener);
+    const listeners = this.listeners;
+    if (listeners === listener) {
+      this.listeners = null;
+      this.listenerCount = 0;
+    } else if (isArray(listeners)) {
+      const i = listeners.indexOf(listener);
+      if (i !== -1) {
+        this.removeAt(i);
+      }
+    }
+  }
+
+  private removeAt(index: number) {
+    if (this.lockCount > 0) {
+      (<EventListener[]>this.listeners)[index] = INVALID_LISTENER;
+    } else {
+      removeAtBySwap(<EventListener[]>this.listeners, index);
+    }
+    this.listenerCount--;
   }
 
   /**
    * 移除所有监听器
    */
   removeAllListeners() {
-    this.listeners = removeAllListeners(this.listeners);
+    const listeners = this.listeners;
+    if (isArray(listeners)) {
+      if (this.lockCount > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- checked.
+        listeners.fill(INVALID_LISTENER);
+      } else {
+        listeners.length = 0;
+      }
+    } else {
+      this.listeners = null;
+    }
+    this.listenerCount = 0;
   }
 
   /**
@@ -85,7 +119,31 @@ export class Event<Arguments extends readonly unknown[] = []>
    * @param thisArg 函数作用域
    */
   off(callback: fn<Arguments>, thisArg?: unknown) {
-    this.listeners = off(this.listeners, callback, thisArg);
+    const listeners = this.listeners;
+    if (isArray(listeners)) {
+      const len = listeners.length;
+      for (let i = 0; i < len; i++) {
+        const listener = listeners[i];
+        if (
+          listener.callback === callback
+          // eslint-disable-next-line eqeqeq -- treat null/undefined equally.
+          && listener.thisArg == thisArg
+        ) {
+          this.removeAt(i);
+          return;
+        }
+      }
+    } else {
+      if (
+        listeners
+        && listeners.callback === callback
+        // eslint-disable-next-line eqeqeq -- treat null/undefined equally.
+        && listeners.thisArg == thisArg
+      ) {
+        this.listeners = null;
+        this.listenerCount = 0;
+      }
+    }
   }
 
   /**
@@ -94,7 +152,34 @@ export class Event<Arguments extends readonly unknown[] = []>
    * @param thisArg 函数作用域
    */
   offThisArg(thisArg: unknown) {
-    this.listeners = offThisArg(this.listeners, thisArg);
+    const listeners = this.listeners;
+    if (isArray(listeners)) {
+      const unlock = this.lockCount === 0;
+      let len = listeners.length;
+      for (let i = 0; i < len; i++) {
+        const listener = listeners[i];
+        if (
+          // eslint-disable-next-line eqeqeq -- treat null/undefined equally.
+          listener.thisArg == thisArg
+        ) {
+          this.removeAt(i);
+          if (unlock) {
+            i--;
+            len--;
+          }
+          return;
+        }
+      }
+    } else {
+      if (
+        listeners
+        // eslint-disable-next-line eqeqeq -- treat null/undefined equally.
+        && listeners.thisArg == thisArg
+      ) {
+        this.listeners = null;
+        this.listenerCount = 0;
+      }
+    }
   }
 
   /**
@@ -110,7 +195,46 @@ export class Event<Arguments extends readonly unknown[] = []>
    * @param args 事件参数
    */
   emit(...args: Arguments) {
-    this.listeners = emit(this.listeners, args);
+    if (this.listenerCount === 0) return;
+    const listeners = this.listeners!;
+    if (isArray(listeners)) {
+      const root = this.lockCount === 0;
+      let len = listeners.length;
+      this.lockCount++;
+
+      for (let i = 0; i < len; i++) {
+        const listener = listeners[i];
+        if (listener.once) {
+          const canRemove = root && this.lockCount === 1;
+          if (listener === INVALID_LISTENER) {
+            if (canRemove) {
+              removeAtBySwap(listeners, i);
+              i--;
+              len--;
+            }
+          } else {
+            if (canRemove) {
+              removeAtBySwap(listeners, i);
+              i--;
+              len--;
+            } else {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- checked.
+              listeners[i] = INVALID_LISTENER;
+            }
+            this.listenerCount--;
+          }
+        }
+        listener.call(args);
+      }
+
+      this.lockCount--;
+    } else {
+      if (listeners.once) {
+        this.listeners = null;
+        this.listenerCount = 0;
+      }
+      listeners.call(args);
+    }
   }
 
   /**
