@@ -330,6 +330,7 @@ export function ensureSuffix(str: string, suffix: string) {
  * // Hello! My name is [unknwon name].
  * ```
  */
+// TODO: https://doc.rust-lang.org/std/fmt/
 export function template(
   str: string,
   object: Record<string | number, string>,
