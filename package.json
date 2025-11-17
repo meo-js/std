@@ -57,6 +57,23 @@
         "default": "./dist/default/ts.js"
       }
     },
+    "./try": {
+      "cocos": {
+        "require": "./dist/cocos/try.cjs",
+        "import": "./dist/cocos/try.js",
+        "default": "./dist/cocos/try.js"
+      },
+      "node": {
+        "require": "./dist/node/try.cjs",
+        "import": "./dist/node/try.js",
+        "default": "./dist/node/try.js"
+      },
+      "default": {
+        "require": "./dist/default/try.cjs",
+        "import": "./dist/default/try.js",
+        "default": "./dist/default/try.js"
+      }
+    },
     "./timer": {
       "cocos": {
         "require": "./dist/cocos/timer.cjs",
@@ -771,6 +788,23 @@
         "default": "./dist/default/temporal/formatter.js"
       }
     },
+    "./polyfill/observable": {
+      "cocos": {
+        "require": "./dist/cocos/polyfill/observable.cjs",
+        "import": "./dist/cocos/polyfill/observable.js",
+        "default": "./dist/cocos/polyfill/observable.js"
+      },
+      "node": {
+        "require": "./dist/node/polyfill/observable.cjs",
+        "import": "./dist/node/polyfill/observable.js",
+        "default": "./dist/node/polyfill/observable.js"
+      },
+      "default": {
+        "require": "./dist/default/polyfill/observable.cjs",
+        "import": "./dist/default/polyfill/observable.js",
+        "default": "./dist/default/polyfill/observable.js"
+      }
+    },
     "./pipe/typed-array": {
       "cocos": {
         "require": "./dist/cocos/pipe/typed-array.cjs",
@@ -803,23 +837,6 @@
         "require": "./dist/default/pipe/string.cjs",
         "import": "./dist/default/pipe/string.js",
         "default": "./dist/default/pipe/string.js"
-      }
-    },
-    "./polyfill/observable": {
-      "cocos": {
-        "require": "./dist/cocos/polyfill/observable.cjs",
-        "import": "./dist/cocos/polyfill/observable.js",
-        "default": "./dist/cocos/polyfill/observable.js"
-      },
-      "node": {
-        "require": "./dist/node/polyfill/observable.cjs",
-        "import": "./dist/node/polyfill/observable.js",
-        "default": "./dist/node/polyfill/observable.js"
-      },
-      "default": {
-        "require": "./dist/default/polyfill/observable.cjs",
-        "import": "./dist/default/polyfill/observable.js",
-        "default": "./dist/default/polyfill/observable.js"
       }
     },
     "./math/float": {
