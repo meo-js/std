@@ -68,7 +68,7 @@ function rejectDuration(
     + remainderSec;
   if (!Number.isSafeInteger(totalSec)) {
     throw new RangeError(
-      "Total of duration time units can't exceed 9007199254740991.999999999s.",
+      'Total of duration time units can not exceed 9007199254740991.999999999s.',
     );
   }
 }

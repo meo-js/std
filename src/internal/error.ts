@@ -12,7 +12,7 @@ export function assertBigIntSupported(method: string) {
     return;
   }
   throw new Error(
-    `Can't use \`${method}\`, because BigInt is not supported in this environment.`,
+    `Can not use \`${method}\`, because BigInt is not supported in this environment.`,
   );
 }
 
