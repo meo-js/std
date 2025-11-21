@@ -202,7 +202,7 @@ export function remove(arr: unknown[], value: unknown) {
  * @param arr 数组
  * @param index 数组下标
  */
-export function removeAtBySwap(arr: unknown[], index: number) {
+export function swapRemoveAt(arr: unknown[], index: number) {
   arr[index] = arr[arr.length - 1];
   arr.pop();
 }
@@ -215,10 +215,10 @@ export function removeAtBySwap(arr: unknown[], index: number) {
  * @param arr 数组
  * @param value 元素
  */
-export function removeBySwap(arr: unknown[], value: unknown) {
+export function swapRemove(arr: unknown[], value: unknown) {
   const index = arr.indexOf(value);
   if (index === -1) return false;
-  removeAtBySwap(arr, index);
+  swapRemoveAt(arr, index);
   return true;
 }
 

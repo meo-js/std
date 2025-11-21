@@ -1,4 +1,4 @@
-import { removeAtBySwap } from '../array.js';
+import { swapRemoveAt } from '../array.js';
 import { noop, type fn } from '../function.js';
 import { Observable } from '../polyfill/observable.js';
 import { isArray } from '../predicate.js';
@@ -59,7 +59,7 @@ export class Event<Arguments extends readonly unknown[] = []>
     if (this.lockCount > 0) {
       (<EventListener[]>this.listeners)[index] = INVALID_LISTENER;
     } else {
-      removeAtBySwap(<EventListener[]>this.listeners, index);
+      swapRemoveAt(<EventListener[]>this.listeners, index);
     }
     this.listenerCount--;
   }

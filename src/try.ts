@@ -56,7 +56,7 @@ type TryResult<T> =
           ? Promise<Result<Awaited<U>>>
           : Result<T>;
 
-class ResultConstructor {
+class ResultConstructor implements Iterable<unknown> {
   /**
    * Creates a successful {@link Result}.
    *

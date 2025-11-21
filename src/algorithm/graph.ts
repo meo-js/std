@@ -4,5 +4,5 @@
  */
 // #export * from "!sub-modules"
 // #region Generated exports
-export * from './structure/graph.js';
+export * from './graph/struct/graph.js';
 // #endregion
