@@ -1,4 +1,3 @@
-import type { Tagged } from '../../../ts.js';
 import { GraphTraversalSpace } from '../algo/space.js';
 
 /**
@@ -23,13 +22,6 @@ export interface Options {
 }
 
 /**
- * Used to identify unique nodes in graph data structures.
- */
-type NodeHandle = Tagged<[loc: number], typeof nodeHandleTag>;
-
-declare const nodeHandleTag: unique symbol;
-
-/**
  * Array-based Graph structure implementation.
  *
  * Features:
@@ -44,10 +36,9 @@ export class Graph {
    * **Time Complexity**: O(1)
    */
   get nodeCount() {
-    return this.nodes.length;
+    return this.edges.length;
   }
 
-  private nodes: NodeHandle[] = [];
   private edges: number[][] = [];
   private weights: number[][] = [];
 
@@ -64,39 +55,38 @@ export class Graph {
    *
    * **Time Complexity**: O(1)
    *
-   * @returns The handle of the newly created node.
+   * @returns The index of the newly added node.
    */
-  addNode(): NodeHandle {
-    const i = this.nodes.length;
-    const node = [i] as NodeHandle;
-    this.nodes.push(node);
+  addNode(): number {
+    const i = this.edges.length;
     this.edges.push([]);
     this.weights.push([]);
-    return node;
+    return i;
   }
 
   /**
    * Removes a node from the graph.
    *
+   * **Important:** This method uses the swap-remove strategy. The last node is moved
+   * to the position of the removed node to fill the gap.
+   * Therefore, you must update external references to point to this new position.
+   *
    * **Time Complexity**: O(V + E) - Requires scanning all edges to remove incoming edges
    * to the deleted node and update references to the moved node.
    *
-   * @param node The handle of the node to remove.
+   * @param node The index of the node to remove.
+   * @returns The index of the node that was moved to replace the removed node.
    */
-  removeNode(node: NodeHandle): void {
-    const index = node[0];
+  removeNode(node: number): number {
+    const index = node;
 
-    const last = this.nodes.length - 1;
+    const last = this.edges.length - 1;
 
     if (index !== last) {
-      const lastNode = this.nodes[last];
-      this.nodes[index] = lastNode;
       this.edges[index] = this.edges[last];
       this.weights[index] = this.weights[last];
-      lastNode[0] = index;
     }
 
-    this.nodes.pop();
     this.edges.pop();
     this.weights.pop();
 
@@ -120,6 +110,8 @@ export class Graph {
         }
       }
     }
+
+    return last;
   }
 
   /**
@@ -129,16 +121,13 @@ export class Graph {
    * - O(1) if {@link Options.allowCycle allowCycle} is true.
    * - O(V + E) if {@link Options.allowCycle allowCycle} is false (due to cycle detection).
    *
-   * @param u The handle of the source node.
-   * @param v The handle of the target node.
+   * @param u The index of the source node.
+   * @param v The index of the target node.
    * @param weight The weight of the edge.
    */
-  addEdge(u: NodeHandle, v: NodeHandle, weight: number = 1): void {
-    const ui = u[0];
-    const vi = v[0];
-
+  addEdge(u: number, v: number, weight: number = 1): void {
     if (!this.allowCycle) {
-      if (ui === vi) {
+      if (u === v) {
         throw new Error('Cycle detected: Self-loop is not allowed.');
       }
       if (this.hasPath(v, u)) {
@@ -148,8 +137,8 @@ export class Graph {
       }
     }
 
-    this.edges[ui].push(vi);
-    this.weights[ui].push(weight);
+    this.edges[u].push(v);
+    this.weights[u].push(weight);
   }
 
   /**
@@ -157,13 +146,13 @@ export class Graph {
    *
    * **Time Complexity**: O(deg(u)) - Linear search in the adjacency list of {@link u}.
    *
-   * @param u The handle of the source node.
-   * @param v The handle of the target node.
+   * @param u The index of the source node.
+   * @param v The index of the target node.
    * @param weight The optional weight to match.
    * @returns True if the edge exists, false otherwise.
    */
-  hasEdge(u: NodeHandle, v: NodeHandle, weight?: number): boolean {
-    return this.findEdgeIndex(u[0], v[0], weight) !== -1;
+  hasEdge(u: number, v: number, weight?: number): boolean {
+    return this.findEdgeIndex(u, v, weight) !== -1;
   }
 
   /**
@@ -171,22 +160,15 @@ export class Graph {
    *
    * **Time Complexity**: O(deg(u)) + (Complexity of {@link addEdge})
    *
-   * @param u The handle of the source node.
-   * @param v The handle of the target node.
+   * @param u The index of the source node.
+   * @param v The index of the target node.
    * @param weight The new weight of the edge.
    * @param oldWeight The optional old weight to identify the specific edge to update (useful for parallel edges).
    */
-  updateEdge(
-    u: NodeHandle,
-    v: NodeHandle,
-    weight: number,
-    oldWeight?: number,
-  ): void {
-    const ui = u[0];
-    const vi = v[0];
-    const idx = this.findEdgeIndex(ui, vi, oldWeight);
+  updateEdge(u: number, v: number, weight: number, oldWeight?: number): void {
+    const idx = this.findEdgeIndex(u, v, oldWeight);
     if (idx !== -1) {
-      this.weights[ui][idx] = weight;
+      this.weights[u][idx] = weight;
       return;
     }
 
@@ -200,16 +182,14 @@ export class Graph {
    *
    * **Time Complexity**: O(deg(u))
    *
-   * @param u The handle of the source node.
-   * @param v The handle of the target node.
+   * @param u The index of the source node.
+   * @param v The index of the target node.
    */
-  removeEdge(u: NodeHandle, v: NodeHandle): void {
-    const ui = u[0];
-    const vi = v[0];
-    const neighbors = this.edges[ui];
-    const weights = this.weights[ui];
+  removeEdge(u: number, v: number): void {
+    const neighbors = this.edges[u];
+    const weights = this.weights[u];
 
-    const index = neighbors.indexOf(vi);
+    const index = neighbors.indexOf(v);
     if (index !== -1) {
       const last = neighbors.length - 1;
       if (index !== last) {
@@ -228,20 +208,17 @@ export class Graph {
    *
    * **Time Complexity**: Same as {@link addEdge} (called twice).
    *
-   * @param u The handle of the first node.
-   * @param v The handle of the second node.
+   * @param u The index of the first node.
+   * @param v The index of the second node.
    * @param weight The weight of the edge.
    */
-  addUndirectedEdge(u: NodeHandle, v: NodeHandle, weight: number = 1): void {
-    const ui = u[0];
-    const vi = v[0];
+  addUndirectedEdge(u: number, v: number, weight: number = 1): void {
+    this.edges[u].push(v);
+    this.weights[u].push(weight);
 
-    this.edges[ui].push(vi);
-    this.weights[ui].push(weight);
-
-    if (ui !== vi) {
-      this.edges[vi].push(ui);
-      this.weights[vi].push(weight);
+    if (u !== v) {
+      this.edges[v].push(u);
+      this.weights[v].push(weight);
     }
   }
 
@@ -250,12 +227,12 @@ export class Graph {
    *
    * **Time Complexity**: O(deg(u) + deg(v))
    *
-   * @param u The handle of the first node.
-   * @param v The handle of the second node.
+   * @param u The index of the first node.
+   * @param v The index of the second node.
    * @param weight The optional weight to match.
    * @returns True if the undirected edge exists, false otherwise.
    */
-  hasUndirectedEdge(u: NodeHandle, v: NodeHandle, weight?: number): boolean {
+  hasUndirectedEdge(u: number, v: number, weight?: number): boolean {
     return this.hasEdge(u, v, weight) && this.hasEdge(v, u, weight);
   }
 
@@ -264,31 +241,29 @@ export class Graph {
    *
    * **Time Complexity**: O(deg(u) + deg(v)) + (Complexity of {@link addUndirectedEdge})
    *
-   * @param u The handle of the first node.
-   * @param v The handle of the second node.
+   * @param u The index of the first node.
+   * @param v The index of the second node.
    * @param weight The new weight of the edge.
    * @param oldWeight The optional old weight to identify the specific edge to update (useful for parallel edges).
    */
   updateUndirectedEdge(
-    u: NodeHandle,
-    v: NodeHandle,
+    u: number,
+    v: number,
     weight: number,
     oldWeight?: number,
   ): void {
-    const ui = u[0];
-    const vi = v[0];
     let found = false;
 
-    const ue = this.findEdgeIndex(ui, vi, oldWeight);
+    const ue = this.findEdgeIndex(u, v, oldWeight);
     if (ue !== -1) {
-      this.weights[ui][ue] = weight;
+      this.weights[u][ue] = weight;
       found = true;
     }
 
-    if (ui !== vi) {
-      const ve = this.findEdgeIndex(vi, ui, oldWeight);
+    if (u !== v) {
+      const ve = this.findEdgeIndex(v, u, oldWeight);
       if (ve !== -1) {
-        this.weights[vi][ve] = weight;
+        this.weights[v][ve] = weight;
       }
     }
 
@@ -306,12 +281,12 @@ export class Graph {
    *
    * **Time Complexity**: O(deg(u) + deg(v))
    *
-   * @param u The handle of the first node.
-   * @param v The handle of the second node.
+   * @param u The index of the first node.
+   * @param v The index of the second node.
    */
-  removeUndirectedEdge(u: NodeHandle, v: NodeHandle): void {
+  removeUndirectedEdge(u: number, v: number): void {
     this.removeEdge(u, v);
-    if (u[0] !== v[0]) {
+    if (u !== v) {
       this.removeEdge(v, u);
     }
   }
@@ -336,24 +311,14 @@ export class Graph {
    * `u -> v` appears with `v` before `u`. When `reverse` is `false`, the result is in
    * forward topological order.
    *
-   * If `allowCycle` is `false`, the method throws when a cycle is detected. If
-   * `allowCycle` is `true`, the method will continue to output the nodes in the
-   * order of their minimum in-degree even if there are loops.
-   *
-   * **Time Complexity**:
-   * - O(V + E) for DAGs.
-   * - O(V^2 + E) in the worst case if `allowCycle` is true and the graph is cyclic.
+   * **Time Complexity**: O(V + E).
    *
    * @param reverse Whether to return the nodes in reverse topological order. Defaults to `false`.
-   * @param allowCycle Whether to continue ordering nodes inside cycles. Defaults to `false`.
-   * @returns An array of node handles sorted according to the selected ordering.
-   * @throws Error if a cycle is detected while `allowCycle` is `false`.
+   * @returns An array of node indices sorted according to the selected ordering.
+   * @throws Error if a cycle is detected.
    */
-  topologicalSort(
-    reverse: boolean = false,
-    allowCycle: boolean = false,
-  ): NodeHandle[] {
-    const nodeCount = this.nodes.length;
+  topologicalSort(reverse: boolean = false): number[] {
+    const nodeCount = this.nodeCount;
     const space = this.space;
     const inDegree = space ? space.u32a : new Uint32Array(nodeCount);
     const stack = space ? space.u32a2 : new Uint32Array(nodeCount);
@@ -377,52 +342,29 @@ export class Graph {
       }
     }
 
-    const result = new Array<NodeHandle>(nodeCount);
+    const result = new Array<number>(nodeCount);
     let count = 0;
 
-    while (count < nodeCount) {
-      if (top === 0) {
-        if (!allowCycle) {
-          inDegree.fill(0, 0, nodeCount);
-          throw new Error('Cycle detected: The graph is not a DAG.');
-        }
+    while (top > 0) {
+      const u = stack[--top];
+      result[count++] = u;
 
-        // Handle cycles: find node with minimum in-degree
-        let minDegree = Number.MAX_SAFE_INTEGER;
-        let minNode = -1;
-
-        for (let i = 0; i < nodeCount; ++i) {
-          const d = inDegree[i];
-          if (d > 0) {
-            if (d < minDegree) {
-              minDegree = d;
-              minNode = i;
-              if (d === 1) break;
-            }
-          }
-        }
-
-        inDegree[minNode] = 0;
-        stack[top++] = minNode;
-      }
-
-      // Process stack
-      while (top > 0) {
-        const u = stack[--top];
-        result[count++] = this.nodes[u];
-
-        const neighbors = edges[u];
-        const len = neighbors.length;
-        for (let i = 0; i < len; ++i) {
-          const v = neighbors[i];
-          if (inDegree[v] > 0) {
-            inDegree[v]--;
-            if (inDegree[v] === 0) {
-              stack[top++] = v;
-            }
-          }
+      const neighbors = edges[u];
+      const len = neighbors.length;
+      for (let i = 0; i < len; ++i) {
+        const v = neighbors[i];
+        inDegree[v]--;
+        if (inDegree[v] === 0) {
+          stack[top++] = v;
         }
       }
+    }
+
+    if (count < nodeCount) {
+      if (space) {
+        inDegree.fill(0, 0, nodeCount);
+      }
+      throw new Error('Cycle detected: The graph is not a DAG.');
     }
 
     if (reverse) {
@@ -437,17 +379,14 @@ export class Graph {
    *
    * **Time Complexity**: O(V + E) - Depth First Search.
    *
-   * @param u The handle of the starting node.
-   * @param v The handle of the target node.
+   * @param u The index of the starting node.
+   * @param v The index of the target node.
    * @returns True if a path exists, false otherwise.
    */
-  hasPath(u: NodeHandle, v: NodeHandle): boolean {
-    const ui = u[0];
-    const vi = v[0];
+  hasPath(u: number, v: number): boolean {
+    if (u === v) return true;
 
-    if (ui === vi) return true;
-
-    const nodeCount = this.nodes.length;
+    const nodeCount = this.nodeCount;
     const space = this.space;
     const visited = space ? space.u32a : new Uint32Array(nodeCount);
     const stack = space ? space.u32a2 : new Uint32Array(nodeCount);
@@ -455,13 +394,13 @@ export class Graph {
     space?.ensureDfsCapacity(nodeCount);
 
     let top = 0;
-    stack[top++] = ui;
-    visited[ui] = token;
+    stack[top++] = u;
+    visited[u] = token;
 
     while (top > 0) {
       const u = stack[--top];
 
-      if (u === vi) return true;
+      if (u === v) return true;
 
       const neighbors = this.edges[u];
       const len = neighbors.length;
@@ -476,6 +415,28 @@ export class Graph {
     }
     return false;
   }
+
+  /**
+   * Clears all edges from the graph, keeping the nodes.
+   *
+   * **Time Complexity**: O(V)
+   */
+  clearEdges(): void {
+    for (let i = 0; i < this.edges.length; i++) {
+      this.edges[i] = [];
+      this.weights[i] = [];
+    }
+  }
+
+  /**
+   * Clears all nodes and edges from the graph.
+   *
+   * **Time Complexity**: O(1)
+   */
+  clear(): void {
+    this.edges = [];
+    this.weights = [];
+  }
 }
 
-export { type NodeHandle as GraphNodeHandle, type Options as GraphOptions };
+export { type Options as GraphOptions };

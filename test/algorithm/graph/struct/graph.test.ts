@@ -130,23 +130,6 @@ describe('Graph', () => {
     expect(() => graph.topologicalSort()).toThrow('Cycle detected');
   });
 
-  it('should break loops when requested', () => {
-    const graph = new Graph({ allowCycle: true });
-    const n1 = graph.addNode();
-    const n2 = graph.addNode();
-    const n3 = graph.addNode();
-    const n4 = graph.addNode();
-
-    graph.addEdge(n1, n2);
-    graph.addEdge(n2, n1);
-    graph.addEdge(n2, n3);
-    graph.addEdge(n4, n2);
-
-    const sorted = graph.topologicalSort(false, true);
-
-    expect(sorted).toEqual([n4, n1, n2, n3]);
-  });
-
   it('should reuse traversal space correctly', () => {
     const space = new GraphTraversalSpace();
 
@@ -172,5 +155,34 @@ describe('Graph', () => {
 
     // Verify Graph 1 still works
     expect(g1.hasPath(n1a, n1c)).toBe(true);
+  });
+
+  it('should clear all nodes and edges', () => {
+    const graph = new Graph();
+    const n1 = graph.addNode();
+    const n2 = graph.addNode();
+    graph.addEdge(n1, n2);
+
+    expect(graph.nodeCount).toBe(2);
+    expect(graph.hasEdge(n1, n2)).toBe(true);
+
+    graph.clear();
+
+    expect(graph.nodeCount).toBe(0);
+  });
+
+  it('should clear all edges but keep nodes', () => {
+    const graph = new Graph();
+    const n1 = graph.addNode();
+    const n2 = graph.addNode();
+    graph.addEdge(n1, n2);
+
+    expect(graph.nodeCount).toBe(2);
+    expect(graph.hasEdge(n1, n2)).toBe(true);
+
+    graph.clearEdges();
+
+    expect(graph.nodeCount).toBe(2);
+    expect(graph.hasEdge(n1, n2)).toBe(false);
   });
 });
