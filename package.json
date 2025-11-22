@@ -703,6 +703,23 @@
         "default": "./dist/default/array.js"
       }
     },
+    "./algorithm": {
+      "cocos": {
+        "require": "./dist/cocos/algorithm.cjs",
+        "import": "./dist/cocos/algorithm.js",
+        "default": "./dist/cocos/algorithm.js"
+      },
+      "node": {
+        "require": "./dist/node/algorithm.cjs",
+        "import": "./dist/node/algorithm.js",
+        "default": "./dist/node/algorithm.js"
+      },
+      "default": {
+        "require": "./dist/default/algorithm.cjs",
+        "import": "./dist/default/algorithm.js",
+        "default": "./dist/default/algorithm.js"
+      }
+    },
     "./ts/union": {
       "cocos": {
         "require": "./dist/cocos/ts/union.cjs",
@@ -788,23 +805,6 @@
         "default": "./dist/default/temporal/formatter.js"
       }
     },
-    "./polyfill/observable": {
-      "cocos": {
-        "require": "./dist/cocos/polyfill/observable.cjs",
-        "import": "./dist/cocos/polyfill/observable.js",
-        "default": "./dist/cocos/polyfill/observable.js"
-      },
-      "node": {
-        "require": "./dist/node/polyfill/observable.cjs",
-        "import": "./dist/node/polyfill/observable.js",
-        "default": "./dist/node/polyfill/observable.js"
-      },
-      "default": {
-        "require": "./dist/default/polyfill/observable.cjs",
-        "import": "./dist/default/polyfill/observable.js",
-        "default": "./dist/default/polyfill/observable.js"
-      }
-    },
     "./pipe/typed-array": {
       "cocos": {
         "require": "./dist/cocos/pipe/typed-array.cjs",
@@ -837,6 +837,23 @@
         "require": "./dist/default/pipe/string.cjs",
         "import": "./dist/default/pipe/string.js",
         "default": "./dist/default/pipe/string.js"
+      }
+    },
+    "./polyfill/observable": {
+      "cocos": {
+        "require": "./dist/cocos/polyfill/observable.cjs",
+        "import": "./dist/cocos/polyfill/observable.js",
+        "default": "./dist/cocos/polyfill/observable.js"
+      },
+      "node": {
+        "require": "./dist/node/polyfill/observable.cjs",
+        "import": "./dist/node/polyfill/observable.js",
+        "default": "./dist/node/polyfill/observable.js"
+      },
+      "default": {
+        "require": "./dist/default/polyfill/observable.cjs",
+        "import": "./dist/default/polyfill/observable.js",
+        "default": "./dist/default/polyfill/observable.js"
       }
     },
     "./math/float": {
@@ -873,23 +890,6 @@
         "default": "./dist/default/math/bigint.js"
       }
     },
-    "./crypto/digest": {
-      "cocos": {
-        "require": "./dist/cocos/crypto/digest.cjs",
-        "import": "./dist/cocos/crypto/digest.js",
-        "default": "./dist/cocos/crypto/digest.js"
-      },
-      "node": {
-        "require": "./dist/node/crypto/digest.cjs",
-        "import": "./dist/node/crypto/digest.js",
-        "default": "./dist/node/crypto/digest.js"
-      },
-      "default": {
-        "require": "./dist/default/crypto/digest.cjs",
-        "import": "./dist/default/crypto/digest.js",
-        "default": "./dist/default/crypto/digest.js"
-      }
-    },
     "./encoding/text": {
       "cocos": {
         "require": "./dist/cocos/encoding/text.cjs",
@@ -924,6 +924,23 @@
         "default": "./dist/default/encoding/byte.js"
       }
     },
+    "./crypto/digest": {
+      "cocos": {
+        "require": "./dist/cocos/crypto/digest.cjs",
+        "import": "./dist/cocos/crypto/digest.js",
+        "default": "./dist/cocos/crypto/digest.js"
+      },
+      "node": {
+        "require": "./dist/node/crypto/digest.cjs",
+        "import": "./dist/node/crypto/digest.js",
+        "default": "./dist/node/crypto/digest.js"
+      },
+      "default": {
+        "require": "./dist/default/crypto/digest.cjs",
+        "import": "./dist/default/crypto/digest.js",
+        "default": "./dist/default/crypto/digest.js"
+      }
+    },
     "./collection/set": {
       "cocos": {
         "require": "./dist/cocos/collection/set.cjs",
@@ -956,6 +973,23 @@
         "require": "./dist/default/collection/map.cjs",
         "import": "./dist/default/collection/map.js",
         "default": "./dist/default/collection/map.js"
+      }
+    },
+    "./algorithm/graph": {
+      "cocos": {
+        "require": "./dist/cocos/algorithm/graph.cjs",
+        "import": "./dist/cocos/algorithm/graph.js",
+        "default": "./dist/cocos/algorithm/graph.js"
+      },
+      "node": {
+        "require": "./dist/node/algorithm/graph.cjs",
+        "import": "./dist/node/algorithm/graph.js",
+        "default": "./dist/node/algorithm/graph.js"
+      },
+      "default": {
+        "require": "./dist/default/algorithm/graph.cjs",
+        "import": "./dist/default/algorithm/graph.js",
+        "default": "./dist/default/algorithm/graph.js"
       }
     },
     "./temporal/format/netnews": {
