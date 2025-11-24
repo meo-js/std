@@ -200,6 +200,20 @@ export const EPSILON = Number.EPSILON;
 export const NAN = Number.NaN;
 
 /**
+ * JavaScript SMI（Small Integer）最大值
+ *
+ * 这与引擎实现有关，并非语言规范的一部分。
+ */
+export const MAX_SMI = 2 ** 30 - 1;
+
+/**
+ * JavaScript SMI（Small Integer）最小值
+ *
+ * 这与引擎实现有关，并非语言规范的一部分。
+ */
+export const MIN_SMI = -(2 ** 30 - 1);
+
+/**
  * 检测值是否为整数
  *
  * - 如果值为 {@link BigInt}，则返回 `true`。

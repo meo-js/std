@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { GraphTraversalSpace } from '../../../../src/algorithm/graph/algo/space.js';
-import { Graph } from '../../../../src/algorithm/graph/struct/graph.js';
+import { Graph } from '../../../../src/algorithm/graph/graph.js';
+import { GraphTraversalSpace } from '../../../../src/algorithm/graph/space.js';
 
 describe('Graph', () => {
   it('should remove a node correctly', () => {
@@ -75,59 +75,6 @@ describe('Graph', () => {
     graph.updateUndirectedEdge(n1, n2, 20);
     expect(graph.hasEdge(n1, n2, 20)).toBe(true);
     expect(graph.hasEdge(n2, n1, 20)).toBe(true);
-  });
-
-  it('should perform topological sort (reverse order)', () => {
-    const graph = new Graph();
-    const n1 = graph.addNode();
-    const n2 = graph.addNode();
-    const n3 = graph.addNode();
-    const n4 = graph.addNode();
-
-    // n1 -> n2 -> n3
-    // n1 -> n4
-    graph.addEdge(n1, n2);
-    graph.addEdge(n2, n3);
-    graph.addEdge(n1, n4);
-
-    const sorted = graph.topologicalSort(true);
-
-    const idx1 = sorted.indexOf(n1);
-    const idx2 = sorted.indexOf(n2);
-    const idx3 = sorted.indexOf(n3);
-    const idx4 = sorted.indexOf(n4);
-
-    // Reverse topological order: v before u
-    expect(idx2).toBeLessThan(idx1);
-    expect(idx4).toBeLessThan(idx1);
-    expect(idx3).toBeLessThan(idx2);
-  });
-
-  it('should perform topological sort', () => {
-    const graph = new Graph();
-    const n1 = graph.addNode();
-    const n2 = graph.addNode();
-    const n3 = graph.addNode();
-
-    graph.addEdge(n1, n2);
-    graph.addEdge(n2, n3);
-
-    const sorted = graph.topologicalSort();
-
-    expect(sorted[0]).toBe(n1);
-    expect(sorted[1]).toBe(n2);
-    expect(sorted[2]).toBe(n3);
-  });
-
-  it('should detect cycle in topological sort', () => {
-    const graph = new Graph({ allowCycle: true });
-    const n1 = graph.addNode();
-    const n2 = graph.addNode();
-
-    graph.addEdge(n1, n2);
-    graph.addEdge(n2, n1);
-
-    expect(() => graph.topologicalSort()).toThrow('Cycle detected');
   });
 
   it('should reuse traversal space correctly', () => {

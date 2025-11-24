@@ -1,4 +1,4 @@
-import { GraphTraversalSpace } from '../algo/space.js';
+import { GraphTraversalSpace } from './space.js';
 
 /**
  * Options for constructing the {@link Graph}.
@@ -39,11 +39,23 @@ export class Graph {
     return this.edges.length;
   }
 
-  private edges: number[][] = [];
-  private weights: number[][] = [];
+  /**
+   * @internal
+   */
+  edges: number[][] = [];
+  /**
+   * @internal
+   */
+  weights: number[][] = [];
 
-  private allowCycle: boolean;
-  private space: GraphTraversalSpace | undefined;
+  /**
+   * @internal
+   */
+  allowCycle: boolean;
+  /**
+   * @internal
+   */
+  space: GraphTraversalSpace | undefined;
 
   constructor(options?: Options) {
     this.allowCycle = options?.allowCycle ?? false;
@@ -305,76 +317,6 @@ export class Graph {
   }
 
   /**
-   * Performs a topological sort on the graph using Kahn's algorithm.
-   *
-   * When `reverse` is `true`, the result is in reverse topological order so every edge
-   * `u -> v` appears with `v` before `u`. When `reverse` is `false`, the result is in
-   * forward topological order.
-   *
-   * **Time Complexity**: O(V + E).
-   *
-   * @param reverse Whether to return the nodes in reverse topological order. Defaults to `false`.
-   * @returns An array of node indices sorted according to the selected ordering.
-   * @throws Error if a cycle is detected.
-   */
-  topologicalSort(reverse: boolean = false): number[] {
-    const nodeCount = this.nodeCount;
-    const space = this.space;
-    const inDegree = space ? space.u32a : new Uint32Array(nodeCount);
-    const stack = space ? space.u32a2 : new Uint32Array(nodeCount);
-    space?.ensureTopoCapacity(nodeCount);
-
-    // Compute in-degrees
-    const edges = this.edges;
-    for (let i = 0; i < nodeCount; ++i) {
-      const neighbors = edges[i];
-      const len = neighbors.length;
-      for (let j = 0; j < len; ++j) {
-        inDegree[neighbors[j]]++;
-      }
-    }
-
-    let top = 0;
-    // Initialize stack with nodes having 0 in-degree
-    for (let i = 0; i < nodeCount; ++i) {
-      if (inDegree[i] === 0) {
-        stack[top++] = i;
-      }
-    }
-
-    const result = new Array<number>(nodeCount);
-    let count = 0;
-
-    while (top > 0) {
-      const u = stack[--top];
-      result[count++] = u;
-
-      const neighbors = edges[u];
-      const len = neighbors.length;
-      for (let i = 0; i < len; ++i) {
-        const v = neighbors[i];
-        inDegree[v]--;
-        if (inDegree[v] === 0) {
-          stack[top++] = v;
-        }
-      }
-    }
-
-    if (count < nodeCount) {
-      if (space) {
-        inDegree.fill(0, 0, nodeCount);
-      }
-      throw new Error('Cycle detected: The graph is not a DAG.');
-    }
-
-    if (reverse) {
-      result.reverse();
-    }
-
-    return result;
-  }
-
-  /**
    * Checks if there is a path from the {@link u} node to the {@link v} node.
    *
    * **Time Complexity**: O(V + E) - Depth First Search.
@@ -388,10 +330,10 @@ export class Graph {
 
     const nodeCount = this.nodeCount;
     const space = this.space;
-    const visited = space ? space.u32a : new Uint32Array(nodeCount);
-    const stack = space ? space.u32a2 : new Uint32Array(nodeCount);
-    const token = space ? ++space.n >>> 0 : 1;
-    space?.ensureDfsCapacity(nodeCount);
+    const isAllocated = space?.lockWithDfs(nodeCount) ?? false;
+    const visited = isAllocated ? space!.u32a4 : new Uint32Array(nodeCount);
+    const stack = isAllocated ? space!.u32a2 : new Uint32Array(nodeCount);
+    const token = isAllocated ? ++space!.n : 1;
 
     let top = 0;
     stack[top++] = u;
@@ -400,7 +342,12 @@ export class Graph {
     while (top > 0) {
       const u = stack[--top];
 
-      if (u === v) return true;
+      if (u === v) {
+        if (isAllocated) {
+          space!.unlock();
+        }
+        return true;
+      }
 
       const neighbors = this.edges[u];
       const len = neighbors.length;
@@ -413,6 +360,11 @@ export class Graph {
         }
       }
     }
+
+    if (isAllocated) {
+      space!.unlock();
+    }
+
     return false;
   }
 
