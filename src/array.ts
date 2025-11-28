@@ -254,7 +254,7 @@ export function insert(arr: unknown[], value: unknown, index: number) {
  * @param rng 随机数生成函数，默认 {@link Math.random}
  */
 export function sample<T>(
-  arr: T[],
+  arr: readonly T[],
   rng: () => number = Math.random,
 ): T | undefined {
   return arr[Math.floor(rng() * arr.length)];
@@ -269,7 +269,7 @@ export function sample<T>(
  * @param rng 随机数生成函数，默认 {@link Math.random}
  */
 export function samples<T>(
-  arr: T[],
+  arr: readonly T[],
   count: number,
   duplicate: boolean = false,
   rng: () => number = Math.random,
@@ -332,41 +332,21 @@ export function prune<T extends unknown[]>(v: T): T {
 }
 
 /**
- * 判断数组 A 是否包含数组 B 的所有元素
- *
- * @param a 数组 A
- * @param b 数组 B
- */
-export function contains(a: unknown[], b: unknown[]) {
-  if (a.length < b.length) return false;
-
-  for (const v of b) {
-    let find = false;
-    for (let i = 0; i < a.length; i++) {
-      const v2 = a[i];
-      if (v === v2) {
-        find = true;
-        break;
-      }
-    }
-    if (!find) return false;
-  }
-  return true;
-}
-
-/**
  * 判断两个数组是否完全相同
  *
  * @param a 数组 A
  * @param b 数组 B
  * @param strictOrder 是否要求一致的元素顺序，默认 `false`
  */
-export function containsExactly(
-  a: unknown[],
-  b: unknown[],
+export function isEquivalentOf(
+  a: readonly unknown[],
+  b: readonly unknown[],
   strictOrder: boolean = false,
 ) {
-  if (a.length !== b.length) return false;
+  const al = a.length;
+  const bl = b.length;
+  if (al !== bl) return false;
+  if (a === b) return true;
 
   if (strictOrder) {
     for (let i = 0; i < a.length; i++) {
@@ -374,21 +354,228 @@ export function containsExactly(
     }
     return true;
   } else {
-    const temp = [...b];
-    for (const v of a) {
-      let find = false;
-      for (let i = 0; i < temp.length; i++) {
-        const v2 = temp[i];
-        if (v === v2) {
-          find = true;
-          temp.splice(i, 1);
+    const used = new Uint8Array(al);
+
+    for (let i = 0; i < al; i++) {
+      const value = a[i];
+      let matched = false;
+
+      for (let j = 0; j < al; j++) {
+        if (used[j] === 0 && value === b[j]) {
+          used[j] = 1;
+          matched = true;
           break;
         }
       }
-      if (!find) return false;
+      if (!matched) return false;
     }
     return true;
   }
+}
+
+/**
+ * Checks whether the {@link a} is a superset of {@link b}.
+ *
+ * The superset relationship is not proper superset, meaning it returns true
+ * if {@link a} and {@link b} contain the same elements, or if {@link b} is empty.
+ */
+export function isSupersetOf(
+  a: readonly unknown[],
+  b: readonly unknown[],
+): boolean {
+  return isSubsetOf(b, a);
+}
+
+/**
+ * Checks whether the {@link a} is a subset of {@link b}.
+ *
+ * The subset relationship is not proper subset, meaning it returns true
+ * if {@link a} and {@link b} contain the same elements, or if {@link a} is empty.
+ */
+export function isSubsetOf(
+  a: readonly unknown[],
+  b: readonly unknown[],
+): boolean {
+  const al = a.length;
+  const bl = b.length;
+  if (al === 0) return true;
+  if (al > bl) return false;
+  if (a === b) return true;
+
+  const used = new Uint8Array(bl);
+
+  for (let i = 0; i < al; i++) {
+    const value = a[i];
+    let matched = false;
+    for (let j = 0; j < bl; j++) {
+      if (used[j] === 0 && value === b[j]) {
+        used[j] = 1;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) return false;
+  }
+
+  return true;
+}
+
+/**
+ * Checks whether the {@link a} is disjoint from {@link b} (they have no elements in common).
+ */
+export function isDisjointFrom(
+  a: readonly unknown[],
+  b: readonly unknown[],
+): boolean {
+  const al = a.length;
+  const bl = b.length;
+  if (al === 0 || bl === 0) return true;
+  if (a === b) return false;
+
+  for (let i = 0; i < al; i++) {
+    const value = a[i];
+    for (let j = 0; j < bl; j++) {
+      if (value === b[j]) return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Returns a new array containing elements found in both {@link a} and {@link b}.
+ *
+ * If an element appears `n` times in {@link a} and `m` times in {@link b},
+ * it will appear `min(n, m)` times in the result.
+ */
+export function intersection<T>(a: readonly T[], b: readonly T[]): T[] {
+  const al = a.length;
+  const bl = b.length;
+  if (al === 0 || bl === 0) return [];
+  if (a === b) return a.slice();
+
+  const result: T[] = [];
+  const used = new Uint8Array(bl);
+
+  for (let i = 0; i < al; i++) {
+    const value = a[i];
+    for (let j = 0; j < bl; j++) {
+      if (used[j] === 0 && value === b[j]) {
+        used[j] = 1;
+        result.push(value);
+        break;
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Returns a new array containing elements in {@link a} that are not in {@link b}.
+ *
+ * If an element appears `n` times in {@link a} and `m` times in {@link b},
+ * it will appear `max(0, n - m)` times in the result.
+ */
+export function difference<T>(a: readonly T[], b: readonly T[]): T[] {
+  const al = a.length;
+  const bl = b.length;
+  if (al === 0) return [];
+  if (bl === 0) return a.slice();
+  if (a === b) return [];
+
+  const result: T[] = [];
+  const used = new Uint8Array(bl);
+
+  for (let i = 0; i < al; i++) {
+    const value = a[i];
+    let matched = false;
+    for (let j = 0; j < bl; j++) {
+      if (used[j] === 0 && value === b[j]) {
+        used[j] = 1;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      result.push(value);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Returns a new array containing elements in {@link a} that are not in {@link b}
+ * and elements in {@link b} that are not in {@link a}.
+ *
+ * If an element appears `n` times in {@link a} and `m` times in {@link b},
+ * it will appear `|n - m|` times in the result.
+ */
+export function symmetricDifference<T>(a: readonly T[], b: readonly T[]): T[] {
+  const al = a.length;
+  const bl = b.length;
+  if (al === 0) return b.slice();
+  if (bl === 0) return a.slice();
+  if (a === b) return [];
+
+  const result: T[] = [];
+  const used = new Uint8Array(bl);
+
+  for (let i = 0; i < al; i++) {
+    const value = a[i];
+    let matched = false;
+    for (let j = 0; j < bl; j++) {
+      if (used[j] === 0 && value === b[j]) {
+        used[j] = 1;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      result.push(value);
+    }
+  }
+
+  for (let j = 0; j < bl; j++) {
+    if (used[j] === 0) {
+      result.push(b[j]);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Returns a new array containing the multiset union of {@link a} and {@link b}.
+ *
+ * If an element appears `n` times in {@link a} and `m` times in {@link b},
+ * it will appear `max(n, m)` times in the result.
+ */
+export function union<T>(a: readonly T[], b: readonly T[]): T[] {
+  const result = a.slice();
+  const al = a.length;
+  const bl = b.length;
+  const used = new Uint8Array(al);
+
+  for (let i = 0; i < bl; i++) {
+    const value = b[i];
+    let found = false;
+
+    for (let j = 0; j < al; j++) {
+      if (used[j] === 0 && a[j] === value) {
+        used[j] = 1;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      result.push(value);
+    }
+  }
+
+  return result;
 }
 
 /**
